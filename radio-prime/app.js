@@ -75,10 +75,19 @@ let isPlaying = false;
 let timeInterval;
 
 let usdToBrl = 5.25; // valor padrão, será atualizado
+let lastUsdBrlFetch = 0; // timestamp da última busca
+const USD_BRL_CACHE_TIME = 60000; // cache de 1 minuto
 
-// CORRIGIDO: Função simplificada para buscar USD/BRL
+// CORRIGIDO: Função com cache para evitar rate limit
 async function fetchUsdToBrl() {
   try {
+    // Verifica se o cache ainda é válido
+    const now = Date.now();
+    if (now - lastUsdBrlFetch < USD_BRL_CACHE_TIME) {
+      console.log('Usando cotação USD/BRL em cache:', usdToBrl);
+      return usdToBrl;
+    }
+
     // A URL completa precisa ser codificada corretamente
     const endpoint = encodeURIComponent('simple/price?ids=tether&vs_currencies=brl');
     const response = await fetch(`/api/coingecko?endpoint=${endpoint}`);
@@ -90,9 +99,16 @@ async function fetchUsdToBrl() {
     const data = await response.json();
     console.log('Resposta USD/BRL:', data); // Debug
 
+    // Verifica se tem erro de rate limit
+    if (data.status && data.status.error_code) {
+      console.warn('Rate limit da CoinGecko atingido, usando valor em cache');
+      return usdToBrl;
+    }
+
     // Verifica se a resposta tem o formato esperado
     if (data && data.tether && typeof data.tether.brl === 'number') {
       usdToBrl = data.tether.brl;
+      lastUsdBrlFetch = now;
       console.log('Cotação USD/BRL atualizada:', usdToBrl);
       return data.tether.brl;
     } else {
@@ -100,15 +116,15 @@ async function fetchUsdToBrl() {
     }
   } catch (error) {
     console.error('Falha ao buscar cotação do dólar:', error);
-    usdToBrl = 5.0; // valor de fallback
-    return 5.0;
+    // Mantém o valor anterior se já tiver um valor válido
+    return usdToBrl;
   }
 }
 
-// Atualiza cotação do dólar a cada 30s
+// Atualiza cotação do dólar a cada 2 minutos (para evitar rate limit)
 setInterval(async () => {
   await fetchUsdToBrl();
-}, 30000);
+}, 120000); // 2 minutos
 
 // Populate Radio Stations
 function populateStations() {
@@ -750,7 +766,7 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
     }
 }
 
-// CORRIGIDO: updateCryptoPrices agora verifica se data é array
+// CORRIGIDO: updateCryptoPrices agora verifica se data é array e trata rate limit
 async function updateCryptoPrices() {
     if (trackedCryptos.length === 0) {
         cryptoList.innerHTML = '';
@@ -761,7 +777,7 @@ async function updateCryptoPrices() {
         return;
     }
 
-    // Atualiza a cotação do dólar antes de buscar os preços das criptos
+    // Atualiza a cotação do dólar (usa cache se necessário)
     await fetchUsdToBrl();
 
     try {
@@ -772,6 +788,12 @@ async function updateCryptoPrices() {
         const data = await response.json();
 
         console.log('Dados de crypto recebidos:', data); // Debug
+
+        // Verifica se tem erro de rate limit
+        if (data.status && data.status.error_code) {
+            console.warn('Rate limit da CoinGecko atingido para cryptos');
+            return; // Mantém os dados atuais
+        }
 
         // CORRIGIDO: Verifica se data é um array antes de usar forEach
         if (!Array.isArray(data)) {

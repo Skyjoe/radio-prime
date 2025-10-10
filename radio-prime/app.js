@@ -63,96 +63,50 @@ const radioStations = [
     { name: 'Instrumental Hits', url: 'https://panel.retrolandigital.com:8130/listen'},
     { name: 'Instrumental Radio', url: ' https://stream-155.zeno.fm/3hhp1s4z8zhvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIzaGhwMXM0ejh6aHZ2IiwiaG9zdCI6InN0cmVhbS0xNTUuemVuby5mbSIsInJ0dGwiOjUsImp0aSI6ImJTM0JaSFB0UU9tWmEwbHNhbkk2dEEiLCJpYXQiOjE3NTc0NDUxNzgsImV4cCI6MTc1NzQ0NTIzOH0.hPkcj23aGyJMEj6nBGhq0M8O-9SmgxoosG6kklPPjEk'},
     { name: 'Easy Instrumentals', url: 'https://nl4.mystreaming.net/uber/easyinstrumentals/icecast.audio'},
-
-   
 ];
 
 let allAvailableCryptos = [];
 let trackedCryptos = [];
 let cryptoUpdateInterval;
-// Proxy para contornar o CORS da CoinGecko
-const PROXY_URL = "https://api.allorigins.win/raw?url=";
 
 const COINGECKO_API_URL = '/api/coingecko?endpoint=';
-
 
 let isPlaying = false;
 let timeInterval;
 
 let usdToBrl = 5.25; // valor padrão, será atualizado
 
+// CORRIGIDO: Função simplificada para buscar USD/BRL
 async function fetchUsdToBrl() {
   try {
-    // Usa uma stablecoin USDT para obter a cotação USD/BRL
+    // Usa tether (USDT) como referência para USD
     const response = await fetch('/api/coingecko?endpoint=simple/price?ids=tether&vs_currencies=brl');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const data = await response.json();
+    console.log('Resposta USD/BRL:', data); // Debug
 
     // Verifica se a resposta tem o formato esperado
-    if (!data || !data.tether || typeof data.tether.brl !== 'number') {
-      throw new Error('Formato de resposta da CoinGecko inválido');
+    if (data && data.tether && typeof data.tether.brl === 'number') {
+      usdToBrl = data.tether.brl;
+      return data.tether.brl;
+    } else {
+      throw new Error('Formato de resposta inválido');
     }
-
-    usdToBrl = data.tether.brl;
-    return data.tether.brl;
   } catch (error) {
-    console.error('Falha ao buscar cotação do dólar, usando valor de fallback.', error);
-    usdToBrl = 5.0; // valor de fallback se a API falhar
+    console.error('Falha ao buscar cotação do dólar:', error);
+    usdToBrl = 5.0; // valor de fallback
     return 5.0;
   }
 }
 
-async function fetchCryptoPrice(coinId, vsCurrency = 'usd') {
-  try {
-    const response = await fetch(`/api/coingecko?endpoint=simple/price?ids=${coinId}&vs_currencies=${vsCurrency}`);
-    const data = await response.json();
-
-    // Verifica se a resposta tem o formato esperado
-    if (!data || !data[coinId] || typeof data[coinId][vsCurrency] !== 'number') {
-      throw new Error(`Formato de resposta inválido para ${coinId}`);
-    }
-
-    return data[coinId][vsCurrency];
-  } catch (error) {
-    console.error(`Falha ao buscar cotação de ${coinId}, usando valor de fallback.`, error);
-    return 0; // fallback caso a API falhe
-  }
-}
-
-
-
-
-// Atualiza a cotação do dólar antes de buscar os preços das criptos
-async function updateCryptoPrices() {
-    if (trackedCryptos.length === 0) {
-        cryptoList.innerHTML = '';
-        if (cryptoUpdateInterval) {
-            clearInterval(cryptoUpdateInterval);
-            cryptoUpdateInterval = null;
-        }
-        return;
-    }
-
-    // Atualiza a cotação do dólar
-    await fetchUsdToBrl();
-
-    try {
-        const ids = trackedCryptos.join(',');
-        const response = await fetch(`${COINGECKO_API_URL}/coins/markets?vs_currency=usd&ids=${ids}`);
-        if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-        const data = await response.json();
-
-        cryptoList.innerHTML = '';
-        data.forEach(displayCrypto);
-    } catch (error) {
-        console.error("Erro ao buscar preços de criptomoedas:", error);
-        errorMessageEl.textContent = "Erro ao atualizar preços de criptomoedas.";
-        setTimeout(() => errorMessageEl.textContent = '', 5000);
-    }
-}
-
-// --- NOVO: atualizar dólar sozinho a cada 30s
-setInterval(fetchUsdToBrl, 30000);
-
+// Atualiza cotação do dólar a cada 30s
+setInterval(async () => {
+  await fetchUsdToBrl();
+}, 30000);
 
 // Populate Radio Stations
 function populateStations() {
@@ -256,14 +210,13 @@ const colorSchemes = {
   yellow: ['#332600', '#664D00', '#997300', '#CC9900', '#FFBF00', '#FFD633']
 };
 
-// Vamos criar um array de colunas que repete as cores 3 e 4
 const columns = [
-  'blue',    // Coluna 1
-  'green',   // Coluna 2
-  'teal',    // Coluna 3
-  'orange',  // Coluna 4
-  'pink',    // Coluna 5 (repetindo a 3)
-  'yellow'   // Coluna 6 (repetindo a 4)
+  'blue',    
+  'green',   
+  'teal',    
+  'orange',  
+  'pink',    
+  'yellow'   
 ];
 const numColumns = columns.length;
 
@@ -299,15 +252,13 @@ function renderEqualizer() {
   columnsEl.forEach((column, i) => {
     const boxes = column.querySelectorAll('.box');
     
-    // Define qual coluna original usar para cálculo (3 ou 4)
     let sourceColumnIndex;
-    if (i === 4) sourceColumnIndex = 2; // Coluna 5 usa o comportamento da coluna 3
-    else if (i === 5) sourceColumnIndex = 3; // Coluna 6 usa o comportamento da coluna 4
-    else sourceColumnIndex = i; // Colunas 1, 2, 3 e 4 usam seu próprio comportamento
+    if (i === 4) sourceColumnIndex = 2;
+    else if (i === 5) sourceColumnIndex = 3;
+    else sourceColumnIndex = i;
     
     const scheme = colorSchemes[column.dataset.colorScheme];
 
-    // Cálculo da intensidade média usando a coluna de referência
     const bufferLen = dataArray.length;
     const start = Math.floor((sourceColumnIndex / columnsEl.length) * bufferLen);
     const end = Math.floor(((sourceColumnIndex + 1) / columnsEl.length) * bufferLen);
@@ -316,17 +267,15 @@ function renderEqualizer() {
     for (let j = start; j < end; j++) sum += dataArray[j];
     let value = sum / (end - start);
     
-    // Amplificação geral para melhor visualização
     value = Math.min(255, value * 1.15);
 
     const activeBoxes = Math.round((value / 255) * boxes.length);
 
-    // Acende apenas os boxes correspondentes à intensidade
     boxes.forEach((box, j) => {
       if (j < activeBoxes) {
         box.style.backgroundColor = scheme[j % scheme.length];
       } else {
-        box.style.backgroundColor = '#000000ff'; // fundo escuro das caixas apagadas
+        box.style.backgroundColor = '#000000ff';
       }
     });
   });
@@ -351,14 +300,11 @@ audioPlayer.addEventListener("play", () => {
   }
 });
 
-// Criar colunas ao carregar
 createColumns();
 window.addEventListener('resize', () => {
   createColumns();
 });
 
-
-// Função para detectar cores escuras
 function isDarkColor(hexColor) {
     const hex = hexColor.replace('#', '');
     const r = parseInt(hex.substring(0, 2), 16);
@@ -368,12 +314,10 @@ function isDarkColor(hexColor) {
     return brightness < 128;
 }
 
-// Função para mudar cor do texto de todos os elementos filhos, exceto inputs, buttons, selects
 function setTextColor(container, color) {
     const textColor = isDarkColor(color) ? '#fff' : '#000';
     container.style.setProperty('color', textColor, 'important');
     container.querySelectorAll('*').forEach(el => {
-        // Aplica cor em todos, exceto elementos interativos
         if (
             el.tagName !== 'INPUT' &&
             el.tagName !== 'BUTTON' &&
@@ -383,37 +327,30 @@ function setTextColor(container, color) {
         ) {
             el.style.setProperty('color', textColor, 'important');
         }
-        // Para inputs, ajusta cor e fundo
         if (el.tagName === 'INPUT') {
             el.style.setProperty('color', textColor, 'important');
             el.style.setProperty('background-color', isDarkColor(color) ? '#222' : '#fff', 'important');
             el.style.caretColor = textColor;
         }
     });
-    // Corrige cor dos botões de tema e background
     themeBtn.style.setProperty('color', textColor, 'important');
     backgroundBtn.style.setProperty('color', textColor, 'important');
 }
 
-// Containers internos
 const containerColors = [
     '#f5f5f5', '#e0f7fa', '#fff3e0', '#f3e5f5', '#fce4ec',
     '#e8f5e9', '#2c3e50', '#34495e', '#7f8c8d', '#8e44ad', '#c0392b'
 ];
 let currentContainerColor = 0;
 
-// Fundo externo
 const backgroundColors = [
     '#f0f8ff', '#fffaf0', '#fdf5e6', '#e6ffe6', '#fff0f5',
     '#f5f5dc', '#1c1c1c', '#2f2f2f', '#3b3b3b', '#0d47a1', '#4a148c'
 ];
 let currentBackgroundColor = 0;
 
-// Botões
 const backgroundBtn = document.getElementById('background-btn');
 
-
-// Evento para mudar cor dos containers internos
 themeBtn.addEventListener('click', () => {
     const color = containerColors[currentContainerColor];
     appContainer.style.backgroundColor = color;
@@ -421,18 +358,12 @@ themeBtn.addEventListener('click', () => {
     currentContainerColor = (currentContainerColor + 1) % containerColors.length;
 });
 
-// Evento para mudar cor do fundo externo
 backgroundBtn.addEventListener('click', () => {
     const color = backgroundColors[currentBackgroundColor];
     document.body.style.backgroundColor = color;
     setTextColor(document.body, color);
     currentBackgroundColor = (currentBackgroundColor + 1) % backgroundColors.length;
 });
-
-
-
-
-
 
 // --- WEATHER FUNCTIONS ---
 
@@ -469,7 +400,6 @@ async function getWeatherAndTime(cityName = null) {
     showLoading();
 
     try {
-        // Primeiro, obter o ID da cidade via API de "current weather"
         const geoApiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=19323201f1e62b73c148d04a7a229454&units=metric&lang=pt`;
         const geoResponse = await fetch(geoApiUrl);
         if (!geoResponse.ok) {
@@ -479,7 +409,6 @@ async function getWeatherAndTime(cityName = null) {
         const geoData = await geoResponse.json();
         const { id: cityId, name, sys: { country }, timezone, coord } = geoData;
 
-        // Agora, obter forecast de 5 dias (a cada 3h)
         const forecastApiUrl = `https://api.openweathermap.org/data/2.5/forecast?id=${cityId}&appid=19323201f1e62b73c148d04a7a229454&units=metric&lang=pt`;
         const forecastResponse = await fetch(forecastApiUrl);
         if (!forecastResponse.ok) throw new Error('Erro ao buscar dados do clima.');
@@ -487,38 +416,26 @@ async function getWeatherAndTime(cityName = null) {
 
         hideLoading();
 
-        // Temperatura atual
         const currentTemp = geoData.main.temp;
         cityNameEl.textContent = `${name}, ${country}`;
         temperatureEl.textContent = `Temperatura atual: ${Math.round(currentTemp)}°C`;
 
-        // Hora local baseada no timezone da cidade
         updateTimeWithOffset(timezone);
         if (timeInterval) clearInterval(timeInterval);
         timeInterval = setInterval(() => updateTimeWithOffset(timezone), 1000);
 
-        // Previsão horária (próximas 12 entradas de 3h)
         displayHourlyForecastOpenWeather(forecastData.list, timezone);
-
-        // Previsão diária (usando os próximos 3 dias)
         displayDailyForecastOpenWeather(forecastData.list);
-
-        // Mostrar mapa
-   showMap(coord.lat, coord.lon, name);
-
+        showMap(coord.lat, coord.lon, name);
 
         resultContainer.classList.remove('hidden');
-
-        // Depois de mostrar temperatura:
-setTextColor(appContainer, appContainer.style.backgroundColor || containerColors[currentContainerColor]);
+        setTextColor(appContainer, appContainer.style.backgroundColor || containerColors[currentContainerColor]);
     } catch (error) {
         showError(error.message);
         console.error(error);
     }
 }
 
-
-// Atualiza hora local baseado no offset do timezone em segundos
 function updateTimeWithOffset(timezoneOffsetSec) {
     const utc = new Date().getTime() + (new Date().getTimezoneOffset() * 60000);
     const localTime = new Date(utc + timezoneOffsetSec * 1000);
@@ -526,7 +443,6 @@ function updateTimeWithOffset(timezoneOffsetSec) {
     localTimeEl.textContent = `Hora Local: ${timeString}`;
 }
 
-// Previsão horária
 function displayHourlyForecastOpenWeather(list, timezoneOffsetSec) {
     const hourlyContainer = document.getElementById('hourly-forecast');
     hourlyContainer.innerHTML = "";
@@ -540,7 +456,6 @@ function displayHourlyForecastOpenWeather(list, timezoneOffsetSec) {
         const temp = Math.round(item.main.temp);
         const { icon, text } = getWeatherIconOpenWeather(item.weather[0].id);
 
-        // Quebrar descrição em palavras e colocar cada palavra em uma linha
         const formattedText = text.split(' ').join('<br>');
 
         const hourBox = document.createElement('div');
@@ -554,13 +469,10 @@ function displayHourlyForecastOpenWeather(list, timezoneOffsetSec) {
     }
 }
 
-
-// Previsão diária (resumida)
 function displayDailyForecastOpenWeather(list) {
     forecastContainer.innerHTML = '';
     const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
-    // Criar objeto com max/min por dia
     const daily = {};
     list.forEach(item => {
         const date = new Date(item.dt * 1000);
@@ -570,7 +482,7 @@ function displayDailyForecastOpenWeather(list) {
         daily[dayKey].weatherIds.push(item.weather[0].id);
     });
 
-    const days = Object.keys(daily).slice(1, 4); // Próximos 3 dias
+    const days = Object.keys(daily).slice(1, 4);
     days.forEach(dayKey => {
         const dayData = daily[dayKey];
         const minTemp = Math.min(...dayData.temps);
@@ -594,7 +506,6 @@ function displayDailyForecastOpenWeather(list) {
     forecastSection.classList.remove('hidden');
 }
 
-// Converte códigos do OpenWeather para emojis e texto
 function getWeatherIconOpenWeather(code) {
     if (code >= 200 && code < 300) return { icon: '⛈️', text: 'Tempestade' };
     if (code >= 300 && code < 400) return { icon: '🌦️', text: 'Chuva leve' };
@@ -608,25 +519,6 @@ function getWeatherIconOpenWeather(code) {
     return { icon: '🌡️', text: 'Indefinido' };
 }
 
-
-
-
-function updateTimeWithOffset(offsetSeconds) {
-    try {
-        const date = new Date();
-        const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
-        const localDate = new Date(utc + (offsetSeconds * 1000));
-        const timeString = localDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        localTimeEl.textContent = `Hora Local: ${timeString}`;
-    } catch {
-        localTimeEl.textContent = 'Hora Local: Indisponível';
-    }
-}
-
-
-
-// --- NOVA FUNÇÃO DE MAPA ---
-
 async function showMap(lat, lon, city) {
     const mapDiv = document.getElementById('map');
     if (!mapDiv) return;
@@ -635,16 +527,13 @@ async function showMap(lat, lon, city) {
         mapInstance.remove();
     }
 
-    // Cria o mapa sem controles de atribuição
     mapInstance = L.map('map', { attributionControl: false }).setView([lat, lon], 12);
 
-    // Camada base
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: ''
     }).addTo(mapInstance);
 
     try {
-        // CORRIGIDO: Busca global pela cidade, sem travar no Brasil
         const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&polygon_geojson=1`;
         
         const res = await fetch(url, { headers: { 'Accept-Language': 'pt-BR' } });
@@ -660,13 +549,11 @@ async function showMap(lat, lon, city) {
                 }
             }).addTo(mapInstance);
             
-            // Ajusta o zoom para caber no contorno
             mapInstance.fitBounds(geoLayer.getBounds());
             mapInstance.setZoom(9);
         } else {
             console.warn("Nenhum polígono encontrado para a cidade, usando apenas o ponto.");
             mapInstance.setView([lat, lon], 12);
-            // Marca o ponto da cidade
             L.marker([lat, lon]).addTo(mapInstance)
                 .bindPopup(city)
                 .openPopup();
@@ -681,35 +568,30 @@ async function showMap(lat, lon, city) {
     }, 300);
 }
 
-
-
-
-
-
-
-
-
-
 // --- CRYPTO FUNCTIONS ---
 
+// CORRIGIDO: Garantir que allAvailableCryptos seja sempre um array
 async function loadAvailableCryptos() {
     try {
-        const response = await fetch(`/api/coingecko?endpoint=coins/list`);
+        const response = await fetch(`${COINGECKO_API_URL}coins/list`);
         if (!response.ok) throw new Error('Não foi possível carregar a lista de criptomoedas.');
         const data = await response.json();
-        allAvailableCryptos = data;
+        
+        // Garantir que seja um array
+        allAvailableCryptos = Array.isArray(data) ? data : [];
+        console.log(`${allAvailableCryptos.length} criptomoedas carregadas`);
     } catch (error) {
         console.error("Erro ao buscar criptomoedas:", error);
+        allAvailableCryptos = []; // Garantir array vazio em caso de erro
         errorMessageEl.textContent = "Erro ao carregar lista de criptomoedas.";
     }
 }
-
 
 function populateCryptoSuggestions() {
     cryptoDatalist.innerHTML = '';
     const inputValue = cryptoInput.value.trim().toLowerCase();
 
-    if (inputValue.length < 2) return;
+    if (inputValue.length < 2 || !Array.isArray(allAvailableCryptos)) return;
 
     const matchingCoins = allAvailableCryptos.filter(coin =>
         (coin.name && coin.name.toLowerCase().startsWith(inputValue)) ||
@@ -728,6 +610,11 @@ function addCrypto() {
     const inputValue = cryptoInput.value.trim();
     if (!inputValue) {
         errorMessageEl.textContent = 'Por favor, digite o nome ou símbolo de uma criptomoeda.';
+        return;
+    }
+
+    if (!Array.isArray(allAvailableCryptos)) {
+        errorMessageEl.textContent = 'Lista de criptomoedas ainda não carregada. Aguarde...';
         return;
     }
 
@@ -820,7 +707,7 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
     if (chartInstance) chartInstance.destroy();
 
     try {
-        const response = await fetch(`${COINGECKO_API_URL}/coins/${cryptoId}/market_chart?vs_currency=usd&days=${currentChartDays}`);
+        const response = await fetch(`${COINGECKO_API_URL}coins/${cryptoId}/market_chart?vs_currency=usd&days=${currentChartDays}`);
         if (!response.ok) throw new Error('Erro ao buscar dados do gráfico');
         const data = await response.json();
 
@@ -859,6 +746,7 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
     }
 }
 
+// CORRIGIDO: updateCryptoPrices agora verifica se data é array
 async function updateCryptoPrices() {
     if (trackedCryptos.length === 0) {
         cryptoList.innerHTML = '';
@@ -874,9 +762,16 @@ async function updateCryptoPrices() {
 
     try {
         const ids = trackedCryptos.join(',');
-        const response = await fetch(`/api/coingecko?endpoint=coins/markets?vs_currency=usd&ids=${ids}`);
+        const response = await fetch(`${COINGECKO_API_URL}coins/markets?vs_currency=usd&ids=${ids}`);
         if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
         const data = await response.json();
+
+        console.log('Dados de crypto recebidos:', data); // Debug
+
+        // CORRIGIDO: Verifica se data é um array antes de usar forEach
+        if (!Array.isArray(data)) {
+            throw new Error('Resposta da API não é um array');
+        }
 
         cryptoList.innerHTML = '';
         data.forEach(displayCrypto);
@@ -889,7 +784,6 @@ async function updateCryptoPrices() {
     }
 }
 
-
 function saveTrackedCryptos() {
     localStorage.setItem('trackedCryptos', JSON.stringify(trackedCryptos));
 }
@@ -897,11 +791,20 @@ function saveTrackedCryptos() {
 function loadTrackedCryptos() {
     const saved = localStorage.getItem('trackedCryptos');
     if (saved) {
-        trackedCryptos = JSON.parse(saved);
-        if (trackedCryptos.length > 0) {
-            updateCryptoPrices();
-            if (cryptoUpdateInterval) clearInterval(cryptoUpdateInterval);
-            cryptoUpdateInterval = setInterval(updateCryptoPrices, 60000);
+        try {
+            trackedCryptos = JSON.parse(saved);
+            // Garantir que seja um array
+            if (!Array.isArray(trackedCryptos)) {
+                trackedCryptos = [];
+            }
+            if (trackedCryptos.length > 0) {
+                updateCryptoPrices();
+                if (cryptoUpdateInterval) clearInterval(cryptoUpdateInterval);
+                cryptoUpdateInterval = setInterval(updateCryptoPrices, 60000);
+            }
+        } catch (e) {
+            console.error('Erro ao carregar cryptos salvas:', e);
+            trackedCryptos = [];
         }
     }
 }

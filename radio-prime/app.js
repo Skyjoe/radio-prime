@@ -70,6 +70,9 @@ const radioStations = [
 let allAvailableCryptos = [];
 let trackedCryptos = [];
 let cryptoUpdateInterval;
+// Proxy para contornar o CORS da CoinGecko
+const PROXY_URL = "https://api.allorigins.win/raw?url=";
+
 const COINGECKO_API_URL = 'https://api.coingecko.com/api/v3';
 
 let isPlaying = false;
@@ -79,7 +82,8 @@ let usdToBrl = 5.25; // valor padrão, será atualizado
 
 async function fetchUsdToBrl() {
     try {
-        const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=brl');
+        const res = await fetch(PROXY_URL + encodeURIComponent('https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=brl'));
+
         if (!res.ok) throw new Error(`API de cotação retornou status ${res.status}`);
         const data = await res.json();
         if (data && data.usd && data.usd.brl) {
@@ -667,7 +671,8 @@ async function showMap(lat, lon, city) {
 
 async function loadAvailableCryptos() {
     try {
-        const response = await fetch(`${COINGECKO_API_URL}/coins/list`);
+        const response = await fetch(PROXY_URL + encodeURIComponent(`${COINGECKO_API_URL}/coins/list`));
+
         if (!response.ok) throw new Error('Não foi possível carregar a lista de criptomoedas.');
         const data = await response.json();
         allAvailableCryptos = data;
@@ -846,7 +851,8 @@ async function updateCryptoPrices() {
 
     try {
         const ids = trackedCryptos.join(',');
-        const response = await fetch(`${COINGECKO_API_URL}/coins/markets?vs_currency=usd&ids=${ids}`);
+        const response = await fetch(PROXY_URL + encodeURIComponent(`${COINGECKO_API_URL}/coins/markets?vs_currency=usd&ids=${ids}`));
+
         if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
         const data = await response.json();
 

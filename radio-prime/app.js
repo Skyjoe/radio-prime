@@ -79,9 +79,9 @@ let usdToBrl = 5.25; // valor padrão, será atualizado
 // CORRIGIDO: Função simplificada para buscar USD/BRL
 async function fetchUsdToBrl() {
   try {
-    // Usa tether (USDT) como referência para USD
-    // IMPORTANTE: Não usar ? dentro do endpoint, usar & para concatenar parâmetros
-    const response = await fetch(`${COINGECKO_API_URL}simple/price&ids=tether&vs_currencies=brl`);
+    // A URL completa precisa ser codificada corretamente
+    const endpoint = encodeURIComponent('simple/price?ids=tether&vs_currencies=brl');
+    const response = await fetch(`/api/coingecko?endpoint=${endpoint}`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -575,7 +575,8 @@ async function showMap(lat, lon, city) {
 // CORRIGIDO: Garantir que allAvailableCryptos seja sempre um array
 async function loadAvailableCryptos() {
     try {
-        const response = await fetch(`${COINGECKO_API_URL}coins/list`);
+        const endpoint = encodeURIComponent('coins/list');
+        const response = await fetch(`/api/coingecko?endpoint=${endpoint}`);
         if (!response.ok) throw new Error('Não foi possível carregar a lista de criptomoedas.');
         const data = await response.json();
         
@@ -709,7 +710,8 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
     if (chartInstance) chartInstance.destroy();
 
     try {
-        const response = await fetch(`${COINGECKO_API_URL}coins/${cryptoId}/market_chart&vs_currency=usd&days=${currentChartDays}`);
+        const endpoint = encodeURIComponent(`coins/${cryptoId}/market_chart?vs_currency=usd&days=${currentChartDays}`);
+        const response = await fetch(`/api/coingecko?endpoint=${endpoint}`);
         if (!response.ok) throw new Error('Erro ao buscar dados do gráfico');
         const data = await response.json();
 
@@ -764,7 +766,8 @@ async function updateCryptoPrices() {
 
     try {
         const ids = trackedCryptos.join(',');
-        const response = await fetch(`${COINGECKO_API_URL}coins/markets&vs_currency=usd&ids=${ids}`);
+        const endpoint = encodeURIComponent(`coins/markets?vs_currency=usd&ids=${ids}`);
+        const response = await fetch(`/api/coingecko?endpoint=${endpoint}`);
         if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
         const data = await response.json();
 

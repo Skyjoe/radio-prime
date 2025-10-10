@@ -83,21 +83,23 @@ let usdToBrl = 5.25; // valor padrão, será atualizado
 
 async function fetchUsdToBrl() {
   try {
-    const response = await fetch('/api/coingecko?endpoint=simple/price?ids=usd&vs_currencies=brl');
+    // Usa uma stablecoin USDT para obter a cotação USD/BRL
+    const response = await fetch('/api/coingecko?endpoint=simple/price?ids=tether&vs_currencies=brl');
     const data = await response.json();
 
     // Verifica se a resposta tem o formato esperado
-    if (!data || !data.usd || typeof data.usd.brl !== 'number') {
+    if (!data || !data.tether || typeof data.tether.brl !== 'number') {
       throw new Error('Formato de resposta da CoinGecko inválido');
     }
 
-    return data.usd.brl;
+    usdToBrl = data.tether.brl;
+    return data.tether.brl;
   } catch (error) {
     console.error('Falha ao buscar cotação do dólar, usando valor de fallback.', error);
-    return 5.0; // valor de fallback se a API falhar
+    usdToBrl = 5.0; // valor de fallback se a API falhar
+    return 5.0;
   }
 }
-
 
 async function fetchCryptoPrice(coinId, vsCurrency = 'usd') {
   try {

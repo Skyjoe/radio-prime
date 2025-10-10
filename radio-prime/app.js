@@ -82,20 +82,40 @@ let timeInterval;
 let usdToBrl = 5.25; // valor padrão, será atualizado
 
 async function fetchUsdToBrl() {
-    try {
-        const res = await fetch(`/api/coingecko?endpoint=simple/price?ids=usd&vs_currencies=brl`);
-        if (!res.ok) throw new Error(`API de cotação retornou status ${res.status}`);
-        const data = await res.json();
-        if (data && data.usd && data.usd.brl) {
-            usdToBrl = parseFloat(data.usd.brl);
-        } else {
-            throw new Error('Formato de resposta da CoinGecko inválido.');
-        }
-    } catch (error) {
-        console.error("Falha ao buscar cotação do dólar, usando valor de fallback.", error);
-        usdToBrl = 5.25; // valor de fallback
+  try {
+    const response = await fetch('/api/coingecko?endpoint=simple/price?ids=usd&vs_currencies=brl');
+    const data = await response.json();
+
+    // Verifica se a resposta tem o formato esperado
+    if (!data || !data.usd || typeof data.usd.brl !== 'number') {
+      throw new Error('Formato de resposta da CoinGecko inválido');
     }
+
+    return data.usd.brl;
+  } catch (error) {
+    console.error('Falha ao buscar cotação do dólar, usando valor de fallback.', error);
+    return 5.0; // valor de fallback se a API falhar
+  }
 }
+
+
+async function fetchCryptoPrice(coinId, vsCurrency = 'usd') {
+  try {
+    const response = await fetch(`/api/coingecko?endpoint=simple/price?ids=${coinId}&vs_currencies=${vsCurrency}`);
+    const data = await response.json();
+
+    // Verifica se a resposta tem o formato esperado
+    if (!data || !data[coinId] || typeof data[coinId][vsCurrency] !== 'number') {
+      throw new Error(`Formato de resposta inválido para ${coinId}`);
+    }
+
+    return data[coinId][vsCurrency];
+  } catch (error) {
+    console.error(`Falha ao buscar cotação de ${coinId}, usando valor de fallback.`, error);
+    return 0; // fallback caso a API falhe
+  }
+}
+
 
 
 

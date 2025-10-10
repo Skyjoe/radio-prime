@@ -73,7 +73,8 @@ let cryptoUpdateInterval;
 // Proxy para contornar o CORS da CoinGecko
 const PROXY_URL = "https://api.allorigins.win/raw?url=";
 
-const COINGECKO_API_URL = 'https://api.coingecko.com/api/v3';
+const COINGECKO_API_URL = '/api/coingecko?endpoint=';
+
 
 let isPlaying = false;
 let timeInterval;
@@ -82,8 +83,7 @@ let usdToBrl = 5.25; // valor padrão, será atualizado
 
 async function fetchUsdToBrl() {
     try {
-        const res = await fetch(PROXY_URL + encodeURIComponent('https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=brl'));
-
+        const res = await fetch(`/api/coingecko?endpoint=simple/price?ids=usd&vs_currencies=brl`);
         if (!res.ok) throw new Error(`API de cotação retornou status ${res.status}`);
         const data = await res.json();
         if (data && data.usd && data.usd.brl) {
@@ -93,9 +93,10 @@ async function fetchUsdToBrl() {
         }
     } catch (error) {
         console.error("Falha ao buscar cotação do dólar, usando valor de fallback.", error);
-        usdToBrl = 5.25; // fallback
+        usdToBrl = 5.25; // valor de fallback
     }
 }
+
 
 
 // Atualiza a cotação do dólar antes de buscar os preços das criptos
@@ -671,8 +672,7 @@ async function showMap(lat, lon, city) {
 
 async function loadAvailableCryptos() {
     try {
-        const response = await fetch(PROXY_URL + encodeURIComponent(`${COINGECKO_API_URL}/coins/list`));
-
+        const response = await fetch(`/api/coingecko?endpoint=coins/list`);
         if (!response.ok) throw new Error('Não foi possível carregar a lista de criptomoedas.');
         const data = await response.json();
         allAvailableCryptos = data;
@@ -681,6 +681,7 @@ async function loadAvailableCryptos() {
         errorMessageEl.textContent = "Erro ao carregar lista de criptomoedas.";
     }
 }
+
 
 function populateCryptoSuggestions() {
     cryptoDatalist.innerHTML = '';
@@ -851,8 +852,7 @@ async function updateCryptoPrices() {
 
     try {
         const ids = trackedCryptos.join(',');
-        const response = await fetch(PROXY_URL + encodeURIComponent(`${COINGECKO_API_URL}/coins/markets?vs_currency=usd&ids=${ids}`));
-
+        const response = await fetch(`/api/coingecko?endpoint=coins/markets?vs_currency=usd&ids=${ids}`);
         if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
         const data = await response.json();
 
@@ -863,9 +863,10 @@ async function updateCryptoPrices() {
         errorMessageEl.textContent = "Erro ao atualizar preços de criptomoedas.";
         setTimeout(() => {
             errorMessageEl.textContent = '';
-        }, 5000); // A chamada recursiva foi removida, pois o setInterval já cuida da próxima atualização.
+        }, 5000);
     }
 }
+
 
 function saveTrackedCryptos() {
     localStorage.setItem('trackedCryptos', JSON.stringify(trackedCryptos));

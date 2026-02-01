@@ -45,7 +45,7 @@ const radioStations = [
     { name: 'Selecione uma rádio...', url: '' },
     { name: 'Radio Gold Instrumental', url: 'https://centova.svdns.com.br:19373/stream?1728788287925' },
     { name: 'Beautiful Instrumental', url: 'https://s3.voscast.com:10038/stream' },    
-    { name: 'Best New Age', url: 'https://104.153.209.180:8000/;stream.mp3' },
+    { name: 'Best New Age', url: '104.153.209.180:8000/;stream.mp3' },
     { name: 'Cinemix', url: 'https://kathy.torontocast.com:1825/stream' },
     { name: 'Esotérica Fm', url: 'https://canais.esoterica.fm.br/8002/stream/1/' },
     { name: 'Beautiful Instrumental Channel', url: 'https://hydra.cdnstream.com/1822_128' },

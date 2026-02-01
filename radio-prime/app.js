@@ -42,7 +42,7 @@ const volumeSlider = document.getElementById('volume-slider');
 const audioPlayer = document.getElementById('audio-player');
 
 const radioStations = [
-       { name: 'Selecione uma rádio...', url: '' },
+    { name: 'Selecione uma rádio...', url: '' },
     { name: 'Radio Gold Instrumental', url: 'https://centova.svdns.com.br:19373/stream?1728788287925' },
     { name: 'Beautiful Instrumental', url: 'https://s3.voscast.com:10038/stream' },    
     { name: 'Best New Age', url: 'https://104.153.209.180:8000/;stream.mp3' },
@@ -52,13 +52,13 @@ const radioStations = [
     { name: 'Beautiful Music', url: 'https://radio.streemlion.com:1665/stream?' },
     { name: 'Chinese Music', url: 'https://radio.chinesemusicworld.com/chinesemusic.mp3' },
     { name: 'Lynn Classical', url: 'https://radio.linn.co.uk:8004/autodj' },    
-    { name: 'Soothing Radio', url: 'https://193.111.125.15:8010/soothingradio' },
-    { name: 'Enigmatic 3', url: 'https://radio.enigmatic.su:8050/radio' },
+    { name: 'Soothing Radio', url: 'http://193.111.125.15:8010/soothingradio' },
+    { name: 'Enigmatic 3', url: 'http://radio.enigmatic.su:8050/radio' },
     { name: 'Actions', url: 'https://lizeradio.com/webplayer/actions.php' },
-    { name: 'Relaxation Island', url: 'https://198.178.123.5:7932/' },
-    { name: 'Enigmatic Immersion', url: 'https://radio.enigmatic.su:8040/radio' },
-    { name: 'Radio Caprice', url: 'https://79.120.77.11:8002/newage' },    
-    { name: 'Instrumental Hits Radio', url: 'https://162.244.81.98:8130/listen' },
+    { name: 'Relaxation Island', url: 'http://198.178.123.5:7932/' },
+    { name: 'Enigmatic Immersion', url: 'http://radio.enigmatic.su:8040/radio' },
+    { name: 'Radio Caprice', url: 'http://79.120.77.11:8002/newage' },    
+    { name: 'Instrumental Hits Radio', url: 'http://162.244.81.98:8130/listen' },
     { name: 'Instrumentales de Oro', url: 'https://stream-169.zeno.fm/0anygxe1b1duv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIwYW55Z3hlMWIxZHV2IiwiaG9zdCI6InN0cmVhbS0xNjkuemVuby5mbSIsInJ0dGwiOjUsImp0aSI6ImRtclRid01uUzJDT2JLaVFkX0RlTHciLCJpYXQiOjE3NTc0NDQyOTMsImV4cCI6MTc1NzQ0NDM1M30.ZhQSv9jIwupM4LOmL9v568unimsZ8YMsWByPTxEFk1A' },
     { name: 'Instrumental Hits', url: 'https://panel.retrolandigital.com:8130/listen'},
     { name: 'Instrumental Radio', url: ' https://stream-155.zeno.fm/3hhp1s4z8zhvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIzaGhwMXM0ejh6aHZ2IiwiaG9zdCI6InN0cmVhbS0xNTUuemVuby5mbSIsInJ0dGwiOjUsImp0aSI6ImJTM0JaSFB0UU9tWmEwbHNhbkk2dEEiLCJpYXQiOjE3NTc0NDUxNzgsImV4cCI6MTc1NzQ0NTIzOH0.hPkcj23aGyJMEj6nBGhq0M8O-9SmgxoosG6kklPPjEk'},

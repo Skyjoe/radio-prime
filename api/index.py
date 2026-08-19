@@ -189,6 +189,58 @@ def proxy():
         logging.error(f'Proxy error: {str(e)}')
         return 'Error proxying request', 500
 
-# Handler para a Vercel
-def handler(request, context):
-    return app(request.environ, request.start_response) No newline at end of file
+@app.route('/api/nominatim', methods=['GET'])
+def nominatim_proxy():
+    """Proxy para a API Nominatim do OpenStreetMap"""
+    try:
+        query = request.args.get('q')
+        if not query:
+            return jsonify({'error': 'Query parameter is required'}), 400
+
+        params = {
+            'q': query,
+            'format': 'json',
+            'polygon_geojson': 1,
+            'addressdetails': 1
+        }
+        
+        headers = {
+            'User-Agent': 'RadioPrimeApp/1.0 (https://radio-prime.vercel.app)'
+        }
+
+        response = requests.get(
+            'https://nominatim.openstreetmap.org/search',
+            params=params,
+            headers=headers,
+            timeout=15
+        )
+
+        if response.status_code == 200:
+            return Response(
+                json.dumps(response.json()),
+                status=200,
+                headers={
+                    'Access-Control-Allow-Origin': '*',
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'public, max-age=3600'
+                }
+            )
+        else:
+            return jsonify({'error': f'Nominatim API error: {response.status_code}'}), response.status_code
+
+    except requests.exceptions.Timeout:
+        logging.error('Timeout connecting to Nominatim')
+        return jsonify({'error': 'Timeout connecting to Nominatim'}), 504
+    except Exception as e:
+        logging.error(f'Proxy error: {str(e)}')
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/')
+def index():
+    return 'Radio Prime API is running!'
+
+if __name__ == '__main__':
+    print('=' * 60)
+    print('Radio Prime API Server')
+    print('=' * 60)
+    app.run(debug=True, host='0.0.0.0', port=5000)

@@ -92,13 +92,17 @@ def crypto_proxy():
                 return jsonify({'error': f'Crypto {crypto_id} not supported'}), 404
             
             symbol = SYMBOL_MAP[crypto_id]
-            full_url = f"{BINANCE_PUBLIC_API}/ticker/price?symbol={symbol}"
+            full_url = f"https://api.binance.com/api/v3/ticker/price?symbol={symbol}"
             
-            # ADICIONA USER-AGENT ESPECÍFICO
+            # Headers para contornar bloqueios
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                'Accept': 'application/json',
-                'Accept-Encoding': 'gzip, deflate'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'application/json, text/plain, */*',
+                'Accept-Language': 'en-US,en;q=0.9,pt;q=0.8',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Connection': 'keep-alive',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
             }
             
             response = requests.get(full_url, headers=headers, timeout=10)
@@ -122,6 +126,7 @@ def crypto_proxy():
                     headers={'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'}
                 )
             else:
+                # Se falhar, tenta uma API alternativa apenas para este caso
                 return jsonify({'error': f'Binance API error: {response.status_code}'}), response.status_code
         
         # CASO 3: Múltiplas moedas
@@ -131,14 +136,16 @@ def crypto_proxy():
             
             results = []
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                'Accept': 'application/json'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'application/json, text/plain, */*',
+                'Accept-Language': 'en-US,en;q=0.9,pt;q=0.8',
+                'Connection': 'keep-alive'
             }
             
             for crypto_id in symbols:
                 if crypto_id in SYMBOL_MAP:
                     symbol = SYMBOL_MAP[crypto_id]
-                    price_url = f"{BINANCE_PUBLIC_API}/ticker/price?symbol={symbol}"
+                    price_url = f"https://api.binance.com/api/v3/ticker/price?symbol={symbol}"
                     try:
                         price_resp = requests.get(price_url, headers=headers, timeout=5)
                         if price_resp.status_code == 200:
@@ -165,7 +172,6 @@ def crypto_proxy():
     except Exception as e:
         logging.error(f'Proxy error: {str(e)}')
         return jsonify({'error': str(e)}), 500
-
 @app.route('/api/proxy')
 def proxy():
     url = request.args.get('url')

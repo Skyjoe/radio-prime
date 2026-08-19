@@ -81,11 +81,13 @@ let usdToBrl = 5.25;
 let lastUsdBrlFetch = 0;
 const USD_BRL_CACHE_TIME = 300000; // 5 minutos
 
-// Função para normalizar URLs
+
+// Função para normalizar URLs - CORRIGIDA
 function normalizeUrl(url) {
     if (!url) return url;
     url = url.trim();
-    if (url.startsWith('http://') || url.startsWith('https://')) {
+    // Se já começa com /, http:// ou https://, retorna como está
+    if (url.startsWith('/') || url.startsWith('http://') || url.startsWith('https://')) {
         return url;
     }
     return 'http://' + url;
@@ -224,8 +226,8 @@ async function fetchUsdToBrl() {
 
     console.log('Buscando cotação USD/BRL...');
     
-    const baseUrl = isLocal ? 'http://localhost:5000' : '';
-    const response = await fetch(`${baseUrl}/api/crypto?endpoint=assets/tether`);
+    // USAR CAMINHO RELATIVO COM /
+    const response = await fetch(`/api/crypto?endpoint=assets/tether`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -535,8 +537,6 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
     }
 }
 
-// Para produção, usa o caminho relativo com barra
-const API_BASE = isLocal ? 'http://localhost:5000' : '';
 
 // Atualizar preços das criptomoedas
 async function updateCryptoPrices() {

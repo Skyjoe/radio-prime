@@ -1,4 +1,3 @@
-const cityInput = document.getElementById('city-.txt
 const cityInput = document.getElementById('city-input');
 const searchBtn = document.getElementById('search-btn');
 const resultContainer = document.getElementById('result-container');

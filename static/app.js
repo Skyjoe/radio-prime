@@ -224,7 +224,6 @@ async function fetchUsdToBrl() {
 
     console.log('Buscando cotação USD/BRL...');
     
-    // Usa a URL base correta (local ou produção)
     const baseUrl = isLocal ? 'http://localhost:5000' : '';
     const response = await fetch(`${baseUrl}/api/crypto?endpoint=assets/tether`);
     
@@ -235,7 +234,6 @@ async function fetchUsdToBrl() {
     const data = await response.json();
     
     if (data && data.data && data.data.priceUsd) {
-      // Busca a cotação do USDT em BRL
       const brlResponse = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTBRL');
       if (brlResponse.ok) {
         const brlData = await brlResponse.json();
@@ -246,7 +244,6 @@ async function fetchUsdToBrl() {
           return usdToBrl;
         }
       }
-      // Fallback para valor aproximado
       usdToBrl = 5.21;
       lastUsdBrlFetch = now;
       return usdToBrl;
@@ -328,7 +325,6 @@ function addCrypto() {
     
     let selectedCoin = null;
     
-    // Verifica se o input está no formato "Nome (SÍMBOLO)"
     const match = inputValue.match(/^(.+?)\s*\((.+?)\)\s*$/);
     
     if (match) {
@@ -337,14 +333,12 @@ function addCrypto() {
         
         console.log(`Buscando: NOME="${namePart}", SÍMBOLO="${symbolPart}"`);
         
-        // Busca exata por nome E símbolo
         selectedCoin = allAvailableCryptos.find(coin => {
             const coinName = coin.name.trim();
             const coinSymbol = coin.symbol ? coin.symbol.toUpperCase() : '';
             return coinName === namePart && coinSymbol === symbolPart;
         });
         
-        // Se não encontrou, tenta só pelo símbolo
         if (!selectedCoin) {
             selectedCoin = allAvailableCryptos.find(coin => {
                 const coinSymbol = coin.symbol ? coin.symbol.toUpperCase() : '';
@@ -352,7 +346,6 @@ function addCrypto() {
             });
         }
         
-        // Se ainda não encontrou, tenta só pelo nome
         if (!selectedCoin) {
             selectedCoin = allAvailableCryptos.find(coin => {
                 return coin.name.trim() === namePart;
@@ -361,19 +354,16 @@ function addCrypto() {
     } else {
         const searchTerm = inputValue.toLowerCase();
         
-        // Busca exata por símbolo
         selectedCoin = allAvailableCryptos.find(coin => 
             coin.symbol && coin.symbol.toLowerCase() === searchTerm
         );
         
-        // Busca exata por nome
         if (!selectedCoin) {
             selectedCoin = allAvailableCryptos.find(coin => 
                 coin.name.toLowerCase() === searchTerm
             );
         }
         
-        // Busca por nome que começa com o termo
         if (!selectedCoin) {
             selectedCoin = allAvailableCryptos.find(coin => 
                 coin.name.toLowerCase().startsWith(searchTerm) ||
@@ -475,7 +465,6 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
     try {
         const baseUrl = isLocal ? 'http://localhost:5000' : '';
         
-        // Para o gráfico, vamos usar dados da Binance (últimos 24h)
         const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${cryptoSymbol.toUpperCase()}USDT&interval=1h&limit=24`);
         
         if (!response.ok) {
@@ -485,7 +474,7 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
         const data = await response.json();
         
         if (data && Array.isArray(data)) {
-            const prices = data.map(item => parseFloat(item[4])); // Preço de fechamento
+            const prices = data.map(item => parseFloat(item[4]));
             const labels = data.map(item => {
                 const date = new Date(item[0]);
                 return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -598,7 +587,7 @@ function loadTrackedCryptos() {
             if (trackedCryptos.length > 0) {
                 updateCryptoPrices();
                 if (cryptoUpdateInterval) clearInterval(cryptoUpdateInterval);
-                cryptoUpdateInterval = setInterval(updateCryptoPrices, 120000); // 2 minutos
+                cryptoUpdateInterval = setInterval(updateCryptoPrices, 120000);
             }
         } catch (e) {
             console.error('Erro ao carregar cryptos salvas:', e);
@@ -788,7 +777,6 @@ async function showMap(lat, lon, city) {
     }).addTo(mapInstance);
 
     try {
-        // ✅ CORREÇÃO: Usa o proxy do servidor
         const baseUrl = isLocal ? 'http://localhost:5000' : '';
         const url = `${baseUrl}/api/nominatim?q=${encodeURIComponent(city)}`;
         
@@ -823,6 +811,7 @@ async function showMap(lat, lon, city) {
         mapInstance.invalidateSize();
     }, 300);
 }
+
 // ===== BACKGROUND ESTILO EQUALIZADOR =====
 const colorSchemes = {
   blue: ['#001F3F', '#003366', '#004C99', '#0066CC', '#0080FF', '#3399FF'],

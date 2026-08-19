@@ -94,7 +94,14 @@ def crypto_proxy():
             symbol = SYMBOL_MAP[crypto_id]
             full_url = f"{BINANCE_PUBLIC_API}/ticker/price?symbol={symbol}"
             
-            response = requests.get(full_url, timeout=10)
+            # ADICIONA USER-AGENT ESPECÍFICO
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Accept': 'application/json',
+                'Accept-Encoding': 'gzip, deflate'
+            }
+            
+            response = requests.get(full_url, headers=headers, timeout=10)
             
             if response.status_code == 200:
                 data = response.json()
@@ -123,12 +130,17 @@ def crypto_proxy():
             symbols = ids_part.split(',')
             
             results = []
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Accept': 'application/json'
+            }
+            
             for crypto_id in symbols:
                 if crypto_id in SYMBOL_MAP:
                     symbol = SYMBOL_MAP[crypto_id]
                     price_url = f"{BINANCE_PUBLIC_API}/ticker/price?symbol={symbol}"
                     try:
-                        price_resp = requests.get(price_url, timeout=5)
+                        price_resp = requests.get(price_url, headers=headers, timeout=5)
                         if price_resp.status_code == 200:
                             price_data = price_resp.json()
                             crypto_info = next((c for c in SUPPORTED_CRYPTOS if c['id'] == crypto_id), None)

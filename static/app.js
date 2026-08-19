@@ -82,14 +82,21 @@ let lastUsdBrlFetch = 0;
 const USD_BRL_CACHE_TIME = 300000; // 5 minutos
 
 
-// Função para normalizar URLs - CORRIGIDA
+// Função para normalizar URLs - CORRIGIDA DEFINITIVAMENTE
 function normalizeUrl(url) {
     if (!url) return url;
     url = url.trim();
+    
     // Se já começa com /, http:// ou https://, retorna como está
     if (url.startsWith('/') || url.startsWith('http://') || url.startsWith('https://')) {
         return url;
     }
+    
+    // Se começa com api/ (sem barra), adiciona a barra
+    if (url.startsWith('api/')) {
+        return '/' + url;
+    }
+    
     return 'http://' + url;
 }
 
@@ -152,15 +159,25 @@ function togglePlayPause() {
 function handleStationChange() {
     const selectedUrl = stationSelect.value;
     if (selectedUrl) {
-        const normalizedUrl = normalizeUrl(selectedUrl);
-        console.log('Tocando:', normalizedUrl);
+        // Garante que a URL comece com / para ser relativa ao domínio
+        let url = selectedUrl;
+        if (!url.startsWith('/') && !url.startsWith('http://') && !url.startsWith('https://')) {
+            url = '/' + url;
+        }
+        
+        // Se a URL começa com http://, converte para https:// em produção
+        if (!isLocal && url.startsWith('http://')) {
+            url = url.replace('http://', 'https://');
+        }
+        
+        console.log('Tocando:', url);
         
         if (isPlaying) {
             audioPlayer.pause();
             isPlaying = false;
         }
         
-        audioPlayer.src = normalizedUrl;
+        audioPlayer.src = url;
         audioPlayer.load();
         
         const playPromise = audioPlayer.play();

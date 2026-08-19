@@ -84,28 +84,28 @@ def crypto_proxy():
                 headers={'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'}
             )
         
+        # Headers para contornar bloqueios
+        HEADERS = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en-US,en;q=0.9,pt;q=0.8',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+        }
+        
         # CASO 2: Preço de uma moeda específica
-        elif decoded_endpoint.startswith('assets/'):
+        if decoded_endpoint.startswith('assets/'):
             crypto_id = decoded_endpoint.replace('assets/', '')
             
             if crypto_id not in SYMBOL_MAP:
                 return jsonify({'error': f'Crypto {crypto_id} not supported'}), 404
             
             symbol = SYMBOL_MAP[crypto_id]
-            full_url = f"https://api.binance.com/api/v3/ticker/price?symbol={symbol}"
+            full_url = f"{BINANCE_PUBLIC_API}/ticker/price?symbol={symbol}"
             
-            # Headers para contornar bloqueios
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'application/json, text/plain, */*',
-                'Accept-Language': 'en-US,en;q=0.9,pt;q=0.8',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'Connection': 'keep-alive',
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache'
-            }
-            
-            response = requests.get(full_url, headers=headers, timeout=10)
+            response = requests.get(full_url, headers=HEADERS, timeout=10)
             
             if response.status_code == 200:
                 data = response.json()
@@ -126,7 +126,7 @@ def crypto_proxy():
                     headers={'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'}
                 )
             else:
-                # Se falhar, tenta uma API alternativa apenas para este caso
+                logging.error(f'Binance API error: {response.status_code} - {response.text}')
                 return jsonify({'error': f'Binance API error: {response.status_code}'}), response.status_code
         
         # CASO 3: Múltiplas moedas
@@ -135,19 +135,12 @@ def crypto_proxy():
             symbols = ids_part.split(',')
             
             results = []
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'application/json, text/plain, */*',
-                'Accept-Language': 'en-US,en;q=0.9,pt;q=0.8',
-                'Connection': 'keep-alive'
-            }
-            
             for crypto_id in symbols:
                 if crypto_id in SYMBOL_MAP:
                     symbol = SYMBOL_MAP[crypto_id]
-                    price_url = f"https://api.binance.com/api/v3/ticker/price?symbol={symbol}"
+                    price_url = f"{BINANCE_PUBLIC_API}/ticker/price?symbol={symbol}"
                     try:
-                        price_resp = requests.get(price_url, headers=headers, timeout=5)
+                        price_resp = requests.get(price_url, headers=HEADERS, timeout=5)
                         if price_resp.status_code == 200:
                             price_data = price_resp.json()
                             crypto_info = next((c for c in SUPPORTED_CRYPTOS if c['id'] == crypto_id), None)
@@ -157,6 +150,8 @@ def crypto_proxy():
                                 'symbol': crypto_info['symbol'] if crypto_info else symbol.replace('USDT', '').replace('BRL', ''),
                                 'priceUsd': price_data.get('price', '0')
                             })
+                        else:
+                            logging.warning(f'Erro ao buscar {crypto_id}: status {price_resp.status_code}')
                     except Exception as e:
                         logging.warning(f'Erro ao buscar {crypto_id}: {str(e)}')
             
@@ -172,6 +167,7 @@ def crypto_proxy():
     except Exception as e:
         logging.error(f'Proxy error: {str(e)}')
         return jsonify({'error': str(e)}), 500
+
 @app.route('/api/proxy')
 def proxy():
     url = request.args.get('url')
@@ -180,32 +176,87 @@ def proxy():
     
     try:
         decoded_url = urllib.parse.unquote(url)
+        logging.info(f'Proxying request to: {decoded_url}')
         
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': '*/*',
+            'Accept-Encoding': 'gzip, deflate',
+            'Connection': 'keep-alive',
+            'Icy-MetaData': '1'
         }
-        response = requests.get(decoded_url, headers=headers, stream=True, timeout=30)
+        
+        response = requests.get(
+            decoded_url, 
+            headers=headers, 
+            stream=True, 
+            timeout=30,
+            verify=False
+        )
         
         if response.status_code != 200:
+            logging.error(f'Radio returned status: {response.status_code}')
             return f'Radio server error: {response.status_code}', response.status_code
         
+        # Determina o tipo de conteúdo
+        content_type = response.headers.get('content-type', 'audio/mpeg')
+        if 'audio' not in content_type and 'application' not in content_type:
+            content_type = 'audio/mpeg'
+        
         def generate():
-            for chunk in response.iter_content(chunk_size=8192):
-                if chunk:
-                    yield chunk
+            try:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        yield chunk
+            except Exception as e:
+                logging.error(f'Error streaming: {str(e)}')
+                yield b''
         
         return Response(
             generate(),
             status=200,
             headers={
                 'Access-Control-Allow-Origin': '*',
-                'Content-Type': response.headers.get('content-type', 'audio/mpeg'),
-                'Cache-Control': 'no-cache'
+                'Access-Control-Allow-Methods': 'GET, OPTIONS',
+                'Access-Control-Allow-Headers': '*',
+                'Content-Type': content_type,
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+                'Connection': 'keep-alive'
             }
         )
+        
+    except requests.exceptions.SSLError as e:
+        logging.error(f'SSL Error: {str(e)}')
+        try:
+            response = requests.get(decoded_url, headers=headers, stream=True, timeout=30, verify=False)
+            if response.status_code == 200:
+                def generate():
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:
+                            yield chunk
+                return Response(
+                    generate(),
+                    status=200,
+                    headers={
+                        'Access-Control-Allow-Origin': '*',
+                        'Content-Type': 'audio/mpeg',
+                        'Cache-Control': 'no-cache'
+                    }
+                )
+        except:
+            pass
+        return 'SSL Error connecting to radio', 500
+    except requests.exceptions.Timeout:
+        logging.error('Timeout connecting to radio')
+        return 'Timeout connecting to radio', 504
+    except requests.exceptions.ConnectionError as e:
+        logging.error(f'Connection error: {str(e)}')
+        return 'Connection error to radio', 503
     except Exception as e:
         logging.error(f'Proxy error: {str(e)}')
-        return 'Error proxying request', 500
+        return f'Error proxying request: {str(e)}', 500
 
 @app.route('/api/nominatim', methods=['GET'])
 def nominatim_proxy():

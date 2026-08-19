@@ -1,3 +1,4 @@
+const cityInput = document.getElementById('city-.txt
 const cityInput = document.getElementById('city-input');
 const searchBtn = document.getElementById('search-btn');
 const resultContainer = document.getElementById('result-container');
@@ -788,9 +789,11 @@ async function showMap(lat, lon, city) {
     }).addTo(mapInstance);
 
     try {
-        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&polygon_geojson=1`;
+        // ✅ CORREÇÃO: Usa o proxy do servidor
+        const baseUrl = isLocal ? 'http://localhost:5000' : '';
+        const url = `${baseUrl}/api/nominatim?q=${encodeURIComponent(city)}`;
         
-        const res = await fetch(url, { headers: { 'Accept-Language': 'pt-BR' } });
+        const res = await fetch(url);
         const data = await res.json();
 
         if (data.length > 0 && data[0].geojson) {
@@ -821,7 +824,6 @@ async function showMap(lat, lon, city) {
         mapInstance.invalidateSize();
     }, 300);
 }
-
 // ===== BACKGROUND ESTILO EQUALIZADOR =====
 const colorSchemes = {
   blue: ['#001F3F', '#003366', '#004C99', '#0066CC', '#0080FF', '#3399FF'],

@@ -48,26 +48,26 @@ const audioPlayer = document.getElementById('audio-player');
 
 const radioStations = [
     { name: 'Selecione uma rádio...', url: '' },
-    { name: 'Radio Gold Instrumental', url: `${SERVER_URL}/api/proxy?url=https://centova.svdns.com.br:19373/stream?1728788287925` },
-    { name: 'Beautiful Instrumental', url: `${SERVER_URL}/api/proxy?url=http://s3.voscast.com:10038/stream` },
-    { name: 'Best New Age', url: `${SERVER_URL}/api/proxy?url=http://104.153.209.180:8000/;stream.mp3` },
-    { name: 'Cinemix', url: `${SERVER_URL}/api/proxy?url=https://kathy.torontocast.com:1825/stream` },
-    { name: 'Esotérica Fm', url: `${SERVER_URL}/api/proxy?url=https://canais.esoterica.fm.br/8002/stream/1/` },
-    { name: 'Beautiful Instrumental Channel', url: `${SERVER_URL}/api/proxy?url=https://hydra.cdnstream.com/1822_128` },
-    { name: 'Beautiful Music', url: `${SERVER_URL}/api/proxy?url=https://radio.streemlion.com:1665/stream?` },
-    { name: 'Chinese Music', url: 'https://radio.chinesemusicworld.com/chinesemusic.mp3' },
-    { name: 'Lynn Classical', url: `${SERVER_URL}/api/proxy?url=https://radio.linn.co.uk:8004/autodj` },    
-    { name: 'Soothing Radio', url: `${SERVER_URL}/api/proxy?url=http://193.111.125.15:8010/soothingradio` },
-    { name: 'Enigmatic 3', url: `${SERVER_URL}/api/proxy?url=http://radio.enigmatic.su:8050/radio` },
-    { name: 'Actions', url: `${SERVER_URL}/api/proxy?url=https://lizeradio.com/webplayer/actions.php` },
-    { name: 'Relaxation Island', url: `${SERVER_URL}/api/proxy?url=http://198.178.123.5:7932/` },
-    { name: 'Enigmatic Immersion', url: `${SERVER_URL}/api/proxy?url=http://radio.enigmatic.su:8040/radio` },
-    { name: 'Radio Caprice', url: `${SERVER_URL}/api/proxy?url=http://79.120.77.11:8002/newage` },    
-    { name: 'Instrumental Hits Radio', url: `${SERVER_URL}/api/proxy?url=http://162.244.81.98:8130/listen` },
-    { name: 'Instrumentales de Oro', url: `${SERVER_URL}/api/proxy?url=${encodeURIComponent('https://stream-169.zeno.fm/0anygxe1b1duv')}` },
-    { name: 'Instrumental Hits', url: `${SERVER_URL}/api/proxy?url=${encodeURIComponent('https://panel.retrolandigital.com:8130/listen')}` },
-    { name: 'Instrumental Radio', url: `${SERVER_URL}/api/proxy?url=${encodeURIComponent('https://stream-155.zeno.fm/3hhp1s4z8zhvv')}` },
-    { name: 'Easy Instrumentals', url: `${SERVER_URL}/api/proxy?url=${encodeURIComponent('https://nl4.mystreaming.net/uber/easyinstrumentals/icecast.audio')}` }
+    { name: 'Radio Gold Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://centova.svdns.com.br:19373/stream?1728788287925') },
+    { name: 'Beautiful Instrumental', url: '/api/proxy?url=' + encodeURIComponent('http://s3.voscast.com:10038/stream') },
+    { name: 'Best New Age', url: '/api/proxy?url=' + encodeURIComponent('http://104.153.209.180:8000/;stream.mp3') },
+    { name: 'Cinemix', url: '/api/proxy?url=' + encodeURIComponent('https://kathy.torontocast.com:1825/stream') },
+    { name: 'Esotérica Fm', url: '/api/proxy?url=' + encodeURIComponent('https://canais.esoterica.fm.br/8002/stream/1/') },
+    { name: 'Beautiful Instrumental Channel', url: '/api/proxy?url=' + encodeURIComponent('https://hydra.cdnstream.com/1822_128') },
+    { name: 'Beautiful Music', url: '/api/proxy?url=' + encodeURIComponent('https://radio.streemlion.com:1665/stream?') },
+    { name: 'Chinese Music', url: '/api/proxy?url=' + encodeURIComponent('https://radio.chinesemusicworld.com/chinesemusic.mp3') },
+    { name: 'Lynn Classical', url: '/api/proxy?url=' + encodeURIComponent('https://radio.linn.co.uk:8004/autodj') },    
+    { name: 'Soothing Radio', url: '/api/proxy?url=' + encodeURIComponent('http://193.111.125.15:8010/soothingradio') },
+    { name: 'Enigmatic 3', url: '/api/proxy?url=' + encodeURIComponent('http://radio.enigmatic.su:8050/radio') },
+    { name: 'Actions', url: '/api/proxy?url=' + encodeURIComponent('https://lizeradio.com/webplayer/actions.php') },
+    { name: 'Relaxation Island', url: '/api/proxy?url=' + encodeURIComponent('http://198.178.123.5:7932/') },
+    { name: 'Enigmatic Immersion', url: '/api/proxy?url=' + encodeURIComponent('http://radio.enigmatic.su:8040/radio') },
+    { name: 'Radio Caprice', url: '/api/proxy?url=' + encodeURIComponent('http://79.120.77.11:8002/newage') },    
+    { name: 'Instrumental Hits Radio', url: '/api/proxy?url=' + encodeURIComponent('http://162.244.81.98:8130/listen') },
+    { name: 'Instrumentales de Oro', url: '/api/proxy?url=' + encodeURIComponent('https://stream-169.zeno.fm/0anygxe1b1duv') },
+    { name: 'Instrumental Hits', url: '/api/proxy?url=' + encodeURIComponent('https://panel.retrolandigital.com:8130/listen') },
+    { name: 'Instrumental Radio', url: '/api/proxy?url=' + encodeURIComponent('https://stream-155.zeno.fm/3hhp1s4z8zhvv') },
+    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://nl4.mystreaming.net/uber/easyinstrumentals/icecast.audio') }
 ];
 
 let allAvailableCryptos = [];
@@ -534,6 +534,9 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
         }, 3000);
     }
 }
+
+// Para produção, usa o caminho relativo com barra
+const API_BASE = isLocal ? 'http://localhost:5000' : '';
 
 // Atualizar preços das criptomoedas
 async function updateCryptoPrices() {

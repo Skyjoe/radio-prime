@@ -419,11 +419,13 @@ function removeCrypto(idToRemove) {
 }
 
 function displayCrypto(data) {
-    // Altere current_price para priceUsd
-    const { id, name, symbol, priceUsd } = data;
-    const current_price = parseFloat(priceUsd);
+    const { id, name, symbol, priceUsd, current_price } = data;
+    
+    // Aceita tanto priceUsd quanto current_price
+    const priceVal = priceUsd !== undefined ? priceUsd : current_price;
+    const numericPrice = parseFloat(priceVal);
 
-    if (isNaN(current_price)) {
+    if (isNaN(numericPrice)) {
         console.warn(`Preço não disponível para ${name}`);
         return;
     }
@@ -438,7 +440,7 @@ function displayCrypto(data) {
     }
 
     const isUSDT = symbol && symbol.toUpperCase() === "USDT";
-    const precoFinal = isUSDT ? current_price * usdToBrl : current_price;
+    const precoFinal = isUSDT ? numericPrice * usdToBrl : numericPrice;
     const simbolo = isUSDT ? "R$" : "$";
     const symbolDisplay = symbol ? symbol.toUpperCase() : 'N/A';
 

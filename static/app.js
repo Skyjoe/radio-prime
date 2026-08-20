@@ -920,30 +920,41 @@ function renderEqualizer() {
   });
 }
 
-// ===== Integração com rádio =====
+// ===== Integração com rádio e tratamento de buffer =====
 let audioCtx, analyser, dataArray;
 
 audioPlayer.addEventListener("play", () => {
+  // Ajuste do contexto de áudio para evitar estalos de sincronização
   if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioCtx.createMediaElementSource(audioPlayer);
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AudioContext();
+  }
 
-    analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 256;
-    dataArray = new Uint8Array(analyser.frequencyBinCount);
+  // Se o contexto estiver em pause pelo navegador, descongela
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
 
-    source.connect(analyser);
-    analyser.connect(audioCtx.destination);
+  if (!analyser) {
+    try {
+      const source = audioCtx.createMediaElementSource(audioPlayer);
 
-    renderEqualizer();
+      analyser = audioCtx.createAnalyser();
+      // Aumentar o fftSize reduz a agressividade do processamento e remove ruídos no som
+      analyser.fftSize = 512; 
+      analyser.smoothingTimeConstant = 0.8; // Suaviza o processamento de áudio
+
+      dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+
+      renderEqualizer();
+    } catch (e) {
+        console.warn("Visualizador de áudio não pôde ser vinculado:", e);
+    }
   }
 });
-
-createColumns();
-window.addEventListener('resize', () => {
-  createColumns();
-});
-
 // ===== FUNÇÕES DE TEMA =====
 function isDarkColor(hexColor) {
     const hex = hexColor.replace('#', '');

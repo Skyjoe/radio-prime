@@ -182,7 +182,7 @@ def proxy():
             'Accept': '*/*',
             'Accept-Encoding': 'identity',  # Força áudio não compactado para não ter falhas
             'Connection': 'keep-alive',
-            'Icy-MetaData': '1'
+
         }
         
         response = requests.get(

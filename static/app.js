@@ -233,6 +233,7 @@ audioPlayer.addEventListener('stalled', () => {
 // ===== FUNÇÕES DE CRIPTOMOEDAS =====
 
 // Buscar cotação USD/BRL
+// Buscar cotação USD/BRL
 async function fetchUsdToBrl() {
   try {
     const now = Date.now();
@@ -241,37 +242,29 @@ async function fetchUsdToBrl() {
       return usdToBrl;
     }
 
-    console.log('Buscando cotação USD/BRL...');
+    console.log('Buscando cotação USD/BRL diretamente da Binance...');
     
-    // USAR CAMINHO RELATIVO COM /
-    const response = await fetch(`/api/crypto?endpoint=assets/tether`);
+    // Chamada direta à Binance pelo navegador (sem passar pelo servidor Flask/Vercel)
+    const brlResponse = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTBRL');
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (!brlResponse.ok) {
+      throw new Error(`HTTP error! status: ${brlResponse.status}`);
     }
     
-    const data = await response.json();
+    const brlData = await brlResponse.json();
     
-    if (data && data.data && data.data.priceUsd) {
-      const brlResponse = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTBRL');
-      if (brlResponse.ok) {
-        const brlData = await brlResponse.json();
-        if (brlData && brlData.price) {
-          usdToBrl = parseFloat(brlData.price);
-          lastUsdBrlFetch = now;
-          console.log('Cotação USD/BRL atualizada:', usdToBrl);
-          return usdToBrl;
-        }
-      }
-      usdToBrl = 5.21;
+    if (brlData && brlData.price) {
+      usdToBrl = parseFloat(brlData.price);
       lastUsdBrlFetch = now;
+      console.log('Cotação USD/BRL atualizada com sucesso:', usdToBrl);
       return usdToBrl;
     } else {
-      console.warn('Formato de resposta inválido:', data);
+      console.warn('Formato de resposta inválido da Binance:', brlData);
       return usdToBrl;
     }
   } catch (error) {
     console.error('Falha ao buscar cotação do dólar:', error);
+    // Em caso de falha de rede, usa o valor atual/padrão que já estava na memória
     return usdToBrl;
   }
 }

@@ -554,6 +554,8 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
 
 // Atualizar preços das criptomoedas diretamente pelo navegador
 async function updateCryptoPrices() {
+    console.log('🔄 Atualizando preços para a lista:', trackedCryptos);
+
     if (trackedCryptos.length === 0) {
         cryptoList.innerHTML = '';
         if (cryptoUpdateInterval) {
@@ -566,49 +568,59 @@ async function updateCryptoPrices() {
     try {
         const results = [];
 
-        // Para cada moeda adicionada, faz a requisição direta à Binance
         for (const cryptoId of trackedCryptos) {
-            // Encontra as informações do ativo da lista local
+            // Busca as informações locais do ativo
             const cryptoInfo = allAvailableCryptos.find(c => c.id === cryptoId);
             
-            if (cryptoInfo && cryptoInfo.symbol) {
-                // Monta o par comercial da Binance (ex: BTCUSDT)
-                let binanceSymbol = `${cryptoInfo.symbol.toUpperCase()}USDT`;
-                
-                // Exceção caso seja USDT
-                if (cryptoInfo.symbol.toUpperCase() === 'USDT') {
-                    binanceSymbol = 'USDTBRL';
-                }
+            if (!cryptoInfo) {
+                console.warn(`⚠️ Informações do ID "${cryptoId}" não encontradas em allAvailableCryptos.`);
+                continue;
+            }
 
-                try {
-                    const resp = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binanceSymbol}`);
-                    if (resp.ok) {
-                        const priceData = await resp.json();
-                        results.push({
-                            id: cryptoId,
-                            name: cryptoInfo.name,
-                            symbol: cryptoInfo.symbol,
-                            priceUsd: priceData.price
-                        });
-                    }
-                } catch (e) {
-                    console.warn(`Erro ao buscar preço de ${cryptoId}:`, e);
+            const rawSymbol = cryptoInfo.symbol ? cryptoInfo.symbol.toUpperCase() : '';
+            if (!rawSymbol) continue;
+
+            // Determina o par comercial na Binance
+            let binanceSymbol = `${rawSymbol}USDT`;
+            if (rawSymbol === 'USDT') {
+                binanceSymbol = 'USDTBRL';
+            }
+
+            try {
+                console.log(`📡 Consultando Binance para ${cryptoInfo.name} (${binanceSymbol})...`);
+                const resp = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binanceSymbol}`);
+                
+                if (resp.ok) {
+                    const priceData = await resp.json();
+                    console.log(`✅ Preço recebido para ${cryptoInfo.name}:`, priceData.price);
+                    results.push({
+                        id: cryptoId,
+                        name: cryptoInfo.name,
+                        symbol: cryptoInfo.symbol,
+                        priceUsd: priceData.price
+                    });
+                } else {
+                    console.error(`❌ Erro HTTP na Binance para ${binanceSymbol}:`, resp.status);
                 }
+            } catch (e) {
+                console.error(`❌ Erro ao buscar preço de ${cryptoId}:`, e);
             }
         }
 
+        console.log('🎨 Desenhando moedas na tela:', results);
+        
+        // Limpa e redesenha a lista com os resultados válidos
         cryptoList.innerHTML = '';
         results.forEach(displayCrypto);
 
     } catch (error) {
-        console.error("Erro ao buscar preços:", error);
+        console.error("Erro geral em updateCryptoPrices:", error);
         if (errorMessageEl) {
             errorMessageEl.textContent = "Erro ao atualizar preços de criptomoedas.";
-            setTimeout(() => { errorMessageEl.textContent = ''; }, 5000);
+            setTimeout(() => { if (errorMessageEl) errorMessageEl.textContent = ''; }, 5000);
         }
     }
 }
-
 function saveTrackedCryptos() {
     localStorage.setItem('trackedCryptos', JSON.stringify(trackedCryptos));
 }

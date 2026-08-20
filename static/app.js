@@ -426,9 +426,11 @@ function removeCrypto(idToRemove) {
 }
 
 function displayCrypto(data) {
-    const { id, name, symbol, current_price } = data;
+    // Altere current_price para priceUsd
+    const { id, name, symbol, priceUsd } = data;
+    const current_price = parseFloat(priceUsd);
 
-    if (current_price === undefined || current_price === null) {
+    if (isNaN(current_price)) {
         console.warn(`Preço não disponível para ${name}`);
         return;
     }

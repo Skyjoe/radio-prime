@@ -84,7 +84,6 @@ def crypto_proxy():
                 headers={'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'}
             )
         
-        # Headers para contornar bloqueios
         HEADERS = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': 'application/json, text/plain, */*',
@@ -181,7 +180,7 @@ def proxy():
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': '*/*',
-            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Encoding': 'identity',  # Força áudio não compactado para não ter falhas
             'Connection': 'keep-alive',
             'Icy-MetaData': '1'
         }
@@ -198,14 +197,14 @@ def proxy():
             logging.error(f'Radio returned status: {response.status_code}')
             return f'Radio server error: {response.status_code}', response.status_code
         
-        # Determina o tipo de conteúdo
         content_type = response.headers.get('content-type', 'audio/mpeg')
         if 'audio' not in content_type and 'application' not in content_type:
             content_type = 'audio/mpeg'
         
+        # O segredo para acabar com os soluços está no chunk_size=4096 (fluxo contínuo e suave)
         def generate():
             try:
-                for chunk in response.iter_content(chunk_size=8192):
+                for chunk in response.iter_content(chunk_size=4096):
                     if chunk:
                         yield chunk
             except Exception as e:
@@ -233,7 +232,7 @@ def proxy():
             response = requests.get(decoded_url, headers=headers, stream=True, timeout=30, verify=False)
             if response.status_code == 200:
                 def generate():
-                    for chunk in response.iter_content(chunk_size=8192):
+                    for chunk in response.iter_content(chunk_size=4096):
                         if chunk:
                             yield chunk
                 return Response(

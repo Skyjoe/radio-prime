@@ -44,6 +44,7 @@ const stationSelect = document.getElementById('station-select');
 const playPauseBtn = document.getElementById('play-pause-btn');
 const volumeSlider = document.getElementById('volume-slider');
 const audioPlayer = document.getElementById('audio-player');
+audioPlayer.preload = "auto";
 
 const radioStations = [
     { name: 'Selecione uma rádio...', url: '' },
@@ -941,7 +942,7 @@ audioPlayer.addEventListener("play", () => {
 
       analyser = audioCtx.createAnalyser();
       // Aumentar o fftSize reduz a agressividade do processamento e remove ruídos no som
-      analyser.fftSize = 512; 
+      analyser.fftSize = 256; 
       analyser.smoothingTimeConstant = 0.8; // Suaviza o processamento de áudio
 
       dataArray = new Uint8Array(analyser.frequencyBinCount);

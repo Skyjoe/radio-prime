@@ -11,7 +11,7 @@ const forecastContainer = document.getElementById('forecast-container');
 const themeBtn = document.getElementById('theme-btn');
 const appContainer = document.getElementById('app-container');
 
-// --- NOVO: referência ao mapa
+// --- Referência ao mapa ---
 let mapInstance;
 
 // Crypto Elements
@@ -36,7 +36,6 @@ let currentModalCryptoName = null;
 let currentModalCryptoSymbol = null;
 
 // === CONFIGURAÇÃO DO SERVIDOR ===
-// Detecta automaticamente se está em desenvolvimento ou produção
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const SERVER_URL = isLocal ? 'http://localhost:5000' : '';
 
@@ -82,21 +81,16 @@ let lastUsdBrlFetch = 0;
 const USD_BRL_CACHE_TIME = 300000; // 5 minutos
 
 
-// Função para normalizar URLs - CORRIGIDA DEFINITIVAMENTE
+// Função para normalizar URLs
 function normalizeUrl(url) {
     if (!url) return url;
     url = url.trim();
-    
-    // Se já começa com /, http:// ou https://, retorna como está
     if (url.startsWith('/') || url.startsWith('http://') || url.startsWith('https://')) {
         return url;
     }
-    
-    // Se começa com api/ (sem barra), adiciona a barra
     if (url.startsWith('api/')) {
         return '/' + url;
     }
-    
     return 'http://' + url;
 }
 
@@ -159,13 +153,11 @@ function togglePlayPause() {
 function handleStationChange() {
     const selectedUrl = stationSelect.value;
     if (selectedUrl) {
-        // Garante que a URL comece com / para ser relativa ao domínio
         let url = selectedUrl;
         if (!url.startsWith('/') && !url.startsWith('http://') && !url.startsWith('https://')) {
             url = '/' + url;
         }
         
-        // Se a URL começa com http://, converte para https:// em produção
         if (!isLocal && url.startsWith('http://')) {
             url = url.replace('http://', 'https://');
         }
@@ -232,8 +224,7 @@ audioPlayer.addEventListener('stalled', () => {
 
 // ===== FUNÇÕES DE CRIPTOMOEDAS =====
 
-// Buscar cotação USD/BRL
-// Buscar cotação USD/BRL
+// Buscar cotação USD/BRL diretamente da Binance
 async function fetchUsdToBrl() {
   try {
     const now = Date.now();
@@ -243,8 +234,6 @@ async function fetchUsdToBrl() {
     }
 
     console.log('Buscando cotação USD/BRL diretamente da Binance...');
-    
-    // Chamada direta à Binance pelo navegador (sem passar pelo servidor Flask/Vercel)
     const brlResponse = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTBRL');
     
     if (!brlResponse.ok) {
@@ -264,12 +253,11 @@ async function fetchUsdToBrl() {
     }
   } catch (error) {
     console.error('Falha ao buscar cotação do dólar:', error);
-    // Em caso de falha de rede, usa o valor atual/padrão que já estava na memória
     return usdToBrl;
   }
 }
 
-// Carregar lista de criptomoedas
+// Carregar lista de criptomoedas disponíveis
 async function loadAvailableCryptos() {
     try {
         console.log('Carregando lista de criptomoedas...');
@@ -294,7 +282,7 @@ async function loadAvailableCryptos() {
         if (errorMessageEl) {
             errorMessageEl.textContent = "Erro ao carregar lista de criptomoedas. Tente novamente.";
             setTimeout(() => {
-                errorMessageEl.textContent = '';
+                if (errorMessageEl) errorMessageEl.textContent = '';
             }, 5000);
         }
     }
@@ -336,7 +324,6 @@ function addCrypto() {
     console.log('Buscando criptomoeda:', inputValue);
     
     let selectedCoin = null;
-    
     const match = inputValue.match(/^(.+?)\s*\((.+?)\)\s*$/);
     
     if (match) {
@@ -394,7 +381,7 @@ function addCrypto() {
             if (errorMessageEl) {
                 errorMessageEl.textContent = `✅ ${selectedCoin.name} (${selectedCoin.symbol ? selectedCoin.symbol.toUpperCase() : 'N/A'}) adicionada!`;
                 setTimeout(() => {
-                    errorMessageEl.textContent = '';
+                    if (errorMessageEl) errorMessageEl.textContent = '';
                 }, 3000);
             }
             console.log('✅ Criptomoeda adicionada:', selectedCoin.name, 'ID:', selectedCoin.id);
@@ -412,7 +399,7 @@ function removeCrypto(idToRemove) {
     saveTrackedCryptos();
     const cryptoItem = document.getElementById(`crypto-${idToRemove}`);
     if (cryptoItem) cryptoItem.remove();
-    if (trackedCryptos.length === 0) {
+    if (trackedCryptos.length === 0 && cryptoUpdateInterval) {
         clearInterval(cryptoUpdateInterval);
         cryptoUpdateInterval = null;
     }
@@ -421,7 +408,6 @@ function removeCrypto(idToRemove) {
 function displayCrypto(data) {
     const { id, name, symbol, priceUsd, current_price } = data;
     
-    // Aceita tanto priceUsd quanto current_price
     const priceVal = priceUsd !== undefined ? priceUsd : current_price;
     const numericPrice = parseFloat(priceVal);
 
@@ -479,8 +465,6 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
     if (chartInstance) chartInstance.destroy();
 
     try {
-        const baseUrl = isLocal ? 'http://localhost:5000' : '';
-        
         const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${cryptoSymbol.toUpperCase()}USDT&interval=1h&limit=24`);
         
         if (!response.ok) {
@@ -551,7 +535,6 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
     }
 }
 
-
 // Atualizar preços das criptomoedas diretamente pelo navegador
 async function updateCryptoPrices() {
     console.log('🔄 Atualizando preços para a lista:', trackedCryptos);
@@ -569,7 +552,6 @@ async function updateCryptoPrices() {
         const results = [];
 
         for (const cryptoId of trackedCryptos) {
-            // Busca as informações locais do ativo
             const cryptoInfo = allAvailableCryptos.find(c => c.id === cryptoId);
             
             if (!cryptoInfo) {
@@ -580,7 +562,6 @@ async function updateCryptoPrices() {
             const rawSymbol = cryptoInfo.symbol ? cryptoInfo.symbol.toUpperCase() : '';
             if (!rawSymbol) continue;
 
-            // Determina o par comercial na Binance
             let binanceSymbol = `${rawSymbol}USDT`;
             if (rawSymbol === 'USDT') {
                 binanceSymbol = 'USDTBRL';
@@ -609,7 +590,6 @@ async function updateCryptoPrices() {
 
         console.log('🎨 Desenhando moedas na tela:', results);
         
-        // Limpa e redesenha a lista com os resultados válidos
         cryptoList.innerHTML = '';
         results.forEach(displayCrypto);
 
@@ -621,6 +601,7 @@ async function updateCryptoPrices() {
         }
     }
 }
+
 function saveTrackedCryptos() {
     localStorage.setItem('trackedCryptos', JSON.stringify(trackedCryptos));
 }
@@ -633,15 +614,18 @@ function loadTrackedCryptos() {
             if (!Array.isArray(trackedCryptos)) {
                 trackedCryptos = [];
             }
-            if (trackedCryptos.length > 0) {
-                updateCryptoPrices();
-                if (cryptoUpdateInterval) clearInterval(cryptoUpdateInterval);
-                cryptoUpdateInterval = setInterval(updateCryptoPrices, 120000);
-            }
         } catch (e) {
             console.error('Erro ao carregar cryptos salvas:', e);
             trackedCryptos = [];
         }
+    } else {
+        trackedCryptos = ['bitcoin', 'tether', 'solana'];
+    }
+
+    if (trackedCryptos.length > 0) {
+        updateCryptoPrices();
+        if (cryptoUpdateInterval) clearInterval(cryptoUpdateInterval);
+        cryptoUpdateInterval = setInterval(updateCryptoPrices, 120000);
     }
 }
 
@@ -857,7 +841,7 @@ async function showMap(lat, lon, city) {
     }
 
     setTimeout(() => {
-        mapInstance.invalidateSize();
+        if (mapInstance) mapInstance.invalidateSize();
     }, 300);
 }
 
@@ -876,6 +860,7 @@ const numColumns = columns.length;
 
 function createColumns() {
   const wrapper = document.getElementById('wrapper');
+  if (!wrapper) return;
   wrapper.innerHTML = '';
   wrapper.style.gridTemplateColumns = `repeat(${numColumns}, 1fr)`;
   
@@ -970,6 +955,7 @@ function isDarkColor(hexColor) {
 }
 
 function setTextColor(container, color) {
+    if (!container) return;
     const textColor = isDarkColor(color) ? '#fff' : '#000';
     container.style.setProperty('color', textColor, 'important');
     container.querySelectorAll('*').forEach(el => {
@@ -988,8 +974,8 @@ function setTextColor(container, color) {
             el.style.caretColor = textColor;
         }
     });
-    themeBtn.style.setProperty('color', textColor, 'important');
-    backgroundBtn.style.setProperty('color', textColor, 'important');
+    if (themeBtn) themeBtn.style.setProperty('color', textColor, 'important');
+    if (backgroundBtn) backgroundBtn.style.setProperty('color', textColor, 'important');
 }
 
 const containerColors = [
@@ -1006,28 +992,40 @@ let currentBackgroundColor = 0;
 
 const backgroundBtn = document.getElementById('background-btn');
 
-themeBtn.addEventListener('click', () => {
-    const color = containerColors[currentContainerColor];
-    appContainer.style.backgroundColor = color;
-    setTextColor(appContainer, color);
-    currentContainerColor = (currentContainerColor + 1) % containerColors.length;
-});
+if (themeBtn) {
+    themeBtn.addEventListener('click', () => {
+        const color = containerColors[currentContainerColor];
+        appContainer.style.backgroundColor = color;
+        setTextColor(appContainer, color);
+        currentContainerColor = (currentContainerColor + 1) % containerColors.length;
+    });
+}
 
-backgroundBtn.addEventListener('click', () => {
-    const color = backgroundColors[currentBackgroundColor];
-    document.body.style.backgroundColor = color;
-    setTextColor(document.body, color);
-    currentBackgroundColor = (currentBackgroundColor + 1) % backgroundColors.length;
-});
+if (backgroundBtn) {
+    backgroundBtn.addEventListener('click', () => {
+        const color = backgroundColors[currentBackgroundColor];
+        document.body.style.backgroundColor = color;
+        setTextColor(document.body, color);
+        currentBackgroundColor = (currentBackgroundColor + 1) % backgroundColors.length;
+    });
+}
 
-// ===== INICIALIZAÇÃO =====
+// ===== INICIALIZAÇÃO SINCRONIZADA =====
 document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Atualiza primeiro a cotação USD/BRL
     await fetchUsdToBrl();
+
+    // 2. Preenche a lista de rádios
     populateStations();
-    audioPlayer.volume = volumeSlider.value;
-    loadAvailableCryptos();
+    if (volumeSlider) audioPlayer.volume = volumeSlider.value;
+
+    // 3. Aguarda obrigatoriamente carregar as criptomoedas disponíveis
+    await loadAvailableCryptos();
+
+    // 4. Agora que allAvailableCryptos está pronto, lê o localStorage e renderiza
     loadTrackedCryptos();
 
+    // 5. Configura botão do gráfico
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('chart-time-btn')) {
             document.querySelectorAll('.chart-time-btn').forEach(btn => btn.classList.remove('active'));
@@ -1040,6 +1038,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // 6. Clima inicial
     const savedCity = localStorage.getItem("defaultCity") || "Jundiaí";
     getWeatherAndTime(savedCity);
 });

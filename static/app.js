@@ -550,7 +550,7 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
 }
 
 
-// Atualizar preços das criptomoedas
+// Atualizar preços das criptomoedas diretamente pelo navegador
 async function updateCryptoPrices() {
     if (trackedCryptos.length === 0) {
         cryptoList.innerHTML = '';
@@ -562,28 +562,48 @@ async function updateCryptoPrices() {
     }
 
     try {
-        const baseUrl = isLocal ? 'http://localhost:5000' : '';
-        const ids = trackedCryptos.join(',');
-        const response = await fetch(`${baseUrl}/api/crypto?endpoint=assets?ids=${ids}`);
-        
-        if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status}`);
+        const results = [];
+
+        // Para cada moeda adicionada, faz a requisição direta à Binance
+        for (const cryptoId of trackedCryptos) {
+            // Encontra as informações do ativo da lista local
+            const cryptoInfo = allAvailableCryptos.find(c => c.id === cryptoId);
+            
+            if (cryptoInfo && cryptoInfo.symbol) {
+                // Monta o par comercial da Binance (ex: BTCUSDT)
+                let binanceSymbol = `${cryptoInfo.symbol.toUpperCase()}USDT`;
+                
+                // Exceção caso seja USDT
+                if (cryptoInfo.symbol.toUpperCase() === 'USDT') {
+                    binanceSymbol = 'USDTBRL';
+                }
+
+                try {
+                    const resp = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binanceSymbol}`);
+                    if (resp.ok) {
+                        const priceData = await resp.json();
+                        results.push({
+                            id: cryptoId,
+                            name: cryptoInfo.name,
+                            symbol: cryptoInfo.symbol,
+                            priceUsd: priceData.price
+                        });
+                    }
+                } catch (e) {
+                    console.warn(`Erro ao buscar preço de ${cryptoId}:`, e);
+                }
+            }
         }
-        
-        const data = await response.json();
-        
-        if (data && data.data && Array.isArray(data.data)) {
-            cryptoList.innerHTML = '';
-            data.data.forEach(displayCrypto);
-        } else {
-            throw new Error('Resposta da API não é um array');
-        }
+
+        cryptoList.innerHTML = '';
+        results.forEach(displayCrypto);
+
     } catch (error) {
         console.error("Erro ao buscar preços:", error);
-        errorMessageEl.textContent = "Erro ao atualizar preços de criptomoedas.";
-        setTimeout(() => {
-            errorMessageEl.textContent = '';
-        }, 5000);
+        if (errorMessageEl) {
+            errorMessageEl.textContent = "Erro ao atualizar preços de criptomoedas.";
+            setTimeout(() => { errorMessageEl.textContent = ''; }, 5000);
+        }
     }
 }
 

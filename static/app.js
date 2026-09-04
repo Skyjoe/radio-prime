@@ -68,14 +68,24 @@ const radioStations = [
     { name: 'Instrumental Hits', url: '/api/proxy?url=' + encodeURIComponent('https://panel.retrolandigital.com:8130/listen') },
     { name: 'Instrumental Radio', url: '/api/proxy?url=' + encodeURIComponent('https://stream-155.zeno.fm/3hhp1s4z8zhvv') },
     { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://nl4.mystreaming.net/uber/easyinstrumentals/icecast.audio') },
-    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://ice2.somafm.com/thistle-64-aac') },
-    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('http://cast4.audiostream.com.br:8663/mp3?1788555790061') },
-    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://servidor29.brlogic.com:8578/live?1788556000340') },
-    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://paineldj6.com.br:20131/stream?1788556084556') },
-    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('http://server02.ouvir.radio.br:8045/stream?1788556175088') },
-    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://stream-177.surfernetwork.com/9nm481kbya0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI5bm00ODFrYnlhMHV2IiwiaG9zdCI6InN0cmVhbS0xNzcuc3VyZmVybmV0d29yay5jb20iLCJydHRsIjo1LCJqdGkiOiJsV1lyWUlVNVFudUxCcnlJeGs4eHhRIiwiaWF0IjoxNzg4NTU2MzEzLCJleHAiOjE3ODg1NTYzNzN9.CXL5ZlMfLQ7V0gOzmNv6hR6HD-q9Ns4-xqMqqDmqdkc&1788556313391') },
-    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://stm11.painelcast.com:7530/stream?1788556431582') }
-
+    { name: 'Thistle Radio', url: '/api/proxy?url=' + encodeURIComponent('https://ice2.somafm.com/thistle-64-aac') },
+    { name: 'FM Premium', url: '/api/proxy?url=' + encodeURIComponent('http://cast4.audiostream.com.br:8663/mp3?1788555790061') },
+    { name: 'Máquina Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://servidor29.brlogic.com:8578/live?1788556000340') },
+    { name: 'Musicalíssima Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://paineldj6.com.br:20131/stream?1788556084556') },
+    { name: 'NSC', url: '/api/proxy?url=' + encodeURIComponent('http://server02.ouvir.radio.br:8045/stream?1788556175088') },
+    { name: 'Ascensorista FM', url: '/api/proxy?url=' + encodeURIComponent('https://stream-177.surfernetwork.com/9nm481kbya0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI5bm00ODFrYnlhMHV2IiwiaG9zdCI6InN0cmVhbS0xNzcuc3VyZmVybmV0d29yay5jb20iLCJydHRsIjo1LCJqdGkiOiJsV1lyWUlVNVFudUxCcnlJeGs4eHhRIiwiaWF0IjoxNzg4NTU2MzEzLCJleHAiOjE3ODg1NTYzNzN9.CXL5ZlMfLQ7V0gOzmNv6hR6HD-q9Ns4-xqMqqDmqdkc&1788556313391') },
+    { name: 'X Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://stm11.painelcast.com:7530/stream?1788556431582') },
+    { name: 'Clássica Gold', url: '/api/proxy?url=' + encodeURIComponent('http://s01.transmissaodigital.com:7706/stream?1788556555748') },
+    { name: 'Península', url: '/api/proxy?url=' + encodeURIComponent('https://stream.splug.com.br/Radio92?1788557294337') },
+    { name: 'Chaminé Web', url: '/api/proxy?url=' + encodeURIComponent('https://server14.srvsh.com.br:8316/stream?1788557829915') },
+    { name: 'Radio Clássica', url: '/api/proxy?url=' + encodeURIComponent('https://stm11.painelcast.com:7530/stream?1788557964722') },
+    { name: 'Instrumental Brasil', url: '/api/proxy?url=' + encodeURIComponent('http://stream-178.surfernetwork.com/yvya0nce8s8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ5dnlhMG5jZThzOHV2IiwiaG9zdCI6InN0cmVhbS0xNzguc3VyZmVybmV0d29yay5jb20iLCJydHRsIjo1LCJqdGkiOiJBMXhLMXpWeVJUYVVraVB3SHVQU2lRIiwiaWF0IjoxNzg4NTU4NjI2LCJleHAiOjE3ODg1NTg2ODZ9.DcJHrrHSgvFpsYxqb6g97uaQTd2kE31rPUeDZTeDsjVq&1788558626088') },
+    { name: 'Instrumental Espiritual', url: '/api/proxy?url=' + encodeURIComponent('https://stream-288.surfernetwork.com/1vhxdbhbvhruv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIxdmh4ZGJoYnZocnV2IiwiaG9zdCI6InN0cmVhbS0yODguc3VyZmVybmV0d29yay5jb20iLCJydHRsIjo1LCJqdGkiOiJTOU84M2hnQVNjeVVzX3BzRVcwX3dnIiwiaWF0IjoxNzg4NTU4NzU0LCJleHAiOjE3ODg1NTg4MTR9.W5EdhzUwQYvZssvyjZgjsHEeRmicPrhbRTvvDv4IeIM&1788558754103') },
+    { name: 'Jornal do Brasil FM', url: '/api/proxy?url=' + encodeURIComponent('https://stm20.xcast.com.br:9960/stream?1788558980128') },
+    { name: 'Malhete Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://stream-177.surfernetwork.com/efnzsqp25c9uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJlZm56c3FwMjVjOXV2IiwiaG9zdCI6InN0cmVhbS0xNzcuc3VyZmVybmV0d29yay5jb20iLCJydHRsIjo1LCJqdGkiOiJiLTQwaUx6WlRuNkYzc3FqZUtDSUx3IiwiaWF0IjoxNzg4NTU5MTAxLCJleHAiOjE3ODg1NTkxNjF9.Z8RFKkQmvAbmtpEMsauMbj0ZKhX5Z9UyXp9C8gVTG5M&1788559101610') },
+    { name: 'Nova Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://streaming.radioempresabrasil.com.br/proxy/novainstrumental/stream?1788559255953') },
+    { name: 'Nova Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://s03.transmissaodigital.com:7474/stream?1788559364839') }   
+    
     
     
 ];

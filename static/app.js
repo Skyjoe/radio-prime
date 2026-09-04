@@ -67,7 +67,17 @@ const radioStations = [
     { name: 'Instrumentales de Oro', url: '/api/proxy?url=' + encodeURIComponent('https://stream-169.zeno.fm/0anygxe1b1duv') },
     { name: 'Instrumental Hits', url: '/api/proxy?url=' + encodeURIComponent('https://panel.retrolandigital.com:8130/listen') },
     { name: 'Instrumental Radio', url: '/api/proxy?url=' + encodeURIComponent('https://stream-155.zeno.fm/3hhp1s4z8zhvv') },
-    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://nl4.mystreaming.net/uber/easyinstrumentals/icecast.audio') }
+    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://nl4.mystreaming.net/uber/easyinstrumentals/icecast.audio') },
+    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://ice2.somafm.com/thistle-64-aac') },
+    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('http://cast4.audiostream.com.br:8663/mp3?1788555790061') },
+    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://servidor29.brlogic.com:8578/live?1788556000340') },
+    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://paineldj6.com.br:20131/stream?1788556084556') },
+    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('http://server02.ouvir.radio.br:8045/stream?1788556175088') },
+    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://stream-177.surfernetwork.com/9nm481kbya0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI5bm00ODFrYnlhMHV2IiwiaG9zdCI6InN0cmVhbS0xNzcuc3VyZmVybmV0d29yay5jb20iLCJydHRsIjo1LCJqdGkiOiJsV1lyWUlVNVFudUxCcnlJeGs4eHhRIiwiaWF0IjoxNzg4NTU2MzEzLCJleHAiOjE3ODg1NTYzNzN9.CXL5ZlMfLQ7V0gOzmNv6hR6HD-q9Ns4-xqMqqDmqdkc&1788556313391') },
+    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://stm11.painelcast.com:7530/stream?1788556431582') }
+
+    
+    
 ];
 
 let allAvailableCryptos = [];

@@ -84,7 +84,7 @@ const radioStations = [
     { name: 'Jornal do Brasil FM', url: '/api/proxy?url=' + encodeURIComponent('https://stm20.xcast.com.br:9960/stream?1788558980128') },
     { name: 'Malhete Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://stream-177.surfernetwork.com/efnzsqp25c9uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJlZm56c3FwMjVjOXV2IiwiaG9zdCI6InN0cmVhbS0xNzcuc3VyZmVybmV0d29yay5jb20iLCJydHRsIjo1LCJqdGkiOiJiLTQwaUx6WlRuNkYzc3FqZUtDSUx3IiwiaWF0IjoxNzg4NTU5MTAxLCJleHAiOjE3ODg1NTkxNjF9.Z8RFKkQmvAbmtpEMsauMbj0ZKhX5Z9UyXp9C8gVTG5M&1788559101610') },
     { name: 'Nova Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://streaming.radioempresabrasil.com.br/proxy/novainstrumental/stream?1788559255953') },
-    { name: 'Nova Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://s03.transmissaodigital.com:7474/stream?1788559364839') }   
+    { name: 'Scalla FM', url: '/api/proxy?url=' + encodeURIComponent('https://s03.transmissaodigital.com:7474/stream?1788559364839') }   
     
     
     

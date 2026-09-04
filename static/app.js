@@ -36,7 +36,6 @@ let currentModalCryptoName = null;
 let currentModalCryptoSymbol = null;
 
 // === CONFIGURAÇÃO DO SERVIDOR ===
-// Detecta automaticamente se está em desenvolvimento ou produção
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const SERVER_URL = isLocal ? 'http://localhost:5000' : '';
 
@@ -52,34 +51,25 @@ const radioStations = [
     { name: 'Beautiful Instrumental', url: '/api/proxy?url=' + encodeURIComponent('http://s3.voscast.com:10038/stream') },
     { name: 'Best New Age', url: '/api/proxy?url=' + encodeURIComponent('http://104.153.209.180:8000/;stream.mp3') },
     { name: 'Cinemix', url: '/api/proxy?url=' + encodeURIComponent('https://kathy.torontocast.com:1825/stream') },
+    { name: 'Esotérica Fm', url: '/api/proxy?url=' + encodeURIComponent('https://canais.esoterica.fm.br/8002/stream/1/') },
     { name: 'Beautiful Instrumental Channel', url: '/api/proxy?url=' + encodeURIComponent('https://hydra.cdnstream.com/1822_128') },
+    { name: 'Beautiful Music', url: '/api/proxy?url=' + encodeURIComponent('https://radio.streemlion.com:1665/stream?') },
     { name: 'Chinese Music', url: '/api/proxy?url=' + encodeURIComponent('https://radio.chinesemusicworld.com/chinesemusic.mp3') },
+    { name: 'Lynn Classical', url: '/api/proxy?url=' + encodeURIComponent('https://radio.linn.co.uk:8004/autodj') },    
+    { name: 'Soothing Radio', url: '/api/proxy?url=' + encodeURIComponent('http://193.111.125.15:8010/soothingradio') },
     { name: 'Enigmatic 3', url: '/api/proxy?url=' + encodeURIComponent('http://radio.enigmatic.su:8050/radio') },
+    { name: 'Actions', url: '/api/proxy?url=' + encodeURIComponent('https://lizeradio.com/webplayer/actions.php') },
+    { name: 'Relaxation Island', url: '/api/proxy?url=' + encodeURIComponent('http://198.178.123.5:7932/') },
     { name: 'Enigmatic Immersion', url: '/api/proxy?url=' + encodeURIComponent('http://radio.enigmatic.su:8040/radio') },
     { name: 'Radio Caprice', url: '/api/proxy?url=' + encodeURIComponent('http://79.120.77.11:8002/newage') },    
     { name: 'Instrumental Hits Radio', url: '/api/proxy?url=' + encodeURIComponent('http://162.244.81.98:8130/listen') },
-    { name: 'Instrumentales de Oro', url: '/api/proxy?url=' + encodeURIComponent('https://stream-169.zeno.fm/0anygxe1b1duv') },
-    { name: 'Instrumental Hits', url: '/api/proxy?url=' + encodeURIComponent('https://panel.retrolandigital.com:8130/listen') },
-    { name: 'Instrumental Radio', url: '/api/proxy?url=' + encodeURIComponent('https://stream-155.zeno.fm/3hhp1s4z8zhvv') },
-    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://nl4.mystreaming.net/uber/easyinstrumentals/icecast.audio') },
-    { name: 'FM Premium', url: '/api/proxy?url=' + encodeURIComponent('http://cast4.audiostream.com.br:8663/mp3?1788555790061') },
-    { name: 'Máquina Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://servidor29.brlogic.com:8578/live?1788556000340') },
-    { name: 'Musicalíssima Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://paineldj6.com.br:20131/stream?1788556084556') },
-    { name: 'NSC', url: '/api/proxy?url=' + encodeURIComponent('http://server02.ouvir.radio.br:8045/stream?1788556175088') },
-    { name: 'Ascensorista FM', url: '/api/proxy?url=' + encodeURIComponent('https://stream-177.surfernetwork.com/9nm481kbya0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI5bm00ODFrYnlhMHV2IiwiaG9zdCI6InN0cmVhbS0xNzcuc3VyZmVybmV0d29yay5jb20iLCJydHRsIjo1LCJqdGkiOiJsV1lyWUlVNVFudUxCcnlJeGs4eHhRIiwiaWF0IjoxNzg4NTU2MzEzLCJleHAiOjE3ODg1NTYzNzN9.CXL5ZlMfLQ7V0gOzmNv6hR6HD-q9Ns4-xqMqqDmqdkc&1788556313391') },
-    { name: 'X Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://stm11.painelcast.com:7530/stream?1788556431582') },
-    { name: 'Clássica Gold', url: '/api/proxy?url=' + encodeURIComponent('http://s01.transmissaodigital.com:7706/stream?1788556555748') },
-    { name: 'Chaminé Web', url: '/api/proxy?url=' + encodeURIComponent('https://server14.srvsh.com.br:8316/stream?1788557829915') },
-    { name: 'Radio Clássica', url: '/api/proxy?url=' + encodeURIComponent('https://stm11.painelcast.com:7530/stream?1788557964722') },
-    { name: 'Instrumental Brasil', url: '/api/proxy?url=' + encodeURIComponent('http://stream-178.surfernetwork.com/yvya0nce8s8uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ5dnlhMG5jZThzOHV2IiwiaG9zdCI6InN0cmVhbS0xNzguc3VyZmVybmV0d29yay5jb20iLCJydHRsIjo1LCJqdGkiOiJBMXhLMXpWeVJUYVVraVB3SHVQU2lRIiwiaWF0IjoxNzg4NTU4NjI2LCJleHAiOjE3ODg1NTg2ODZ9.DcJHrrHSgvFpsYxqb6g97uaQTd2kE31rPUeDZTeDsjVq&1788558626088') },
-    { name: 'Instrumental Espiritual', url: '/api/proxy?url=' + encodeURIComponent('https://stream-288.surfernetwork.com/1vhxdbhbvhruv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiIxdmh4ZGJoYnZocnV2IiwiaG9zdCI6InN0cmVhbS0yODguc3VyZmVybmV0d29yay5jb20iLCJydHRsIjo1LCJqdGkiOiJTOU84M2hnQVNjeVVzX3BzRVcwX3dnIiwiaWF0IjoxNzg4NTU4NzU0LCJleHAiOjE3ODg1NTg4MTR9.W5EdhzUwQYvZssvyjZgjsHEeRmicPrhbRTvvDv4IeIM&1788558754103') },
-    { name: 'Jornal do Brasil FM', url: '/api/proxy?url=' + encodeURIComponent('https://stm20.xcast.com.br:9960/stream?1788558980128') },
-    { name: 'Malhete Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://stream-177.surfernetwork.com/efnzsqp25c9uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJlZm56c3FwMjVjOXV2IiwiaG9zdCI6InN0cmVhbS0xNzcuc3VyZmVybmV0d29yay5jb20iLCJydHRsIjo1LCJqdGkiOiJiLTQwaUx6WlRuNkYzc3FqZUtDSUx3IiwiaWF0IjoxNzg4NTU5MTAxLCJleHAiOjE3ODg1NTkxNjF9.Z8RFKkQmvAbmtpEMsauMbj0ZKhX5Z9UyXp9C8gVTG5M&1788559101610') },
-    { name: 'Nova Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://streaming.radioempresabrasil.com.br/proxy/novainstrumental/stream?1788559255953') },
-    { name: 'Scalla FM', url: '/api/proxy?url=' + encodeURIComponent('https://s03.transmissaodigital.com:7474/stream?1788559364839') }   
-    
-    
-    
+    { name: 'SomaFM - ThistleRadio (Celta e Instrumental)', url: '/api/proxy?url=' + encodeURIComponent('https://ice2.somafm.com/thistle-64-aac') },
+    { name: 'FM Premium (Instrumental e Orquestrada)', url: '/api/proxy?url=' + encodeURIComponent('http://cast4.audiostream.com.br:8663/mp3?1788555790061') },
+    { name: 'Rádio Melodia Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://servidor29.brlogic.com:8578/live?1788556000340') },
+    { name: 'Web Rádio E5 (Ambient e Calma)', url: '/api/proxy?url=' + encodeURIComponent('https://paineldj6.com.br:20131/stream?1788556084556') },
+    { name: 'Rádio Sol Maior Instrumental', url: '/api/proxy?url=' + encodeURIComponent('http://server02.ouvir.radio.br:8045/stream?1788556175088') },
+    { name: 'SurferNetwork - Relaxing Audio Stream', url: '/api/proxy?url=' + encodeURIComponent('https://stream-177.surfernetwork.com/9nm481kbya0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI5bm00ODFrYnlhMHV2IiwiaG9zdCI6InN0cmVhbS0xNzcuc3VyZmVybmV0d29yay5jb20iLCJydHRsIjo1LCJqdGkiOiJsV1lyWUlVNVFudUxCcnlJeGs4eHhRIiwiaWF0IjoxNzg4NTU2MzEzLCJleHAiOjE3ODg1NTYzNzN9.CXL5ZlMfLQ7V0gOzmNv6hR6HD-q9Ns4-xqMqqDmqdkc&1788556313391') },
+    { name: 'Adoradores Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://stm11.painelcast.com:7530/stream?1788556431582') }
 ];
 
 let allAvailableCryptos = [];
@@ -93,26 +83,19 @@ let usdToBrl = 5.25;
 let lastUsdBrlFetch = 0;
 const USD_BRL_CACHE_TIME = 300000; // 5 minutos
 
-
-// Função para normalizar URLs - CORRIGIDA DEFINITIVAMENTE
+// Função para normalizar URLs
 function normalizeUrl(url) {
     if (!url) return url;
     url = url.trim();
-    
-    // Se já começa com /, http:// ou https://, retorna como está
     if (url.startsWith('/') || url.startsWith('http://') || url.startsWith('https://')) {
         return url;
     }
-    
-    // Se começa com api/ (sem barra), adiciona a barra
     if (url.startsWith('api/')) {
         return '/' + url;
     }
-    
     return 'http://' + url;
 }
 
-// Função para mostrar erros da rádio
 function showRadioError(message) {
     if (errorMessageEl) {
         errorMessageEl.textContent = '📻 ' + message;
@@ -124,7 +107,6 @@ function showRadioError(message) {
     }
 }
 
-// Populate Radio Stations
 function populateStations() {
     radioStations.forEach(station => {
         const option = document.createElement('option');
@@ -134,7 +116,6 @@ function populateStations() {
     });
 }
 
-// Radio Player Logic
 function togglePlayPause() {
     const src = audioPlayer.src;
     if (src && src !== window.location.href && src !== '') {
@@ -171,13 +152,10 @@ function togglePlayPause() {
 function handleStationChange() {
     const selectedUrl = stationSelect.value;
     if (selectedUrl) {
-        // Garante que a URL comece com / para ser relativa ao domínio
         let url = selectedUrl;
         if (!url.startsWith('/') && !url.startsWith('http://') && !url.startsWith('https://')) {
             url = '/' + url;
         }
-        
-        // Se a URL começa com http://, converte para https:// em produção
         if (!isLocal && url.startsWith('http://')) {
             url = url.replace('http://', 'https://');
         }
@@ -244,7 +222,6 @@ audioPlayer.addEventListener('stalled', () => {
 
 // ===== FUNÇÕES DE CRIPTOMOEDAS =====
 
-// Buscar cotação USD/BRL
 async function fetchUsdToBrl() {
   try {
     const now = Date.now();
@@ -254,8 +231,6 @@ async function fetchUsdToBrl() {
     }
 
     console.log('Buscando cotação USD/BRL diretamente da Binance...');
-    
-    // Chamada direta à Binance pelo navegador (sem passar pelo servidor Flask/Vercel)
     const brlResponse = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTBRL');
     
     if (!brlResponse.ok) {
@@ -263,24 +238,19 @@ async function fetchUsdToBrl() {
     }
     
     const brlData = await brlResponse.json();
-    
     if (brlData && brlData.price) {
       usdToBrl = parseFloat(brlData.price);
       lastUsdBrlFetch = now;
-      console.log('Cotação USD/BRL atualizada com sucesso:', usdToBrl);
-      return usdToBrl;
-    } else {
-      console.warn('Formato de resposta inválido da Binance:', brlData);
+      console.log('Cotação USD/BRL updated:', usdToBrl);
       return usdToBrl;
     }
+    return usdToBrl;
   } catch (error) {
     console.error('Falha ao buscar cotação do dólar:', error);
-    // Em caso de falha de rede, usa o valor atual/padrão que já estava na memória
     return usdToBrl;
   }
 }
 
-// Carregar lista de criptomoedas
 async function loadAvailableCryptos() {
     try {
         console.log('Carregando lista de criptomoedas...');
@@ -292,27 +262,18 @@ async function loadAvailableCryptos() {
         }
         
         const data = await response.json();
-        
         if (data && data.data && Array.isArray(data.data)) {
             allAvailableCryptos = data.data;
             console.log(`${allAvailableCryptos.length} criptomoedas carregadas`);
             
-            // ATENÇÃO: Força a atualização da interface caso as moedas salvas tenham sido carregadas antes da API terminar de responder
+            // Corrige a falha de carregamento inicial atualizando os preços agora que a lista chegou
             if (trackedCryptos.length > 0) {
                 updateCryptoPrices();
             }
-        } else {
-            throw new Error('Formato de resposta inválido');
         }
     } catch (error) {
         console.error("Erro ao buscar criptomoedas:", error);
         allAvailableCryptos = [];
-        if (errorMessageEl) {
-            errorMessageEl.textContent = "Erro ao carregar lista de criptomoedas. Tente novamente.";
-            setTimeout(() => {
-                errorMessageEl.textContent = '';
-            }, 5000);
-        }
     }
 }
 
@@ -338,66 +299,32 @@ function populateCryptoSuggestions() {
 function addCrypto() {
     if (errorMessageEl) errorMessageEl.textContent = '';
     const inputValue = cryptoInput.value.trim();
-    if (!inputValue) {
-        if (errorMessageEl) errorMessageEl.textContent = 'Por favor, digite o nome ou símbolo de uma criptomoeda.';
-        return;
-    }
+    if (!inputValue) return;
 
     if (!Array.isArray(allAvailableCryptos) || allAvailableCryptos.length === 0) {
-        if (errorMessageEl) errorMessageEl.textContent = 'Lista de criptomoedas ainda não carregada. Aguarde...';
         loadAvailableCryptos();
         return;
     }
 
-    console.log('Buscando criptomoeda:', inputValue);
-    
     let selectedCoin = null;
-    
     const match = inputValue.match(/^(.+?)\s*\((.+?)\)\s*$/);
     
     if (match) {
         const namePart = match[1].trim();
         const symbolPart = match[2].trim().toUpperCase();
         
-        console.log(`Buscando: NOME="${namePart}", SÍMBOLO="${symbolPart}"`);
-        
         selectedCoin = allAvailableCryptos.find(coin => {
             const coinName = coin.name.trim();
             const coinSymbol = coin.symbol ? coin.symbol.toUpperCase() : '';
             return coinName === namePart && coinSymbol === symbolPart;
         });
-        
-        if (!selectedCoin) {
-            selectedCoin = allAvailableCryptos.find(coin => {
-                const coinSymbol = coin.symbol ? coin.symbol.toUpperCase() : '';
-                return coinSymbol === symbolPart;
-            });
-        }
-        
-        if (!selectedCoin) {
-            selectedCoin = allAvailableCryptos.find(coin => {
-                return coin.name.trim() === namePart;
-            });
-        }
     } else {
         const searchTerm = inputValue.toLowerCase();
-        
         selectedCoin = allAvailableCryptos.find(coin => 
             coin.symbol && coin.symbol.toLowerCase() === searchTerm
+        ) || allAvailableCryptos.find(coin => 
+            coin.name.toLowerCase() === searchTerm
         );
-        
-        if (!selectedCoin) {
-            selectedCoin = allAvailableCryptos.find(coin => 
-                coin.name.toLowerCase() === searchTerm
-            );
-        }
-        
-        if (!selectedCoin) {
-            selectedCoin = allAvailableCryptos.find(coin => 
-                coin.name.toLowerCase().startsWith(searchTerm) ||
-                (coin.symbol && coin.symbol.toLowerCase().startsWith(searchTerm))
-            );
-        }
     }
 
     if (selectedCoin) {
@@ -407,19 +334,7 @@ function addCrypto() {
             saveTrackedCryptos();
             updateCryptoPrices();
             cryptoInput.value = "";
-            if (errorMessageEl) {
-                errorMessageEl.textContent = `✅ ${selectedCoin.name} (${selectedCoin.symbol ? selectedCoin.symbol.toUpperCase() : 'N/A'}) adicionada!`;
-                setTimeout(() => {
-                    errorMessageEl.textContent = '';
-                }, 3000);
-            }
-            console.log('✅ Criptomoeda adicionada:', selectedCoin.name, 'ID:', selectedCoin.id);
-        } else {
-            if (errorMessageEl) errorMessageEl.textContent = `${selectedCoin.name} já está na sua lista.`;
         }
-    } else {
-        if (errorMessageEl) errorMessageEl.textContent = `Criptomoeda "${inputValue}" não encontrada.`;
-        console.log('❌ Criptomoeda não encontrada:', inputValue);
     }
 }
 
@@ -436,15 +351,10 @@ function removeCrypto(idToRemove) {
 
 function displayCrypto(data) {
     const { id, name, symbol, priceUsd, current_price } = data;
-    
-    // Aceita tanto priceUsd quanto current_price
     const priceVal = priceUsd !== undefined ? priceUsd : current_price;
     const numericPrice = parseFloat(priceVal);
 
-    if (isNaN(numericPrice)) {
-        console.warn(`Preço não disponível para ${name}`);
-        return;
-    }
+    if (isNaN(numericPrice)) return;
 
     let item = document.getElementById(`crypto-${id}`);
     if (!item) {
@@ -482,7 +392,6 @@ function displayCrypto(data) {
     });
 }
 
-// Buscar dados para o gráfico
 async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
     currentModalCryptoId = cryptoId;
     currentModalCryptoName = cryptoName;
@@ -495,16 +404,10 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
     if (chartInstance) chartInstance.destroy();
 
     try {
-        const baseUrl = isLocal ? 'http://localhost:5000' : '';
-        
         const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${cryptoSymbol.toUpperCase()}USDT&interval=1h&limit=24`);
-        
-        if (!response.ok) {
-            throw new Error('Erro ao buscar dados do gráfico');
-        }
+        if (!response.ok) throw new Error('Erro ao buscar dados do gráfico');
         
         const data = await response.json();
-        
         if (data && Array.isArray(data)) {
             const prices = data.map(item => parseFloat(item[4]));
             const labels = data.map(item => {
@@ -513,7 +416,6 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
             });
 
             modalLoading.classList.add('hidden');
-
             const ctx = cryptoChart.getContext('2d');
             chartInstance = new Chart(ctx, {
                 type: 'line',
@@ -534,44 +436,18 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#ffffff'
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                color: '#ffffff'
-                            }
-                        },
-                        y: {
-                            ticks: {
-                                color: '#ffffff'
-                            }
-                        }
-                    }
+                    plugins: { legend: { labels: { color: '#ffffff' } } },
+                    scales: { x: { ticks: { color: '#ffffff' } }, y: { ticks: { color: '#ffffff' } } }
                 }
             });
-        } else {
-            throw new Error('Dados do gráfico não disponíveis');
         }
     } catch (error) {
         console.error('Erro ao carregar gráfico:', error);
         modalLoading.textContent = 'Erro ao carregar gráfico.';
-        setTimeout(() => {
-            modalLoading.textContent = 'Tente novamente mais tarde.';
-        }, 3000);
     }
 }
 
-
-// Atualizar preços das criptomoedas diretamente pelo navegador
 async function updateCryptoPrices() {
-    console.log('🔄 Atualizando preços para a lista:', trackedCryptos);
-
     if (trackedCryptos.length === 0) {
         cryptoList.innerHTML = '';
         if (cryptoUpdateInterval) {
@@ -581,69 +457,46 @@ async function updateCryptoPrices() {
         return;
     }
 
-    // Se a lista de moedas disponíveis do servidor ainda estiver vazia, não adianta tentar mapear os IDs agora.
-    // O próprio callback de loadAvailableCryptos() vai chamar essa função assim que os dados chegarem.
-    if (!allAvailableCryptos || allAvailableCryptos.length === 0) {
-        console.log('⏳ Aguardando carregamento do catálogo allAvailableCryptos da API...');
+    if (allAvailableCryptos.length === 0) {
+        print('🔄 Aguardando catálogo de criptomoedas carregar antes de atualizar preços...');
         return;
     }
 
     try {
         const results = [];
-
         for (const cryptoId of trackedCryptos) {
-            // Busca as informações locais do ativo
             const cryptoInfo = allAvailableCryptos.find(c => c.id === cryptoId);
-            
-            if (!cryptoInfo) {
-                console.warn(`⚠️ Informações do ID "${cryptoId}" não encontradas em allAvailableCryptos.`);
-                continue;
-            }
+            if (!cryptoInfo) continue;
 
             const rawSymbol = cryptoInfo.symbol ? cryptoInfo.symbol.toUpperCase() : '';
             if (!rawSymbol) continue;
 
-            // Determina o par comercial na Binance
             let binanceSymbol = `${rawSymbol}USDT`;
-            if (rawSymbol === 'USDT') {
-                binanceSymbol = 'USDTBRL';
-            }
+            if (rawSymbol === 'USDT') binanceSymbol = 'USDTBRL';
 
             try {
-                console.log(`📡 Consultando Binance para ${cryptoInfo.name} (${binanceSymbol})...`);
                 const resp = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binanceSymbol}`);
-                
                 if (resp.ok) {
                     const priceData = await resp.json();
-                    console.log(`✅ Preço recebido para ${cryptoInfo.name}:`, priceData.price);
                     results.push({
                         id: cryptoId,
                         name: cryptoInfo.name,
                         symbol: cryptoInfo.symbol,
                         priceUsd: priceData.price
                     });
-                } else {
-                    console.error(`❌ Erro HTTP na Binance para ${binanceSymbol}:`, resp.status);
                 }
             } catch (e) {
-                console.error(`❌ Erro ao buscar preço de ${cryptoId}:`, e);
+                print(`Erro ao buscar preço de ${cryptoId}:`, e)
             }
         }
-
-        console.log('🎨 Desenhando moedas na tela:', results);
         
-        // Limpa e redesenha a lista com os resultados válidos
         cryptoList.innerHTML = '';
         results.forEach(displayCrypto);
-
     } catch (error) {
-        console.error("Erro geral em updateCryptoPrices:", error);
-        if (errorMessageEl) {
-            errorMessageEl.textContent = "Erro ao atualizar preços de criptomoedas.";
-            setTimeout(() => { if (errorMessageEl) errorMessageEl.textContent = ''; }, 5000);
-        }
+        print("Erro geral em updateCryptoPrices:", error)
     }
 }
+
 function saveTrackedCryptos() {
     localStorage.setItem('trackedCryptos', JSON.stringify(trackedCryptos));
 }
@@ -653,22 +506,19 @@ function loadTrackedCryptos() {
     if (saved) {
         try {
             trackedCryptos = JSON.parse(saved);
-            if (!Array.isArray(trackedCryptos)) {
-                trackedCryptos = [];
-            }
+            if (!Array.isArray(trackedCryptos)) trackedCryptos = [];
             if (trackedCryptos.length > 0) {
                 updateCryptoPrices();
                 if (cryptoUpdateInterval) clearInterval(cryptoUpdateInterval);
                 cryptoUpdateInterval = setInterval(updateCryptoPrices, 120000);
             }
         } catch (e) {
-            console.error('Erro ao carregar cryptos salvas:', e);
+            print('Erro ao carregar cryptos salvas:', e)
             trackedCryptos = [];
         }
     }
 }
 
-// Eventos das criptos
 addCryptoBtn.addEventListener('click', addCrypto);
 cryptoInput.addEventListener('input', populateCryptoSuggestions);
 cryptoInput.addEventListener('keypress', (event) => {
@@ -694,18 +544,9 @@ function clearInfo() {
     }
 }
 
-function showLoading() {
-    loader.classList.remove('hidden');
-}
-
-function hideLoading() {
-    loader.classList.add('hidden');
-}
-
-function showError(message) {
-    hideLoading();
-    errorMessageEl.textContent = message;
-}
+function showLoading() { loader.classList.remove('hidden'); }
+function hideLoading() { loader.classList.add('hidden'); }
+function showError(message) { hideLoading(); errorMessageEl.textContent = message; }
 
 async function getWeatherAndTime(cityName = null) {
     const savedCity = localStorage.getItem("defaultCity");
@@ -717,10 +558,8 @@ async function getWeatherAndTime(cityName = null) {
     try {
         const geoApiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=19323201f1e62b73c148d04a7a229454&units=metric&lang=pt`;
         const geoResponse = await fetch(geoApiUrl);
-        if (!geoResponse.ok) {
-            if (geoResponse.status === 401) throw new Error('Chave de API inválida. Verifique sua API key.');
-            throw new Error('Erro ao buscar informações da cidade.');
-        }
+        if (!geoResponse.ok) throw new Error('Erro ao buscar informações da cidade.');
+        
         const geoData = await geoResponse.json();
         const { id: cityId, name, sys: { country }, timezone, coord } = geoData;
 
@@ -744,18 +583,18 @@ async function getWeatherAndTime(cityName = null) {
         showMap(coord.lat, coord.lon, name);
 
         resultContainer.classList.remove('hidden');
-        setTextColor(appContainer, appContainer.style.backgroundColor || containerColors[currentContainerColor]);
+        
+        const currentBg = appContainer.style.backgroundColor || containerColors[currentContainerColor];
+        setTextColor(appContainer, currentBg);
     } catch (error) {
         showError(error.message);
-        console.error(error);
     }
 }
 
 function updateTimeWithOffset(timezoneOffsetSec) {
     const utc = new Date().getTime() + (new Date().getTimezoneOffset() * 60000);
     const localTime = new Date(utc + timezoneOffsetSec * 1000);
-    const timeString = localTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    localTimeEl.textContent = `Hora Local: ${timeString}`;
+    localTimeEl.textContent = `Hora Local: ${localTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
 }
 
 function displayHourlyForecastOpenWeather(list, timezoneOffsetSec) {
@@ -770,16 +609,10 @@ function displayHourlyForecastOpenWeather(list, timezoneOffsetSec) {
         const hour = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         const temp = Math.round(item.main.temp);
         const { icon, text } = getWeatherIconOpenWeather(item.weather[0].id);
-
         const formattedText = text.split(' ').join('<br>');
 
         const hourBox = document.createElement('div');
-        hourBox.innerHTML = `
-            <p class="hour">${hour}</p>
-            <p class="icon">${icon}</p>
-            <p class="desc">${formattedText}</p>
-            <p class="temp">${temp}°C</p>
-        `;
+        hourBox.innerHTML = `<p class="hour">${hour}</p><p class="icon">${icon}</p><p class="desc">${formattedText}</p><p class="temp">${temp}°C</p>`;
         hourlyContainer.appendChild(hourBox);
     }
 }
@@ -787,8 +620,8 @@ function displayHourlyForecastOpenWeather(list, timezoneOffsetSec) {
 function displayDailyForecastOpenWeather(list) {
     forecastContainer.innerHTML = '';
     const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-
     const daily = {};
+
     list.forEach(item => {
         const date = new Date(item.dt * 1000);
         const dayKey = date.toISOString().slice(0, 10);
@@ -802,22 +635,14 @@ function displayDailyForecastOpenWeather(list) {
         const dayData = daily[dayKey];
         const minTemp = Math.min(...dayData.temps);
         const maxTemp = Math.max(...dayData.temps);
-        const mainWeatherId = dayData.weatherIds[Math.floor(dayData.weatherIds.length / 2)];
-        const { icon, text } = getWeatherIconOpenWeather(mainWeatherId);
-
-        const date = new Date(dayKey + 'T00:00:00');
-        const dayOfWeek = weekdays[date.getUTCDay()];
+        const { icon, text } = getWeatherIconOpenWeather(dayData.weatherIds[Math.floor(dayData.weatherIds.length / 2)]);
+        const dayOfWeek = weekdays[new Date(dayKey + 'T00:00:00').getUTCDay()];
 
         const forecastDayEl = document.createElement('div');
         forecastDayEl.classList.add('forecast-day');
-        forecastDayEl.innerHTML = `
-            <p class="day">${dayOfWeek}</p>
-            <p class="icon">${icon}</p><p class="desc">${text}</p>
-            <p class="temps">${Math.round(minTemp)}° / ${Math.round(maxTemp)}°</p>
-        `;
+        forecastDayEl.innerHTML = `<p class="day">${dayOfWeek}</p><p class="icon">${icon}</p><p class="desc">${text}</p><p class="temps">${Math.round(minTemp)}° / ${Math.round(maxTemp)}°</p>`;
         forecastContainer.appendChild(forecastDayEl);
     });
-
     forecastSection.classList.remove('hidden');
 }
 
@@ -830,61 +655,37 @@ function getWeatherIconOpenWeather(code) {
     if (code === 800) return { icon: '☀️', text: 'Céu limpo' };
     if (code === 801) return { icon: '🌤️', text: 'Poucas nuvens' };
     if (code === 802) return { icon: '⛅️', text: 'Parcialmente nublado' };
-    if (code === 803 || code === 804) return { icon: '☁️', text: 'Nublado' };
-    return { icon: '🌡️', text: 'Indefinido' };
+    return { icon: '☁️', text: 'Nublado' };
 }
 
 async function showMap(lat, lon, city) {
     const mapDiv = document.getElementById('map');
     if (!mapDiv) return;
-
-    if (mapInstance) {
-        mapInstance.remove();
-    }
+    if (mapInstance) mapInstance.remove();
 
     mapInstance = L.map('map', { attributionControl: false }).setView([lat, lon], 12);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: ''
-    }).addTo(mapInstance);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
 
     try {
         const baseUrl = isLocal ? 'http://localhost:5000' : '';
-        const url = `${baseUrl}/api/nominatim?q=${encodeURIComponent(city)}`;
-        
-        const res = await fetch(url);
+        const res = await fetch(`${baseUrl}/api/nominatim?q=${encodeURIComponent(city)}`);
         const data = await res.json();
 
         if (data.length > 0 && data[0].geojson) {
             const geoLayer = L.geoJSON(data[0].geojson, {
-                style: {
-                    color: "red",
-                    weight: 2,
-                    fillColor: "rgba(255,0,0,0.2)",
-                    fillOpacity: 0.3
-                }
+                style: { color: "red", weight: 2, fillColor: "rgba(255,0,0,0.2)", fillOpacity: 0.3 }
             }).addTo(mapInstance);
-            
             mapInstance.fitBounds(geoLayer.getBounds());
             mapInstance.setZoom(9);
         } else {
-            console.warn("Nenhum polígono encontrado para a cidade, usando apenas o ponto.");
-            mapInstance.setView([lat, lon], 12);
-            L.marker([lat, lon]).addTo(mapInstance)
-                .bindPopup(city)
-                .openPopup();
+            L.marker([lat, lon]).addTo(mapInstance).bindPopup(city).openPopup();
         }
     } catch (err) {
-        console.error("Erro ao buscar contorno da cidade:", err);
-        mapInstance.setView([lat, lon], 12);
+        print(err);
     }
-
-    setTimeout(() => {
-        mapInstance.invalidateSize();
-    }, 300);
 }
 
-// ===== BACKGROUND ESTILO EQUALIZADOR =====
+// ===== BACKGROUND ESTILOS EQUALIZADOR =====
 const colorSchemes = {
   blue: ['#001F3F', '#003366', '#004C99', '#0066CC', '#0080FF', '#3399FF'],
   green: ['#004D1A', '#006622', '#008033', '#009933', '#00B33C', '#00CC44'],
@@ -899,6 +700,7 @@ const numColumns = columns.length;
 
 function createColumns() {
   const wrapper = document.getElementById('wrapper');
+  if(!wrapper) return;
   wrapper.innerHTML = '';
   wrapper.style.gridTemplateColumns = `repeat(${numColumns}, 1fr)`;
   
@@ -909,11 +711,8 @@ function createColumns() {
 
     const boxCount = Math.ceil(window.innerHeight / 16);
     for (let i = 0; i < boxCount; i++) {
-      const box = document.createElement('div');
-      box.className = 'box';
-      column.appendChild(box);
+      column.appendChild(document.createElement('div')).className = 'box';
     }
-
     wrapper.appendChild(column);
   });
 }
@@ -921,19 +720,12 @@ function createColumns() {
 function renderEqualizer() {
   if (!analyser) return;
   requestAnimationFrame(renderEqualizer);
-
   analyser.getByteFrequencyData(dataArray);
 
   const columnsEl = document.querySelectorAll('.column');
-
   columnsEl.forEach((column, i) => {
     const boxes = column.querySelectorAll('.box');
-    
-    let sourceColumnIndex;
-    if (i === 4) sourceColumnIndex = 2;
-    else if (i === 5) sourceColumnIndex = 3;
-    else sourceColumnIndex = i;
-    
+    let sourceColumnIndex = (i === 4) ? 2 : (i === 5) ? 3 : i;
     const scheme = colorSchemes[column.dataset.colorScheme];
 
     const bufferLen = dataArray.length;
@@ -942,45 +734,31 @@ function renderEqualizer() {
     
     let sum = 0;
     for (let j = start; j < end; j++) sum += dataArray[j];
-    let value = sum / (end - start);
-    
-    value = Math.min(255, value * 1.15);
-
+    let value = Math.min(255, (sum / (end - start)) * 1.15);
     const activeBoxes = Math.round((value / 255) * boxes.length);
 
     boxes.forEach((box, j) => {
-      if (j < activeBoxes) {
-        box.style.backgroundColor = scheme[j % scheme.length];
-      } else {
-        box.style.backgroundColor = '#000000ff';
-      }
+      box.style.backgroundColor = (j < activeBoxes) ? scheme[j % scheme.length] : '#000000ff';
     });
   });
 }
 
-// ===== Integração com rádio =====
 let audioCtx, analyser, dataArray;
-
 audioPlayer.addEventListener("play", () => {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const source = audioCtx.createMediaElementSource(audioPlayer);
-
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 256;
     dataArray = new Uint8Array(analyser.frequencyBinCount);
-
     source.connect(analyser);
     analyser.connect(audioCtx.destination);
-
     renderEqualizer();
   }
 });
 
 createColumns();
-window.addEventListener('resize', () => {
-  createColumns();
-});
+window.addEventListener('resize', createColumns);
 
 // ===== FUNÇÕES DE TEMA =====
 function isDarkColor(hexColor) {
@@ -988,21 +766,15 @@ function isDarkColor(hexColor) {
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
-    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-    return brightness < 128;
+    return ((r * 299 + g * 587 + b * 114) / 1000) < 128;
 }
 
 function setTextColor(container, color) {
+    if (!container) return;
     const textColor = isDarkColor(color) ? '#fff' : '#000';
     container.style.setProperty('color', textColor, 'important');
     container.querySelectorAll('*').forEach(el => {
-        if (
-            el.tagName !== 'INPUT' &&
-            el.tagName !== 'BUTTON' &&
-            el.tagName !== 'SELECT' &&
-            el.tagName !== 'TEXTAREA' &&
-            el.tagName !== 'OPTION'
-        ) {
+        if (!['INPUT', 'BUTTON', 'SELECT', 'TEXTAREA', 'OPTION'].includes(el.tagName)) {
             el.style.setProperty('color', textColor, 'important');
         }
         if (el.tagName === 'INPUT') {
@@ -1012,7 +784,6 @@ function setTextColor(container, color) {
         }
     });
     themeBtn.style.setProperty('color', textColor, 'important');
-    backgroundBtn.style.setProperty('color', textColor, 'important');
 }
 
 const containerColors = [
@@ -1027,20 +798,11 @@ const backgroundColors = [
 ];
 let currentBackgroundColor = 0;
 
-const backgroundBtn = document.getElementById('background-btn');
-
 themeBtn.addEventListener('click', () => {
     const color = containerColors[currentContainerColor];
     appContainer.style.backgroundColor = color;
     setTextColor(appContainer, color);
     currentContainerColor = (currentContainerColor + 1) % containerColors.length;
-});
-
-backgroundBtn.addEventListener('click', () => {
-    const color = backgroundColors[currentBackgroundColor];
-    document.body.style.backgroundColor = color;
-    setTextColor(document.body, color);
-    currentBackgroundColor = (currentBackgroundColor + 1) % backgroundColors.length;
 });
 
 // ===== INICIALIZAÇÃO =====
@@ -1051,7 +813,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadAvailableCryptos();
     loadTrackedCryptos();
 
-    // --- LOGICA DE CORREÇÃO PARA INICIAR COM TEMA CLARO ---
+    // --- CORREÇÃO: TEMA CLARO INICIAL FORÇADO ---
     currentContainerColor = 0;
     const initialContainerColor = containerColors[currentContainerColor];
     appContainer.style.backgroundColor = initialContainerColor;
@@ -1063,14 +825,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.style.backgroundColor = initialBgColor;
     setTextColor(document.body, initialBgColor);
     currentBackgroundColor = 1;
-    // ----------------------------------------------------
+    // ---------------------------------------------
 
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('chart-time-btn')) {
             document.querySelectorAll('.chart-time-btn').forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
-            const days = parseFloat(e.target.dataset.days);
-            currentChartDays = days;
+            currentChartDays = parseFloat(e.target.dataset.days);
             if (currentModalCryptoId) {
                 showCryptoChart(currentModalCryptoId, currentModalCryptoName, currentModalCryptoSymbol);
             }
@@ -1099,7 +860,6 @@ cityInput.addEventListener('keypress', (event) => {
     }
 });
 
-// Add Chart.js CDN
 const chartScript = document.createElement('script');
 chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js';
 document.head.appendChild(chartScript);

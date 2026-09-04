@@ -48,26 +48,26 @@ const audioPlayer = document.getElementById('audio-player');
 
 const radioStations = [
     { name: 'Selecione uma rádio...', url: '' },
-    { name: 'Radio Gold Instrumental', url: `${SERVER_URL}/api/proxy?url=https://centova.svdns.com.br:19373/stream?1728788287925` },
-    { name: 'Beautiful Instrumental', url: `${SERVER_URL}/api/proxy?url=http://s3.voscast.com:10038/stream` },
-    { name: 'Best New Age', url: `${SERVER_URL}/api/proxy?url=http://104.153.209.180:8000/;stream.mp3` },
-    { name: 'Cinemix', url: `${SERVER_URL}/api/proxy?url=https://kathy.torontocast.com:1825/stream` },
-    { name: 'Esotérica Fm', url: `${SERVER_URL}/api/proxy?url=https://canais.esoterica.fm.br/8002/stream/1/` },
-    { name: 'Beautiful Instrumental Channel', url: `${SERVER_URL}/api/proxy?url=https://hydra.cdnstream.com/1822_128` },
-    { name: 'Beautiful Music', url: `${SERVER_URL}/api/proxy?url=https://radio.streemlion.com:1665/stream?` },
-    { name: 'Chinese Music', url: 'https://radio.chinesemusicworld.com/chinesemusic.mp3' },
-    { name: 'Lynn Classical', url: `${SERVER_URL}/api/proxy?url=https://radio.linn.co.uk:8004/autodj` },    
-    { name: 'Soothing Radio', url: `${SERVER_URL}/api/proxy?url=http://193.111.125.15:8010/soothingradio` },
-    { name: 'Enigmatic 3', url: `${SERVER_URL}/api/proxy?url=http://radio.enigmatic.su:8050/radio` },
-    { name: 'Actions', url: `${SERVER_URL}/api/proxy?url=https://lizeradio.com/webplayer/actions.php` },
-    { name: 'Relaxation Island', url: `${SERVER_URL}/api/proxy?url=http://198.178.123.5:7932/` },
-    { name: 'Enigmatic Immersion', url: `${SERVER_URL}/api/proxy?url=http://radio.enigmatic.su:8040/radio` },
-    { name: 'Radio Caprice', url: `${SERVER_URL}/api/proxy?url=http://79.120.77.11:8002/newage` },    
-    { name: 'Instrumental Hits Radio', url: `${SERVER_URL}/api/proxy?url=http://162.244.81.98:8130/listen` },
-    { name: 'Instrumentales de Oro', url: `${SERVER_URL}/api/proxy?url=${encodeURIComponent('https://stream-169.zeno.fm/0anygxe1b1duv')}` },
-    { name: 'Instrumental Hits', url: `${SERVER_URL}/api/proxy?url=${encodeURIComponent('https://panel.retrolandigital.com:8130/listen')}` },
-    { name: 'Instrumental Radio', url: `${SERVER_URL}/api/proxy?url=${encodeURIComponent('https://stream-155.zeno.fm/3hhp1s4z8zhvv')}` },
-    { name: 'Easy Instrumentals', url: `${SERVER_URL}/api/proxy?url=${encodeURIComponent('https://nl4.mystreaming.net/uber/easyinstrumentals/icecast.audio')}` }
+    { name: 'Radio Gold Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://centova2.svdns.com.br:20038/stream') },
+    { name: 'Beautiful Instrumental', url: '/api/proxy?url=' + encodeURIComponent('http://s3.voscast.com:10038/stream') },
+    { name: 'Best New Age', url: '/api/proxy?url=' + encodeURIComponent('http://104.153.209.180:8000/;stream.mp3') },
+    { name: 'Cinemix', url: '/api/proxy?url=' + encodeURIComponent('https://kathy.torontocast.com:1825/stream') },
+    { name: 'Esotérica Fm', url: '/api/proxy?url=' + encodeURIComponent('https://canais.esoterica.fm.br/8002/stream/1/') },
+    { name: 'Beautiful Instrumental Channel', url: '/api/proxy?url=' + encodeURIComponent('https://hydra.cdnstream.com/1822_128') },
+    { name: 'Beautiful Music', url: '/api/proxy?url=' + encodeURIComponent('https://radio.streemlion.com:1665/stream?') },
+    { name: 'Chinese Music', url: '/api/proxy?url=' + encodeURIComponent('https://radio.chinesemusicworld.com/chinesemusic.mp3') },
+    { name: 'Lynn Classical', url: '/api/proxy?url=' + encodeURIComponent('https://radio.linn.co.uk:8004/autodj') },    
+    { name: 'Soothing Radio', url: '/api/proxy?url=' + encodeURIComponent('http://193.111.125.15:8010/soothingradio') },
+    { name: 'Enigmatic 3', url: '/api/proxy?url=' + encodeURIComponent('http://radio.enigmatic.su:8050/radio') },
+    { name: 'Actions', url: '/api/proxy?url=' + encodeURIComponent('https://lizeradio.com/webplayer/actions.php') },
+    { name: 'Relaxation Island', url: '/api/proxy?url=' + encodeURIComponent('http://198.178.123.5:7932/') },
+    { name: 'Enigmatic Immersion', url: '/api/proxy?url=' + encodeURIComponent('http://radio.enigmatic.su:8040/radio') },
+    { name: 'Radio Caprice', url: '/api/proxy?url=' + encodeURIComponent('http://79.120.77.11:8002/newage') },    
+    { name: 'Instrumental Hits Radio', url: '/api/proxy?url=' + encodeURIComponent('http://162.244.81.98:8130/listen') },
+    { name: 'Instrumentales de Oro', url: '/api/proxy?url=' + encodeURIComponent('https://stream-169.zeno.fm/0anygxe1b1duv') },
+    { name: 'Instrumental Hits', url: '/api/proxy?url=' + encodeURIComponent('https://panel.retrolandigital.com:8130/listen') },
+    { name: 'Instrumental Radio', url: '/api/proxy?url=' + encodeURIComponent('https://stream-155.zeno.fm/3hhp1s4z8zhvv') },
+    { name: 'Easy Instrumentals', url: '/api/proxy?url=' + encodeURIComponent('https://nl4.mystreaming.net/uber/easyinstrumentals/icecast.audio') }
 ];
 
 let allAvailableCryptos = [];
@@ -81,13 +81,22 @@ let usdToBrl = 5.25;
 let lastUsdBrlFetch = 0;
 const USD_BRL_CACHE_TIME = 300000; // 5 minutos
 
-// Função para normalizar URLs
+
+// Função para normalizar URLs - CORRIGIDA DEFINITIVAMENTE
 function normalizeUrl(url) {
     if (!url) return url;
     url = url.trim();
-    if (url.startsWith('http://') || url.startsWith('https://')) {
+    
+    // Se já começa com /, http:// ou https://, retorna como está
+    if (url.startsWith('/') || url.startsWith('http://') || url.startsWith('https://')) {
         return url;
     }
+    
+    // Se começa com api/ (sem barra), adiciona a barra
+    if (url.startsWith('api/')) {
+        return '/' + url;
+    }
+    
     return 'http://' + url;
 }
 
@@ -150,15 +159,25 @@ function togglePlayPause() {
 function handleStationChange() {
     const selectedUrl = stationSelect.value;
     if (selectedUrl) {
-        const normalizedUrl = normalizeUrl(selectedUrl);
-        console.log('Tocando:', normalizedUrl);
+        // Garante que a URL comece com / para ser relativa ao domínio
+        let url = selectedUrl;
+        if (!url.startsWith('/') && !url.startsWith('http://') && !url.startsWith('https://')) {
+            url = '/' + url;
+        }
+        
+        // Se a URL começa com http://, converte para https:// em produção
+        if (!isLocal && url.startsWith('http://')) {
+            url = url.replace('http://', 'https://');
+        }
+        
+        console.log('Tocando:', url);
         
         if (isPlaying) {
             audioPlayer.pause();
             isPlaying = false;
         }
         
-        audioPlayer.src = normalizedUrl;
+        audioPlayer.src = url;
         audioPlayer.load();
         
         const playPromise = audioPlayer.play();
@@ -214,6 +233,7 @@ audioPlayer.addEventListener('stalled', () => {
 // ===== FUNÇÕES DE CRIPTOMOEDAS =====
 
 // Buscar cotação USD/BRL
+// Buscar cotação USD/BRL
 async function fetchUsdToBrl() {
   try {
     const now = Date.now();
@@ -222,40 +242,29 @@ async function fetchUsdToBrl() {
       return usdToBrl;
     }
 
-    console.log('Buscando cotação USD/BRL...');
+    console.log('Buscando cotação USD/BRL diretamente da Binance...');
     
-    // Usa a URL base correta (local ou produção)
-    const baseUrl = isLocal ? 'http://localhost:5000' : '';
-    const response = await fetch(`${baseUrl}/api/crypto?endpoint=assets/tether`);
+    // Chamada direta à Binance pelo navegador (sem passar pelo servidor Flask/Vercel)
+    const brlResponse = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTBRL');
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (!brlResponse.ok) {
+      throw new Error(`HTTP error! status: ${brlResponse.status}`);
     }
     
-    const data = await response.json();
+    const brlData = await brlResponse.json();
     
-    if (data && data.data && data.data.priceUsd) {
-      // Busca a cotação do USDT em BRL
-      const brlResponse = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTBRL');
-      if (brlResponse.ok) {
-        const brlData = await brlResponse.json();
-        if (brlData && brlData.price) {
-          usdToBrl = parseFloat(brlData.price);
-          lastUsdBrlFetch = now;
-          console.log('Cotação USD/BRL updated:', usdToBrl);
-          return usdToBrl;
-        }
-      }
-      // Fallback para valor aproximado
-      usdToBrl = 5.21;
+    if (brlData && brlData.price) {
+      usdToBrl = parseFloat(brlData.price);
       lastUsdBrlFetch = now;
+      console.log('Cotação USD/BRL atualizada com sucesso:', usdToBrl);
       return usdToBrl;
     } else {
-      console.warn('Formato de resposta inválido:', data);
+      console.warn('Formato de resposta inválido da Binance:', brlData);
       return usdToBrl;
     }
   } catch (error) {
     console.error('Falha ao buscar cotação do dólar:', error);
+    // Em caso de falha de rede, usa o valor atual/padrão que já estava na memória
     return usdToBrl;
   }
 }
@@ -310,7 +319,6 @@ function populateCryptoSuggestions() {
     });
 }
 
-// Add Crypto
 function addCrypto() {
     if (errorMessageEl) errorMessageEl.textContent = '';
     const inputValue = cryptoInput.value.trim();
@@ -329,7 +337,6 @@ function addCrypto() {
     
     let selectedCoin = null;
     
-    // Verifica se o input está no formato "Nome (SÍMBOLO)"
     const match = inputValue.match(/^(.+?)\s*\((.+?)\)\s*$/);
     
     if (match) {
@@ -338,14 +345,12 @@ function addCrypto() {
         
         console.log(`Buscando: NOME="${namePart}", SÍMBOLO="${symbolPart}"`);
         
-        // Busca exata por nome E símbolo
         selectedCoin = allAvailableCryptos.find(coin => {
             const coinName = coin.name.trim();
             const coinSymbol = coin.symbol ? coin.symbol.toUpperCase() : '';
             return coinName === namePart && coinSymbol === symbolPart;
         });
         
-        // Se não encontrou, tenta só pelo símbolo
         if (!selectedCoin) {
             selectedCoin = allAvailableCryptos.find(coin => {
                 const coinSymbol = coin.symbol ? coin.symbol.toUpperCase() : '';
@@ -353,7 +358,6 @@ function addCrypto() {
             });
         }
         
-        // Se ainda não encontrou, tenta só pelo nome
         if (!selectedCoin) {
             selectedCoin = allAvailableCryptos.find(coin => {
                 return coin.name.trim() === namePart;
@@ -362,19 +366,16 @@ function addCrypto() {
     } else {
         const searchTerm = inputValue.toLowerCase();
         
-        // Busca exata por símbolo
         selectedCoin = allAvailableCryptos.find(coin => 
             coin.symbol && coin.symbol.toLowerCase() === searchTerm
         );
         
-        // Busca exata por nome
         if (!selectedCoin) {
             selectedCoin = allAvailableCryptos.find(coin => 
                 coin.name.toLowerCase() === searchTerm
             );
         }
         
-        // Busca por nome que começa com o termo
         if (!selectedCoin) {
             selectedCoin = allAvailableCryptos.find(coin => 
                 coin.name.toLowerCase().startsWith(searchTerm) ||
@@ -418,9 +419,13 @@ function removeCrypto(idToRemove) {
 }
 
 function displayCrypto(data) {
-    const { id, name, symbol, current_price } = data;
+    const { id, name, symbol, priceUsd, current_price } = data;
+    
+    // Aceita tanto priceUsd quanto current_price
+    const priceVal = priceUsd !== undefined ? priceUsd : current_price;
+    const numericPrice = parseFloat(priceVal);
 
-    if (current_price === undefined || current_price === null) {
+    if (isNaN(numericPrice)) {
         console.warn(`Preço não disponível para ${name}`);
         return;
     }
@@ -435,7 +440,7 @@ function displayCrypto(data) {
     }
 
     const isUSDT = symbol && symbol.toUpperCase() === "USDT";
-    const precoFinal = isUSDT ? current_price * usdToBrl : current_price;
+    const precoFinal = isUSDT ? numericPrice * usdToBrl : numericPrice;
     const simbolo = isUSDT ? "R$" : "$";
     const symbolDisplay = symbol ? symbol.toUpperCase() : 'N/A';
 
@@ -476,7 +481,6 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
     try {
         const baseUrl = isLocal ? 'http://localhost:5000' : '';
         
-        // Para o gráfico, vamos usar dados da Binance (últimos 24h)
         const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${cryptoSymbol.toUpperCase()}USDT&interval=1h&limit=24`);
         
         if (!response.ok) {
@@ -486,7 +490,7 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
         const data = await response.json();
         
         if (data && Array.isArray(data)) {
-            const prices = data.map(item => parseFloat(item[4])); // Preço de fechamento
+            const prices = data.map(item => parseFloat(item[4]));
             const labels = data.map(item => {
                 const date = new Date(item[0]);
                 return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -547,8 +551,11 @@ async function showCryptoChart(cryptoId, cryptoName, cryptoSymbol) {
     }
 }
 
-// Atualizar preços das criptomoedas
+
+// Atualizar preços das criptomoedas diretamente pelo navegador
 async function updateCryptoPrices() {
+    console.log('🔄 Atualizando preços para a lista:', trackedCryptos);
+
     if (trackedCryptos.length === 0) {
         cryptoList.innerHTML = '';
         if (cryptoUpdateInterval) {
@@ -559,31 +566,61 @@ async function updateCryptoPrices() {
     }
 
     try {
-        const baseUrl = isLocal ? 'http://localhost:5000' : '';
-        const ids = trackedCryptos.join(',');
-        const response = await fetch(`${baseUrl}/api/crypto?endpoint=assets?ids=${ids}`);
-        
-        if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status}`);
+        const results = [];
+
+        for (const cryptoId of trackedCryptos) {
+            // Busca as informações locais do ativo
+            const cryptoInfo = allAvailableCryptos.find(c => c.id === cryptoId);
+            
+            if (!cryptoInfo) {
+                console.warn(`⚠️ Informações do ID "${cryptoId}" não encontradas em allAvailableCryptos.`);
+                continue;
+            }
+
+            const rawSymbol = cryptoInfo.symbol ? cryptoInfo.symbol.toUpperCase() : '';
+            if (!rawSymbol) continue;
+
+            // Determina o par comercial na Binance
+            let binanceSymbol = `${rawSymbol}USDT`;
+            if (rawSymbol === 'USDT') {
+                binanceSymbol = 'USDTBRL';
+            }
+
+            try {
+                console.log(`📡 Consultando Binance para ${cryptoInfo.name} (${binanceSymbol})...`);
+                const resp = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binanceSymbol}`);
+                
+                if (resp.ok) {
+                    const priceData = await resp.json();
+                    console.log(`✅ Preço recebido para ${cryptoInfo.name}:`, priceData.price);
+                    results.push({
+                        id: cryptoId,
+                        name: cryptoInfo.name,
+                        symbol: cryptoInfo.symbol,
+                        priceUsd: priceData.price
+                    });
+                } else {
+                    console.error(`❌ Erro HTTP na Binance para ${binanceSymbol}:`, resp.status);
+                }
+            } catch (e) {
+                console.error(`❌ Erro ao buscar preço de ${cryptoId}:`, e);
+            }
         }
+
+        console.log('🎨 Desenhando moedas na tela:', results);
         
-        const data = await response.json();
-        
-        if (data && data.data && Array.isArray(data.data)) {
-            cryptoList.innerHTML = '';
-            data.data.forEach(displayCrypto);
-        } else {
-            throw new Error('Resposta da API não é um array');
-        }
+        // Limpa e redesenha a lista com os resultados válidos
+        cryptoList.innerHTML = '';
+        results.forEach(displayCrypto);
+
     } catch (error) {
-        console.error("Erro ao buscar preços:", error);
-        errorMessageEl.textContent = "Erro ao atualizar preços de criptomoedas.";
-        setTimeout(() => {
-            errorMessageEl.textContent = '';
-        }, 5000);
+        console.error("Erro geral em updateCryptoPrices:", error);
+        if (errorMessageEl) {
+            errorMessageEl.textContent = "Erro ao atualizar preços de criptomoedas.";
+            setTimeout(() => { if (errorMessageEl) errorMessageEl.textContent = ''; }, 5000);
+        }
     }
 }
-
 function saveTrackedCryptos() {
     localStorage.setItem('trackedCryptos', JSON.stringify(trackedCryptos));
 }
@@ -599,7 +636,7 @@ function loadTrackedCryptos() {
             if (trackedCryptos.length > 0) {
                 updateCryptoPrices();
                 if (cryptoUpdateInterval) clearInterval(cryptoUpdateInterval);
-                cryptoUpdateInterval = setInterval(updateCryptoPrices, 120000); // 2 minutos
+                cryptoUpdateInterval = setInterval(updateCryptoPrices, 120000);
             }
         } catch (e) {
             console.error('Erro ao carregar cryptos salvas:', e);
@@ -684,10 +721,7 @@ async function getWeatherAndTime(cityName = null) {
         showMap(coord.lat, coord.lon, name);
 
         resultContainer.classList.remove('hidden');
-        
-        // Pequeno ajuste para manter a cor correta após carregar o clima
-        const currentBg = appContainer.style.backgroundColor || containerColors[currentContainerColor];
-        setTextColor(appContainer, currentBg);
+        setTextColor(appContainer, appContainer.style.backgroundColor || containerColors[currentContainerColor]);
     } catch (error) {
         showError(error.message);
         console.error(error);
@@ -792,9 +826,10 @@ async function showMap(lat, lon, city) {
     }).addTo(mapInstance);
 
     try {
-        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&polygon_geojson=1`;
+        const baseUrl = isLocal ? 'http://localhost:5000' : '';
+        const url = `${baseUrl}/api/nominatim?q=${encodeURIComponent(city)}`;
         
-        const res = await fetch(url, { headers: { 'Accept-Language': 'pt-BR' } });
+        const res = await fetch(url);
         const data = await res.json();
 
         if (data.length > 0 && data[0].geojson) {
@@ -985,6 +1020,21 @@ backgroundBtn.addEventListener('click', () => {
     currentBackgroundColor = (currentBackgroundColor + 1) % backgroundColors.length;
 });
 
+ // --- NOVA LÓGICA DE INICIALIZAÇÃO DE TEMA CLARO ---
+    // Força o container a iniciar com a primeira cor clara da lista (#f5f5f5)
+    currentContainerColor = 0; //
+    const initialContainerColor = containerColors[currentContainerColor]; //
+    appContainer.style.backgroundColor = initialContainerColor; //
+    setTextColor(appContainer, initialContainerColor); //
+    currentContainerColor = 1; // Prepara o índice para o próximo clique do botão
+
+    // Força o fundo da página (body) a iniciar com a primeira cor clara da lista (#f0f8ff)
+    currentBackgroundColor = 0; //
+    const initialBgColor = backgroundColors[currentBackgroundColor]; //
+    document.body.style.backgroundColor = initialBgColor; //
+    setTextColor(document.body, initialBgColor); //
+    currentBackgroundColor = 1; // Prepara o índice para o próximo clique do botão
+
 // ===== INICIALIZAÇÃO =====
 document.addEventListener('DOMContentLoaded', async () => {
     await fetchUsdToBrl();
@@ -992,22 +1042,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     audioPlayer.volume = volumeSlider.value;
     loadAvailableCryptos();
     loadTrackedCryptos();
-
-    // --- LOGICA DE CORREÇÃO PARA INICIAR COM TEMA CLARO ---
-    // Força o container a iniciar com o tom cinza claro (#f5f5f5)
-    currentContainerColor = 0;
-    const initialContainerColor = containerColors[currentContainerColor];
-    appContainer.style.backgroundColor = initialContainerColor;
-    setTextColor(appContainer, initialContainerColor);
-    currentContainerColor = 1; // Ajusta o ponteiro para o próximo clique do botão mudar de cor
-
-    // Força a página (body) a iniciar com o tom azulado claro (#f0f8ff)
-    currentBackgroundColor = 0;
-    const initialBgColor = backgroundColors[currentBackgroundColor];
-    document.body.style.backgroundColor = initialBgColor;
-    setTextColor(document.body, initialBgColor);
-    currentBackgroundColor = 1; // Ajusta o ponteiro para o próximo clique do botão mudar de cor
-    // ----------------------------------------------------
 
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('chart-time-btn')) {

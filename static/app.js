@@ -233,7 +233,6 @@ audioPlayer.addEventListener('stalled', () => {
 // ===== FUNÇÕES DE CRIPTOMOEDAS =====
 
 // Buscar cotação USD/BRL
-// Buscar cotação USD/BRL
 async function fetchUsdToBrl() {
   try {
     const now = Date.now();
@@ -285,6 +284,11 @@ async function loadAvailableCryptos() {
         if (data && data.data && Array.isArray(data.data)) {
             allAvailableCryptos = data.data;
             console.log(`${allAvailableCryptos.length} criptomoedas carregadas`);
+            
+            // ATENÇÃO: Força a atualização da interface caso as moedas salvas tenham sido carregadas antes da API terminar de responder
+            if (trackedCryptos.length > 0) {
+                updateCryptoPrices();
+            }
         } else {
             throw new Error('Formato de resposta inválido');
         }
@@ -562,6 +566,13 @@ async function updateCryptoPrices() {
             clearInterval(cryptoUpdateInterval);
             cryptoUpdateInterval = null;
         }
+        return;
+    }
+
+    // Se a lista de moedas disponíveis do servidor ainda estiver vazia, não adianta tentar mapear os IDs agora.
+    // O próprio callback de loadAvailableCryptos() vai chamar essa função assim que os dados chegarem.
+    if (!allAvailableCryptos || allAvailableCryptos.length === 0) {
+        console.log('⏳ Aguardando carregamento do catálogo allAvailableCryptos da API...');
         return;
     }
 
@@ -1020,21 +1031,6 @@ backgroundBtn.addEventListener('click', () => {
     currentBackgroundColor = (currentBackgroundColor + 1) % backgroundColors.length;
 });
 
- // --- NOVA LÓGICA DE INICIALIZAÇÃO DE TEMA CLARO ---
-    // Força o container a iniciar com a primeira cor clara da lista (#f5f5f5)
-    currentContainerColor = 0; //
-    const initialContainerColor = containerColors[currentContainerColor]; //
-    appContainer.style.backgroundColor = initialContainerColor; //
-    setTextColor(appContainer, initialContainerColor); //
-    currentContainerColor = 1; // Prepara o índice para o próximo clique do botão
-
-    // Força o fundo da página (body) a iniciar com a primeira cor clara da lista (#f0f8ff)
-    currentBackgroundColor = 0; //
-    const initialBgColor = backgroundColors[currentBackgroundColor]; //
-    document.body.style.backgroundColor = initialBgColor; //
-    setTextColor(document.body, initialBgColor); //
-    currentBackgroundColor = 1; // Prepara o índice para o próximo clique do botão
-
 // ===== INICIALIZAÇÃO =====
 document.addEventListener('DOMContentLoaded', async () => {
     await fetchUsdToBrl();
@@ -1042,6 +1038,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     audioPlayer.volume = volumeSlider.value;
     loadAvailableCryptos();
     loadTrackedCryptos();
+
+    // --- LOGICA DE CORREÇÃO PARA INICIAR COM TEMA CLARO ---
+    currentContainerColor = 0;
+    const initialContainerColor = containerColors[currentContainerColor];
+    appContainer.style.backgroundColor = initialContainerColor;
+    setTextColor(appContainer, initialContainerColor);
+    currentContainerColor = 1;
+
+    currentBackgroundColor = 0;
+    const initialBgColor = backgroundColors[currentBackgroundColor];
+    document.body.style.backgroundColor = initialBgColor;
+    setTextColor(document.body, initialBgColor);
+    currentBackgroundColor = 1;
+    // ----------------------------------------------------
 
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('chart-time-btn')) {

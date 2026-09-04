@@ -11,15 +11,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
 </head>
 <body>
-      <div class="wrapper" id="wrapper"></div>
+    <div class="wrapper" id="wrapper"></div>
 
     <div id="app-container">
         <h2>Rádio Relaxante</h2>
         <div id="radio-player">
-            
             <div class="radio-controls">
                 <select id="station-select">
                     <!-- Options will be populated by JavaScript -->
@@ -32,10 +30,10 @@
                 </div>
             </div>
             <audio id="audio-player" preload="none" crossorigin="anonymous"></audio>
-
         </div>
+        
         <button id="theme-btn" title="Mudar Cor de Fundo">🎨</button>
-        <button id="background-btn></button>
+        
         <h1>Clima e Hora Mundial</h1>
         <div class="search-box">
             <input type="text" id="city-input" placeholder="Digite uma cidade...">
@@ -47,10 +45,9 @@
             <p id="local-time"></p>
             <div id="map" style="height: 300px; width: 100%; margin: 20px 0; border-radius: 8px;"></div>
 
-
-                <h3>Previsão por Hora</h3>
-                <div id="hourly-forecast" class="hourly-forecast"></div>
-                <div id="forecast-section" class="hidden">
+            <h3>Previsão por Hora</h3>
+            <div id="hourly-forecast" class="hourly-forecast"></div>
+            <div id="forecast-section" class="hidden">
                 <h3>Previsão para os próximos 3 dias</h3>
                 <div id="forecast-container"></div>
             </div>
@@ -64,8 +61,6 @@
             </div>
             <div id="crypto-list"></div>
         </div>
-
-        
 
         <!-- Crypto Chart Modal -->
         <div id="crypto-modal" class="modal">
@@ -86,6 +81,6 @@
         <p id="error-message"></p>
     </div>
     <link rel="stylesheet" href="style.css">
-<script src="app.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

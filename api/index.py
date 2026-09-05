@@ -181,81 +181,202 @@ def shazam_proxy():
     try:
         # Verifica se o arquivo de áudio foi enviado
         if 'file' not in request.files:
-            return jsonify({
-                'error': 'Arquivo de áudio não foi enviado'
-            }), 400
+            return jsonify({'track': None, 'error': 'Arquivo de áudio não foi enviado'}), 400
 
         audio_file = request.files['file']
 
         if not audio_file.filename:
-            return jsonify({
-                'error': 'Arquivo de áudio inválido'
-            }), 400
+            return jsonify({'track': None, 'error': 'Arquivo de áudio inválido'}), 400
 
-        # Obtém a chave armazenada na Vercel
+        # Lê o conteúdo do arquivo para reutilizar nas duas APIs
+        audio_bytes = audio_file.read()
+        audio_filename = audio_file.filename
+        audio_mimetype = audio_file.mimetype or 'audio/wav'
+
+        # ============================================================
+        # PASSO 1: TENTA COM SHAZAM CORE
+        # ============================================================
         rapidapi_key = os.environ.get('RAPIDAPI_KEY')
+        track = None
+        shazam_usado = False
+        audd_usado = False
 
-        if not rapidapi_key:
-            logging.error('RAPIDAPI_KEY não configurada')
-            return jsonify({
-                'error': 'RAPIDAPI_KEY não configurada no servidor'
-            }), 500
+        if rapidapi_key:
+            try:
+                shazam_url = 'https://shazam-core.p.rapidapi.com/v1/tracks/recognize'
+                shazam_headers = {
+                    'x-rapidapi-host': 'shazam-core.p.rapidapi.com',
+                    'x-rapidapi-key': rapidapi_key
+                }
+                shazam_files = {
+                    'file': (audio_filename, audio_bytes, audio_mimetype)
+                }
 
-        # Envia o WAV para o Shazam Core
-        rapidapi_url = 'https://shazam-core.p.rapidapi.com/v1/tracks/recognize'
+                logging.info('[Shazam] Enviando áudio para identificação...')
+                shazam_response = requests.post(
+                    shazam_url,
+                    headers=shazam_headers,
+                    files=shazam_files,
+                    timeout=15
+                )
 
-        headers = {
-            'x-rapidapi-host': 'shazam-core.p.rapidapi.com',
-            'x-rapidapi-key': rapidapi_key
-        }
+                logging.info(f'[Shazam] Status: {shazam_response.status_code}')
 
-        files = {
-            'file': (
-                audio_file.filename,
-                audio_file.stream,
-                audio_file.mimetype or 'audio/wav'
-            )
-        }
+                if shazam_response.status_code == 200:
+                    shazam_data = shazam_response.json()
+                    if shazam_data and shazam_data.get('track'):
+                        track = shazam_data['track']
+                        shazam_usado = True
+                        logging.info(f'[Shazam] ✅ Encontrado: {track.get("title")}')
+                    else:
+                        logging.info('[Shazam] ❌ Não identificou. Tentando AudD...')
 
-        logging.info('Enviando áudio para Shazam Core...')
+            except requests.exceptions.Timeout:
+                logging.error('[Shazam] Timeout')
+            except requests.exceptions.RequestException as e:
+                logging.error(f'[Shazam] Erro de rede: {str(e)}')
+            except Exception as e:
+                logging.error(f'[Shazam] Erro inesperado: {str(e)}')
+        else:
+            logging.warning('[Shazam] RAPIDAPI_KEY não configurada. Pulando para AudD.')
 
-        response = requests.post(
-            rapidapi_url,
-            headers=headers,
-            files=files,
-            timeout=30
-        )
+        # ============================================================
+        # PASSO 2: FALLBACK PARA AUDD (SE SHAZAM FALHOU)
+        # ============================================================
+        if not track:
+            audd_token = os.environ.get('AUDD_API_TOKEN')
 
-        logging.info(
-            f'Shazam Core respondeu: {response.status_code}'
-        )
+            if audd_token:
+                try:
+                    audd_url = 'https://api.audd.io/'
+                    audd_files = {
+                        'file': (audio_filename, audio_bytes, audio_mimetype)
+                    }
+                    audd_data = {
+                        'api_token': audd_token,
+                        'return': 'apple_music,spotify,deezer'
+                    }
+
+                    logging.info('[AudD] Enviando áudio para identificação...')
+                    audd_response = requests.post(
+                        audd_url,
+                        data=audd_data,
+                        files=audd_files,
+                        timeout=15
+                    )
+
+                    logging.info(f'[AudD] Status: {audd_response.status_code}')
+
+                    if audd_response.status_code == 200:
+                        audd_json = audd_response.json()
+
+                        if audd_json.get('status') == 'success' and audd_json.get('result'):
+                            track = normalizar_audd_para_shazam(audd_json['result'])
+                            audd_usado = True
+                            logging.info(f'[AudD] ✅ Encontrado: {track.get("title")}')
+                        else:
+                            logging.info('[AudD] ❌ Também não identificou.')
+
+                except requests.exceptions.Timeout:
+                    logging.error('[AudD] Timeout')
+                except requests.exceptions.RequestException as e:
+                    logging.error(f'[AudD] Erro de rede: {str(e)}')
+                except Exception as e:
+                    logging.error(f'[AudD] Erro inesperado: {str(e)}')
+            else:
+                logging.warning('[AudD] AUDD_API_TOKEN não configurada.')
+
+        # ============================================================
+        # RETORNA PARA O FRONTEND (mesmo formato de sempre)
+        # ============================================================
+        resposta = {'track': track}
+
+        # Debug no console do Vercel — remova em produção se quiser
+        if not track:
+            resposta['_debug'] = {
+                'shazam': shazam_usado,
+                'audd': audd_usado,
+                'mensagem': 'Nenhuma das APIs conseguiu identificar a música'
+            }
 
         return Response(
-            response.content,
-            status=response.status_code,
+            json.dumps(resposta),
+            status=200,
             headers={
                 'Access-Control-Allow-Origin': '*',
                 'Content-Type': 'application/json'
             }
         )
 
-    except requests.exceptions.Timeout:
-        logging.error('Timeout ao conectar ao Shazam Core')
-        return jsonify({
-            'error': 'Timeout ao conectar ao Shazam'
-        }), 504
-
-    except requests.exceptions.RequestException as e:
-        logging.error(f'Erro na requisição ao Shazam: {str(e)}')
-        return jsonify({
-            'error': 'Erro ao conectar ao Shazam'
-        }), 502
-
     except Exception as e:
         logging.error(f'Erro no proxy Shazam: {str(e)}')
-        return jsonify({
-            'error': str(e)
-        }), 500
+        return jsonify({'track': None, 'error': str(e)}), 500
+
+
+# ============================================================
+# NORMALIZA RESPOSTA AUDD → FORMATO SHAZAM (frontend não muda!)
+# ============================================================
+def normalizar_audd_para_shazam(result):
+    """
+    Converte a resposta da API AudD para o formato que o frontend
+    já espera (formato Shazam Core), assim não precisa alterar nada no app.js.
+    """
+    apple_music = result.get('apple_music', {}) or {}
+    spotify = result.get('spotify', {}) or {}
+    deezer = result.get('deezer', {}) or {}
+
+    # Artwork: tenta Apple Music primeiro, depois Deezer
+    artwork_url = ''
+    if apple_music.get('artwork', {}).get('url'):
+        artwork_url = apple_music['artwork']['url'].replace('{w}', '400').replace('{h}', '400')
+    elif deezer.get('album', {}).get('cover'):
+        artwork_url = deezer['album']['cover']
+
+    # Monta os providers no formato que o frontend já lê
+    providers = []
+
+    if spotify.get('external_urls', {}).get('spotify'):
+        providers.append({
+            'type': 'SPOTIFY',
+            'actions': [{'uri': spotify['external_urls']['spotify']}]
+        })
+
+    if result.get('song_link'):
+        providers.append({
+            'type': 'YOUTUBEMUSIC',
+            'actions': [{'uri': result['song_link']}]
+        })
+
+    if deezer.get('link'):
+        providers.append({
+            'type': 'DEEZER',
+            'actions': [{'uri': deezer['link']}]
+        })
+
+    # Metadados (álbum / ano)
+    metadata = []
+    if result.get('album'):
+        metadata.append({'title': 'Album', 'text': result['album']})
+    if result.get('release_date'):
+        # Pega só o ano (ex: "2019-11-29" → "2019")
+        ano = str(result['release_date']).split('-')[0]
+        if ano:
+            metadata.append({'title': 'Released', 'text': ano})
+
+    return {
+        'title': result.get('title') or 'Música desconhecida',
+        'subtitle': result.get('artist') or 'Artista desconhecido',
+        'images': {
+            'coverarthq': artwork_url,
+            'coverart': artwork_url
+        },
+        'hub': {
+            'providers': providers
+        },
+        'sections': [{
+            'metadata': metadata
+        }] if metadata else []
+    }
 
 
 @app.route('/api/proxy')

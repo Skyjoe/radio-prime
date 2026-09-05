@@ -864,56 +864,137 @@ cityInput.addEventListener('keypress', (event) => {
 
 
 // Referências dos novos elementos HTML de identificação de músicas
-const identifyBtn = document.getElementById('identify-song-btn');
-const songResultEl = document.getElementById('song-result-el');
-const RAPIDAPI_KEY = "d5d4636078mshf5b548e19051a72p15bba8jsn97ddac3c4604";
-const RAPIDAPI_HOST = "shazam-core.p.rapidapi.com";
-
 if (identifyBtn) {
     identifyBtn.addEventListener('click', async () => {
-        if (!isPlaying || !audioPlayer.src) { songResultEl.textContent = "❌ Dê o play em uma rádio primeiro!"; return; }
-        if (!audioCtx) { songResultEl.textContent = "❌ Aguarde o áudio conectar e tente de novo."; return; }
-        identifyBtn.disabled = true; songResultEl.textContent = "👂 Ouvindo a rádio por 7 segundos...";
+
+        console.log("=== IDENTIFICAÇÃO INICIADA ===");
+        console.log("isPlaying:", isPlaying);
+        console.log("audioPlayer.src:", audioPlayer.src);
+        console.log("audioCtx:", audioCtx);
+        console.log("audioCtx.state:", audioCtx?.state);
+        console.log("analyser:", analyser);
+
+        if (!isPlaying || !audioPlayer.src) {
+            songResultEl.textContent = "❌ Dê o play em uma rádio primeiro!";
+            return;
+        }
+
+        if (!audioCtx) {
+            songResultEl.textContent = "❌ Aguarde o áudio conectar e tente de novo.";
+            return;
+        }
+
+        identifyBtn.disabled = true;
+        songResultEl.textContent = "👂 Ouvindo a rádio por 7 segundos...";
+
         try {
-            // Chamada do fluxo de mídia nativa restaurada sem bugs
-            const destination = audioCtx.createMediaStreamDestination();
+
+            // Garante que o AudioContext está ativo
+            if (audioCtx.state === "suspended") {
+                await audioCtx.resume();
+            }
+
+            console.log("AudioContext:", audioCtx.state);
+
+            // CORRETO
+            const destination = audioCtx.crpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+
+            console.log("MediaStreamDestination criado:", destination);
+            console.log("Stream:", destination.stream);
+            console.log("Tracks:", destination.stream.getAudioTracks());
+
+            // Conecta o áudio do analyser ao destino de captura
             analyser.connect(destination);
-            const mediaRecorder = new MediaRecorder(destination.stream);
+
+            console.log("Analyser conectado ao destination.");
+
+            // Descobre um formato suportado pelo navegador
+            let mimeType = "";
+
+            if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+                mimeType = "audio/webm;codecs=opus";
+            } else if (MediaRecorder.isTypeSupported("audio/ogg;codecs=opus")) {
+                mimeType = "audio/ogg;codecs=opus";
+            } else {
+                mimeType = "";
+            }
+
+            console.log("MIME escolhido:", mimeType);
+
+            const mediaRecorder = mimeType
+                ? new MediaRecorder(destination.stream, { mimeType })
+                : new MediaRecorder(destination.stream);
+
+            console.log("MediaRecorder criado:", mediaRecorder);
+            console.log("MediaRecorder MIME:", mediaRecorder.mimeType);
+
             const audioChunks = [];
-            mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-            mediaRecorder.onstop = async () => {
-                songResultEl.textContent = "🔍 Consultando o Shazam...";
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                const formData = new FormData(); formData.append('file', audioBlob, 'sample.wav');
-                try {
-                    const response = await fetch(`https://${RAPIDAPI_HOST}/v1/tracks/recognize`, {
-                        method: 'POST', headers: { 'X-RapidAPI-Key': RAPIDAPI_KEY, 'X-RapidAPI-Host': RAPIDAPI_HOST }, body: formData
-                    });
-                    const data = await response.json();
-                    if (data && data.track) { songResultEl.textContent = `🎵 Encontrada: ${data.track.title} - ${data.track.subtitle}`; }
-                    else { songResultEl.textContent = "🤷 Não foi possível identificar."; }
-                } catch (err) { songResultEl.textContent = "❌ Falha ao consultar o servidor."; }
-                finally { identifyBtn.disabled = false; }
+
+            mediaRecorder.ondataavailable = (event) => {
+                console.log(
+                    "Chunk recebido:",
+                    event.data.size,
+                    "bytes",
+                    event.data.type
+                );
+
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                }
             };
+
+            mediaRecorder.onerror = (event) => {
+                console.error("ERRO DO MEDIA RECORDER:", event);
+            };
+
+            mediaRecorder.onstop = async () => {
+
+                console.log("=== GRAVAÇÃO FINALIZADA ===");
+                console.log("Chunks:", audioChunks.length);
+
+                analyser.disconnect(destination);
+
+                const audioBlob = new Blob(audioChunks, {
+                    type: mediaRecorder.mimeType
+                });
+
+                console.log("Blob final:", audioBlob);
+                console.log("Tamanho:", audioBlob.size);
+                console.log("Tipo:", audioBlob.type);
+
+                songResultEl.textContent =
+                    `🎧 Áudio capturado: ${(audioBlob.size / 1024).toFixed(1)} KB`;
+
+                identifyBtn.disabled = false;
+            };
+
             mediaRecorder.start();
-            setTimeout(() => { mediaRecorder.stop(); analyser.disconnect(destination); }, 7000);
-        } } catch (e) {
-    console.error("ERRO AO INTERCEPTAR ÁUDIO:", e);
-    songResultEl.textContent = "❌ Erro ao interceptar áudio: " + e.message;
-    identifyBtn.disabled = false;
-}
+
+            console.log("GRAVAÇÃO INICIADA");
+
+            setTimeout(() => {
+
+                console.log("Parando gravação...");
+
+                if (mediaRecorder.state !== "inactive") {
+                    mediaRecorder.stop();
+                }
+
+            }, 7000);
+
+        } catch (e) {
+
+            console.error("================================");
+            console.error("ERRO AO INTERCEPTAR ÁUDIO:");
+            console.error(e);
+            console.error("Mensagem:", e?.message);
+            console.error("Stack:", e?.stack);
+            console.error("================================");
+
+            songResultEl.textContent =
+                "❌ Erro ao interceptar áudio: " + (e?.message || e);
+
+            identifyBtn.disabled = false;
+        }
     });
 }
-
-document.addEventListener('DOMContentLoaded', async () => {
-    await fetchUsdToBrl(); populateStations(); audioPlayer.volume = volumeSlider.value; loadAvailableCryptos(); loadTrackedCryptos();
-    currentContainerColor = 0; const initialContainerColor = containerColors[currentContainerColor]; appContainer.style.backgroundColor = initialContainerColor; setTextColor(appContainer, initialContainerColor); currentContainerColor = 1;
-    currentBackgroundColor = 0; document.body.style.backgroundColor = backgroundColors[currentBackgroundColor]; currentBackgroundColor = 1;
-    const savedCity = localStorage.getItem("defaultCity") || "Jundiaí"; getWeatherAndTime(savedCity);
-});
-
-searchBtn.addEventListener('click', () => { const city = cityInput.value.trim(); if (city) { getWeatherAndTime(city); localStorage.setItem("defaultCity", city); } });
-cityInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { const city = cityInput.value.trim(); if (city) { getWeatherAndTime(city); localStorage.setItem("defaultCity", city); } } });
-const chartScript = document.createElement('script'); chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js'; document.head.appendChild(chartScript);
-
-

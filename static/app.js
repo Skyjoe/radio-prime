@@ -985,14 +985,15 @@ if (identifyBtn) {
             }
 
             if (data && data.track) {
-                mostrarResultado(data.track);
-            } else {
-                songResultEl.innerHTML = `
-                    🤷 Não foi possível identificar.<br>
-                    <small>Volume detectado: ${(volume * 100).toFixed(1)}% · 
-                    Tente quando não houver locução ou comercial.</small>
-                `;
-            }
+    mostrarResultado(data.track, data.fonte || '');
+    } else {
+        songResultEl.innerHTML = `
+            🤷 Não foi possível identificar.<br>
+            <small>Volume detectado: ${(volume * 100).toFixed(1)}% · 
+            Tente quando não houver locução ou comercial.</small>
+        `;
+    }
+
 
         } catch (err) {
             console.error("ERRO:", err);
@@ -1007,7 +1008,7 @@ if (identifyBtn) {
 // MOSTRA O RESULTADO (funciona para Shazam e audD,
 // pois o backend normaliza o audD para formato Shazam)
 // ============================================
-function mostrarResultado(track) {
+function mostrarResultado(track, fonte) {
     const titulo = track.title || "Música desconhecida";
     const artista = track.subtitle || "Artista desconhecido";
     const imagem = track.images?.coverarthq || track.images?.coverart || "";
@@ -1098,6 +1099,15 @@ function mostrarResultado(track) {
     container.appendChild(info);
     songResultEl.appendChild(container);
 }
+
+ if (fonte && fonte !== 'nenhuma') {
+        const badge = document.createElement("div");
+        badge.className = "shazam-source-badge";
+        badge.textContent = fonte === 'shazam' ? '● Shazam' : '● audD';
+        info.appendChild(badge);
+    }
+
+
 
 // ============================================
 // CONVERTE BLOB → WAV 44100Hz MONO

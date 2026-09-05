@@ -874,7 +874,7 @@ cityInput.addEventListener('keypress', (event) => {
 
 
 // ============================================
-// IDENTIFICAÇÃO DE MÚSICAS — CÓDIGO COMPLETO
+// IDENTIFICAÇÃO DE MÚSICAS — SHAZAM + AUDD FALLBACK
 // ============================================
 
 const identifyBtn = document.getElementById('identify-song-btn');
@@ -882,6 +882,8 @@ const songResultEl = document.getElementById('song-result-el');
 
 const CAPTURE_DURATION = 4000;
 const TARGET_SAMPLE_RATE = 44100;
+
+const AUDD_API_TOKEN = "test"; // chave de teste — trocar por uma chave real em produção
 
 if (identifyBtn) {
     identifyBtn.addEventListener('click', async () => {
@@ -939,11 +941,11 @@ if (identifyBtn) {
             console.log("WAV final:", wavBlob.size, "bytes");
 
             // ============================================================
-            // DEBUG: VERIFICA SE O ÁUDIO TEM VOLUME (NÃO É SILÊNCIO)
+            // DEBUG: VERIFICA SE O ÁUDIO TEM VOLUME
             // ============================================================
             const volume = await getAudioVolume(originalBlob);
             console.log("Volume médio do áudio:", volume);
-            
+
             if (volume < 0.001) {
                 throw new Error("O áudio capturado está em silêncio. Verifique se a rádio está tocando.");
             }
@@ -952,39 +954,36 @@ if (identifyBtn) {
                 throw new Error("Arquivo muito grande (>2MB).");
             }
 
+            // ============================================================
+            // 1ª TENTATIVA: SHAZAM
+            // ============================================================
             songResultEl.textContent = "🔍 Consultando o Shazam...";
+            const shazamResult = await identificarComShazam(wavBlob);
 
-            // ============================================================
-            // ENVIA PARA O BACKEND
-            // ============================================================
-            const formData = new FormData();
-            formData.append("file", wavBlob, "sample.wav");
-
-            const response = await fetch("/api/shazam", {
-                method: "POST",
-                body: formData
-            });
-
-            const responseText = await response.text();
-            console.log("HTTP status:", response.status);
-            console.log("Resposta:", responseText);
-
-            let data;
-            try {
-                data = JSON.parse(responseText);
-            } catch {
-                throw new Error("Resposta inválida do servidor");
+            if (shazamResult.sucesso) {
+                mostrarResultadoShazam(shazamResult.data.track);
+                return; // sucesso, encerra
             }
 
-            if (data && data.track) {
-                mostrarResultadoShazam(data.track);
-            } else {
-                songResultEl.innerHTML = `
-                    🤷 Não foi possível identificar.<br>
-                    <small>Volume detectado: ${(volume * 100).toFixed(1)}% · 
-                    Tente quando não houver locução ou comercial.</small>
-                `;
+            console.warn("Shazam falhou, tentando audD...", shazamResult.erro || "não identificado");
+
+            // ============================================================
+            // 2ª TENTATIVA (FALLBACK): AUDD
+            // ============================================================
+            songResultEl.textContent = "🔄 Shazam não achou. Tentando audD...";
+            const auddResult = await identificarComAudd(wavBlob);
+
+            if (auddResult.sucesso) {
+                mostrarResultadoAudd(auddResult.data.result);
+                return;
             }
+
+            // Nenhum dos dois identificou
+            songResultEl.innerHTML = `
+                🤷 Nenhum serviço conseguiu identificar.<br>
+                <small>Volume detectado: ${(volume * 100).toFixed(1)}% · 
+                Tente quando não houver locução ou comercial.</small>
+            `;
 
         } catch (err) {
             console.error("ERRO:", err);
@@ -996,7 +995,81 @@ if (identifyBtn) {
 }
 
 // ============================================
-// MOSTRA O RESULTADO
+// CONSULTA AO SHAZAM (via backend)
+// ============================================
+async function identificarComShazam(wavBlob) {
+    try {
+        const formData = new FormData();
+        formData.append("file", wavBlob, "sample.wav");
+
+        const response = await fetch("/api/shazam", {
+           : "POST",
+            body: formData
+        });
+
+        const responseText = await response.text();
+        console.log("Shazam HTTP status:", response.status);
+        console.log("Shazam resposta:", responseText);
+
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch {
+            return { sucesso: false, erro: "Resposta inválida do servidor Shazam" };
+        }
+
+        if (data && data.track) {
+            return { sucesso: true, data };
+        }
+
+        return { sucesso: false, erro: "Shazam não identificou" };
+
+    } catch (err) {
+        console.error("Erro na chamada Shazam:", err);
+        return { sucesso: false, erro: err.message };
+    }
+}
+
+// ============================================
+// CONSULTA AO AUDD — FALLBACK (via backend)
+// ============================================
+async function identificarComAudd(wavBlob) {
+    try {
+        const formData = new FormData();
+        formData.append("file", wavBlob, "sample.wav");
+        formData.append("api_token", AUDD_API_TOKEN);
+        formData.append("return", "timecode"); // opcional: retorna o momento da música
+
+        const response = await fetch("/api/audd", {
+            method: "POST",
+            body: formData
+        });
+
+        const responseText = await response.text();
+        console.log("audD HTTP status:", response.status);
+        console.log("audD resposta:", responseText);
+
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch {
+            return { sucesso: false, erro: "Resposta inválida do servidor audD" };
+        }
+
+        if (data && data.status === "success" && data.result && data.result.artist) {
+            return { sucesso: true, data };
+        }
+
+        return { sucesso: false, erro: "audD não identificou" };
+
+    } catch (err) {
+        console.error("Erro na chamada audD:", err);
+        return { sucesso: false, erro: err.message };
+    }
+}
+
+// ============================================
+// MOSTRA O RESULTADO DO SHAZAM
 // ============================================
 function mostrarResultadoShazam(track) {
     const titulo = track.title || "Música desconhecida";
@@ -1005,7 +1078,7 @@ function mostrarResultadoShazam(track) {
     const providers = track.hub?.providers || [];
 
     const spotify = providers.find(p => p.type === "SPOTIFY");
-    const youtube = providers.find(p => p.type === "YOUTUBEMUSIC");
+    const youtube = providers.find(p => p.type ===YOUTUBEMUSIC");
     const deezer = providers.find(p => p.type === "DEEZER");
 
     songResultEl.innerHTML = "";
@@ -1014,23 +1087,22 @@ function mostrarResultadoShazam(track) {
     container.className = "shazam-result";
 
     if (imagem) {
-        const img = document.createElement("img");
+        const img document.createElement("img");
         img.src = imagem;
-        img.alt = `${titulo} - ${artista}`;
+        img.alt = `titulo−{titulo} -titulo−{artista}`;
         img.className = "shazam-cover";
         img.onerror = () => img.remove();
         container.appendChild(img);
     }
 
-    const info = document.createElement("div");
-    info.className = "shazam-info";
+    const info =.createElement("div    info.className = "shazam-info";
 
     const titleElement = document.createElement("div");
-    titleElement.className = "shazam-title";
+    titleElement.className "shazam";
     titleElement.textContent = `🎵 ${titulo}`;
-    info.appendChild(titleElement);
+    infoElement);
 
-    const artistElement = document.createElement("div");
+    artistElement = document.createElement("div");
     artistElement.className = "shazam-artist";
     artistElement.textContent = artista;
     info.appendChild(artistElement);
@@ -1045,7 +1117,7 @@ function mostrarResultadoShazam(track) {
         if (album || ano) {
             const metaElement = document.createElement("div");
             metaElement.className = "shazam-meta";
-            metaElement.textContent = album && ano ? `${album} · ${ano}` : (album || ano);
+            metaElement.textContent = album && ano ? `album⋅{album} ·album⋅{ano}` : (album || ano);
             info.appendChild(metaElement);
         }
     }
@@ -1089,18 +1161,101 @@ function mostrarResultadoShazam(track) {
 }
 
 // ============================================
+// MOSTRA O RESULTADO DO AUDD
+// ============================================
+function mostrarResultadoAudd(result) {
+    const titulo = result.title || "Música desconhecida";
+    const artista = result.artist || "Artista desconhecido";
+    const album = result.album || "";
+    const imagem = result.artwork || "";
+    const songLink = result.song_link || "";
+
+    songResultEl.innerHTML = "";
+
+    const container = document.createElement("div");
+    container.className = "shazam-result audd-result";
+
+    if (imagem) {
+        const img = document.createElement("img");
+        img.src = imagem;
+        img.alt = `titulo−{titulo} -titulo−{artista}`;
+        img.className = "shazam-cover";
+        img.onerror = () => img.remove();
+        container.appendChild(img);
+    }
+
+    const info = document.createElement("div");
+    info.className = "shazam-info";
+
+    const titleElement = document.createElement("div");
+    titleElement.className = "shazam-title";
+    titleElement.textContent = `🎵 ${titulo}`;
+    info.appendChild(titleElement);
+
+    const artistElement = document.createElement("div");
+    artistElement.className = "shazam-artist";
+    artistElement.textContent = artista;
+    info.appendChild(artistElement);
+
+    if (album) {
+        const metaElement = document.createElement("div");
+        metaElement.className = "shazam-meta";
+        metaElement.textContent = album;
+        info.appendChild(metaElement);
+    }
+
+    const badge = document.createElement("div");
+    badge.className = "shazam-meta";
+    badge.textContent = "🔍 via audD";
+    info.appendChild(badge);
+
+    const buttons = document.createElement("div");
+    buttons.className = "shazam-buttons";
+
+    // audD geralmente retorna link Apple Music / Spotify em song_link
+    if (songLink) {
+        const btn = document.createElement("a");
+        btn.href = songLink;
+        btn.target = "_blank";
+        btn.rel = "noopener noreferrer";
+        btn.className = "shazam-service-btn spotify-btn";
+        btn.textContent = "🎧 Ouvir";
+        buttons.appendChild(btn);
+    }
+
+    // Busca genérica nos serviços
+    const ytBtn = document.createElement("a");
+    ytBtn.href = `https://music.youtube.com/search?q=${encodeURIComponent(titulo + ' ' + artista)}`;
+    ytBtn.target = "_blank";
+    ytBtn.rel = "noopener noreferrer";
+    ytBtn.className = "shazam-service-btn youtube-btn";
+    ytBtn.textContent = "▶️ YouTube Music";
+    buttons.appendChild(ytBtn);
+
+    const dzBtn = document.createElement("a");
+    dzBtn.href = `https://www.deezer.com/search/${encodeURIComponent(titulo + ' ' + artista)}`;
+    dzBtn.target = "_blank";
+    dzBtn.rel = "noopener noreferrer";
+    dzBtn.className = "shazam-service-btn deezer-btn";
+    dzBtn.textContent = "🎵 Deezer";
+    buttons.appendChild(dzBtn);
+
+    info.appendChild(buttons);
+    container.appendChild(info);
+    songResultEl.appendChild(container);
+}
+
+// ============================================
 // CONVERTE BLOB → WAV 44100Hz MONO
 // ============================================
 async function convertToWav(audioBlob, targetSampleRate, targetChannels) {
     const arrayBuffer = await audioBlob.arrayBuffer();
     const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
 
-    // Se já estiver na taxa certa e com o número certo de canais, converte direto
     if (audioBuffer.sampleRate === targetSampleRate && audioBuffer.numberOfChannels === targetChannels) {
         return audioBufferToWav(audioBuffer);
     }
 
-    // Caso contrário, resample
     const offlineCtx = new OfflineAudioContext(
         targetChannels,
         audioBuffer.duration * targetSampleRate,
@@ -1119,7 +1274,7 @@ async function convertToWav(audioBlob, targetSampleRate, targetChannels) {
 // ============================================
 async function getAudioVolume(audioBlob) {
     try {
-        const arrayBuffer = await audioBlob.arrayBuffer();
+        const arrayBuffer = await audio.arrayBuffer();
         const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
         const data = audioBuffer.getChannelData(0);
         let sum = 0;
@@ -1173,3 +1328,4 @@ function audioBufferToWav(audioBuffer) {
     }
     return new Blob([buffer], { type: "audio/wav" });
 }
+

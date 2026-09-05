@@ -247,7 +247,7 @@ def shazam_proxy():
         # PASSO 2: FALLBACK PARA AUDD
         # ============================================================
         if not track:
-            audd_token = os.environ.get('AUDD_API_TOKEN')
+            audd_token = os.environ.get('AUDD_API_KEY')
 
             if audd_token:
                 try:
@@ -287,7 +287,7 @@ def shazam_proxy():
                 except Exception as e:
                     logging.error(f'[AudD] Erro inesperado: {str(e)}')
             else:
-                logging.warning('[AudD] AUDD_API_TOKEN não configurada.')
+                logging.warning('[AudD] AUDD_API_KEY não configurada.')
 
         # ============================================================
         # RETORNA PARA O FRONTEND

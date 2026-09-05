@@ -876,7 +876,7 @@ if (identifyBtn) {
         identifyBtn.disabled = true; songResultEl.textContent = "👂 Ouvindo a rádio por 7 segundos...";
         try {
             // Chamada do fluxo de mídia nativa restaurada sem bugs
-            const destination = audioCtx.crpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+            const destination = audioCtx.createMediaStreamDestination();
             analyser.connect(destination);
             const mediaRecorder = new MediaRecorder(destination.stream);
             const audioChunks = [];
@@ -897,7 +897,11 @@ if (identifyBtn) {
             };
             mediaRecorder.start();
             setTimeout(() => { mediaRecorder.stop(); analyser.disconnect(destination); }, 7000);
-        } catch (e) { songResultEl.textContent = "❌ Erro ao interceptar áudio."; identifyBtn.disabled = false; }
+        } } catch (e) {
+    console.error("ERRO AO INTERCEPTAR ÁUDIO:", e);
+    songResultEl.textContent = "❌ Erro ao interceptar áudio: " + e.message;
+    identifyBtn.disabled = false;
+}
     });
 }
 

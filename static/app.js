@@ -880,10 +880,11 @@ cityInput.addEventListener('keypress', (event) => {
 // ============================================
 
 const identifyBtn = document.getElementById('identify-song-btn');
-const songResult = document.getElementById('song-result-el');
+const songResultEl = document.getElementById('song-result-el');
 
 const CAPTURE_DURATION = 4000;
 const TARGET_SAMPLE_RATE = 44100;
+
 
 if (identifyBtn) {
     identifyBtn.addEventListener('click', async () => {

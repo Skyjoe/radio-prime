@@ -76,7 +76,10 @@ const radioStations = [
     { name: 'Naphtali Web', url: '/api/proxy?url=' + encodeURIComponent('https://servidor28-5.brlogic.com:8272/live?1788583515523') },
     { name: 'Anjo de Luz', url: '/api/proxy?url=' + encodeURIComponent('https://servidor26.brlogic.com:8196/live?1788583657889') },
     { name: 'Blog Lyriah', url: '/api/proxy?url=' + encodeURIComponent('https://centova.svdns.com.br:20290/live?1788583727918') }
-
+    { name: 'The Kyoto Connection', url: '/api/proxy?url=' + encodeURIComponent('https://server.laradio.online:59009/live') },
+    { name: 'J Pop Sakura', url: '/api/proxy?url=' + encodeURIComponent('https://quincy.torontocast.com:2070/;') },
+    { name: 'BOX : Japan City Pop', url: '/api/proxy?url=' + encodeURIComponent('https://stream-286.surfernetwork.com/x5bwgjxv68xvv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiJ4NWJ3Z2p4djY4eHZ2IiwiaG9zdCI6InN0cmVhbS0yODYuc3VyZmVybmV0d29yay5jb20iLCJydHRsIjo1LCJqdGkiOiJDRXBkV1ZUUlJDbVRGLWdEMkMyQVl3IiwiaWF0IjoxNzg4NTg1MzAwLCJleHAiOjE3ODg1ODUzNjB9.CpWIXUpp0XcdUQemd3GeLuOcayWltrU_KIok-P41RCU&_cb=1788442502910') },
+    { name: 'Hear me FM', url: '/api/proxy?url=' + encodeURIComponent('https://radio.hearme.fm:8158/stream') }
 
 
 

@@ -863,7 +863,14 @@ cityInput.addEventListener('keypress', (event) => {
 
 
 
+
 // Referências dos novos elementos HTML de identificação de músicas
+
+const identifyBtn = document.getElementById('identify-song-btn');
+const songResultEl = document.getElementById('song-result-el'); 
+const RAPIDAPI_KEY = "d5d4636078mshf5b548e19051a72p15bba8jsn97ddac3c4604"; 
+const RAPIDAPI_HOST = "shazam-core.p.rapidapi.com";
+
 if (identifyBtn) {
     identifyBtn.addEventListener('click', async () => {
 

@@ -866,14 +866,13 @@ cityInput.addEventListener('keypress', (event) => {
 
 // Referências dos novos elementos HTML de identificação de músicas
 
-const identifyBtn = document.getElementById('identify-song-btn');
-const songResultEl = document.getElementById('song-result-el'); 
-const RAPIDAPI_KEY = "d5d4636078mshf5b548e19051a72p15bba8jsn97ddac3c4604"; 
+code = r'''const identifyBtn = document.getElementById('identify-song-btn');
+const songResultEl = document.getElementById('song-result-el');
+const RAPIDAPI_KEY = "COLOQUE_SUA_NOVA_CHAVE_AQUI";
 const RAPIDAPI_HOST = "shazam-core.p.rapidapi.com";
 
 if (identifyBtn) {
     identifyBtn.addEventListener('click', async () => {
-
         console.log("=== IDENTIFICAÇÃO INICIADA ===");
         console.log("isPlaying:", isPlaying);
         console.log("audioPlayer.src:", audioPlayer.src);
@@ -895,45 +894,28 @@ if (identifyBtn) {
         songResultEl.textContent = "👂 Ouvindo a rádio por 7 segundos...";
 
         try {
-
-            // Garante que o AudioContext está ativo
             if (audioCtx.state === "suspended") {
                 await audioCtx.resume();
             }
 
             console.log("AudioContext:", audioCtx.state);
 
-            // ============================================================
-            // CRIA UM DESTINO DE CAPTURA
-            // ============================================================
-
-            const destination = audioCtx.createMediaStreamDestination();
+            const destination = audioCtx.crpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
 
             console.log("MediaStreamDestination criado:", destination);
             console.log("Stream:", destination.stream);
             console.log("Tracks:", destination.stream.getAudioTracks());
 
-            // Conecta o analyser ao destino de captura
             analyser.connect(destination);
-
             console.log("Analyser conectado ao destination.");
 
-            // ============================================================
-            // CAPTURA DO ÁUDIO
-            // ============================================================
-
             const source = audioCtx.createMediaStreamSource(destination.stream);
-
             const captureNode = audioCtx.createScriptProcessor(4096, 2, 2);
-
             const audioData = [];
 
             captureNode.onaudioprocess = (event) => {
-
                 const inputBuffer = event.inputBuffer;
-
                 const channelCount = inputBuffer.numberOfChannels;
-
                 const channelData = [];
 
                 for (let channel = 0; channel < channelCount; channel++) {
@@ -952,25 +934,15 @@ if (identifyBtn) {
 
             console.log("Captura PCM iniciada.");
 
-            // ============================================================
-            // AGUARDA 7 SEGUNDOS
-            // ============================================================
-
             await new Promise(resolve => {
                 setTimeout(resolve, 7000);
             });
 
             console.log("=== CAPTURA FINALIZADA ===");
 
-            // Desconecta a captura
             source.disconnect();
             captureNode.disconnect();
-
             analyser.disconnect(destination);
-
-            // ============================================================
-            // CONVERTE PCM PARA WAV
-            // ============================================================
 
             console.log("Blocos PCM capturados:", audioData.length);
 
@@ -987,10 +959,6 @@ if (identifyBtn) {
             console.log("Tamanho:", wavBlob.size);
             console.log("Tipo:", wavBlob.type);
 
-            // ============================================================
-            // ENVIA PARA O SHAZAM
-            // ============================================================
-
             songResultEl.textContent = "🔍 Consultando o Shazam...";
 
             const formData = new FormData();
@@ -1002,7 +970,6 @@ if (identifyBtn) {
             );
 
             try {
-
                 console.log("Enviando áudio para o Shazam...");
                 console.log(
                     "Endpoint:",
@@ -1013,75 +980,52 @@ if (identifyBtn) {
                     `https://${RAPIDAPI_HOST}/v1/tracks/recognize`,
                     {
                         method: "POST",
-
                         headers: {
                             "X-RapidAPI-Key": RAPIDAPI_KEY,
                             "X-RapidAPI-Host": RAPIDAPI_HOST
                         },
-
                         body: formData
                     }
                 );
 
                 console.log("HTTP status:", response.status);
 
-const responseText = await response.text();
+                const responseText = await response.text();
 
-console.log("=== RESPOSTA COMPLETA DO SHAZAM ===");
-console.log(responseText);
+                let data;
 
-let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch {
+                    console.error("Resposta não é JSON.");
+                    data = null;
+                }
 
-try {
-    data = JSON.parse(responseText);
-} catch {
-    console.error("Resposta não é JSON.");
-    data = null;
-}
-
-console.log("=== DADOS PARSEADOS ===");
-console.log(data);
-
-console.log(
-    "Shazam:",
-    data?.track?.title,
-    "-",
-    data?.track?.subtitle
-);
-
-console.log("RESPOSTA SHAZAM:", responseText);
-console.log("OBJETO SHAZAM:", data);
-console.log("Shazam:", data?.track?.title, "-", data?.track?.subtitle);
-console.log("Hub:", data?.track?.hub);
-console.log("Providers:", data?.track?.hub?.providers);
+                console.log(
+                    "Shazam:",
+                    data?.track?.title,
+                    "-",
+                    data?.track?.subtitle
+                );
 
                 if (data && data.track) {
-
-                    songResultEl.textContent =
-                        `🎵 Encontrada: ${data.track.title} - ${data.track.subtitle}`;
-
+                    mostrarResultadoShazam(data.track);
                 } else {
-
                     songResultEl.textContent =
-                        "🤷 Não foi possível identificar.";
-
+                        "🤷 Não foi possível identificar a música.";
                 }
 
             } catch (err) {
-
                 console.error("ERRO AO CONSULTAR SHAZAM:", err);
 
                 songResultEl.textContent =
                     "❌ Falha ao consultar o servidor.";
 
             } finally {
-
                 identifyBtn.disabled = false;
-
             }
 
         } catch (err) {
-
             console.error("ERRO NA CAPTURA:", err);
 
             songResultEl.textContent =
@@ -1094,14 +1038,235 @@ console.log("Providers:", data?.track?.hub?.providers);
 
 
 // ========================================================================
+// MOSTRA O RESULTADO DO SHAZAM
+// ========================================================================
+
+function mostrarResultadoShazam(track) {
+    const titulo =
+        track.title || "Música desconhecida";
+
+    const artista =
+        track.subtitle || "Artista desconhecido";
+
+    const imagem =
+        track.images?.coverarthq ||
+        track.images?.coverart ||
+        "";
+
+    const providers =
+        track.hub?.providers || [];
+
+    const spotify =
+        providers.find(
+            provider => provider.type === "SPOTIFY"
+        );
+
+    const youtube =
+        providers.find(
+            provider => provider.type === "YOUTUBEMUSIC"
+        );
+
+    const deezer =
+        providers.find(
+            provider => provider.type === "DEEZER"
+        );
+
+    songResultEl.innerHTML = "";
+
+    const container =
+        document.createElement("div");
+
+    container.className =
+        "shazam-result";
+
+    if (imagem) {
+        const img =
+            document.createElement("img");
+
+        img.src = imagem;
+        img.alt = `${titulo} - ${artista}`;
+        img.className = "shazam-cover";
+
+        container.appendChild(img);
+    }
+
+    const info =
+        document.createElement("div");
+
+    info.className =
+        "shazam-info";
+
+    const titleElement =
+        document.createElement("div");
+
+    titleElement.className =
+        "shazam-title";
+
+    titleElement.textContent =
+        `🎵 ${titulo}`;
+
+    const artistElement =
+        document.createElement("div");
+
+    artistElement.className =
+        "shazam-artist";
+
+    artistElement.textContent =
+        artista;
+
+    info.appendChild(titleElement);
+    info.appendChild(artistElement);
+
+    const metadata =
+        track.sections?.[0]?.metadata;
+
+    if (metadata) {
+        let album = "";
+        let ano = "";
+
+        for (const item of metadata) {
+            if (item.title === "Album") {
+                album = item.text || "";
+            }
+
+            if (item.title === "Released") {
+                ano = item.text || "";
+            }
+        }
+
+        if (album || ano) {
+            const metaElement =
+                document.createElement("div");
+
+            metaElement.className =
+                "shazam-meta";
+
+            if (album && ano) {
+                metaElement.textContent =
+                    `${album} · ${ano}`;
+            } else {
+                metaElement.textContent =
+                    album || ano;
+            }
+
+            info.appendChild(metaElement);
+        }
+    }
+
+    const buttons =
+        document.createElement("div");
+
+    buttons.className =
+        "shazam-buttons";
+
+    // ============================================================
+    // SPOTIFY
+    // ============================================================
+
+    if (spotify) {
+        const action =
+            spotify.actions?.[0];
+
+        if (action?.uri) {
+            const button =
+                document.createElement("a");
+
+            const searchText =
+                encodeURIComponent(
+                    `${titulo} ${artista}`
+                );
+
+            button.href =
+                `https://open.spotify.com/search/${searchText}`;
+
+            button.target = "_blank";
+            button.rel = "noopener noreferrer";
+            button.className =
+                "shazam-service-btn spotify-btn";
+
+            button.textContent =
+                "🎧 Spotify";
+
+            buttons.appendChild(button);
+        }
+    }
+
+    // ============================================================
+    // YOUTUBE MUSIC
+    // ============================================================
+
+    if (youtube) {
+        const action =
+            youtube.actions?.[0];
+
+        if (action?.uri) {
+            const button =
+                document.createElement("a");
+
+            button.href =
+                action.uri;
+
+            button.target = "_blank";
+            button.rel = "noopener noreferrer";
+            button.className =
+                "shazam-service-btn youtube-btn";
+
+            button.textContent =
+                "▶️ YouTube Music";
+
+            buttons.appendChild(button);
+        }
+    }
+
+    // ============================================================
+    // DEEZER
+    // ============================================================
+
+    if (deezer) {
+        const action =
+            deezer.actions?.[0];
+
+        if (action?.uri) {
+            const button =
+                document.createElement("a");
+
+            const searchText =
+                encodeURIComponent(
+                    `${titulo} ${artista}`
+                );
+
+            button.href =
+                `https://www.deezer.com/search/${searchText}`;
+
+            button.target = "_blank";
+            button.rel = "noopener noreferrer";
+            button.className =
+                "shazam-service-btn deezer-btn";
+
+            button.textContent =
+                "🎵 Deezer";
+
+            buttons.appendChild(button);
+        }
+    }
+
+    if (buttons.children.length > 0) {
+        info.appendChild(buttons);
+    }
+
+    container.appendChild(info);
+    songResultEl.appendChild(container);
+}
+
+
+// ========================================================================
 // CONVERTE OS DADOS PCM CAPTURADOS EM UM ARQUIVO WAV
 // ========================================================================
 
 function createWavBlob(audioData, sampleRate) {
+    const channelCount =
+        audioData[0].length;
 
-    const channelCount = audioData[0].length;
-
-    // Descobre quantas amostras existem no total
     let totalSamples = 0;
 
     for (const block of audioData) {
@@ -1112,10 +1277,9 @@ function createWavBlob(audioData, sampleRate) {
     console.log("Sample rate:", sampleRate);
     console.log("Total de amostras:", totalSamples);
 
-    // Vamos trabalhar com no máximo 2 canais
-    const channels = Math.min(channelCount, 2);
+    const channels =
+        Math.min(channelCount, 2);
 
-    // WAV PCM 16-bit
     const bytesPerSample = 2;
 
     const dataSize =
@@ -1123,9 +1287,11 @@ function createWavBlob(audioData, sampleRate) {
         channels *
         bytesPerSample;
 
-    const buffer = new ArrayBuffer(44 + dataSize);
+    const buffer =
+        new ArrayBuffer(44 + dataSize);
 
-    const view = new DataView(buffer);
+    const view =
+        new DataView(buffer);
 
     // ============================================================
     // CABEÇALHO WAV
@@ -1140,7 +1306,6 @@ function createWavBlob(audioData, sampleRate) {
     );
 
     writeString(view, 8, "WAVE");
-
     writeString(view, 12, "fmt ");
 
     view.setUint32(
@@ -1149,28 +1314,24 @@ function createWavBlob(audioData, sampleRate) {
         true
     );
 
-    // PCM
     view.setUint16(
         20,
         1,
         true
     );
 
-    // Número de canais
     view.setUint16(
         22,
         channels,
         true
     );
 
-    // Sample rate
     view.setUint32(
         24,
         sampleRate,
         true
     );
 
-    // Byte rate
     view.setUint32(
         28,
         sampleRate *
@@ -1179,7 +1340,6 @@ function createWavBlob(audioData, sampleRate) {
         true
     );
 
-    // Block align
     view.setUint16(
         32,
         channels *
@@ -1187,7 +1347,6 @@ function createWavBlob(audioData, sampleRate) {
         true
     );
 
-    // Bits por sample
     view.setUint16(
         34,
         16,
@@ -1209,22 +1368,24 @@ function createWavBlob(audioData, sampleRate) {
     let offset = 44;
 
     for (const block of audioData) {
-
-        const samples = block[0].length;
+        const samples =
+            block[0].length;
 
         for (let i = 0; i < samples; i++) {
+            for (
+                let channel = 0;
+                channel < channels;
+                channel++
+            ) {
+                let sample =
+                    block[channel][i];
 
-            for (let channel = 0; channel < channels; channel++) {
+                sample =
+                    Math.max(
+                        -1,
+                        Math.min(1, sample)
+                    );
 
-                let sample = block[channel][i];
-
-                // Limita entre -1 e +1
-                sample = Math.max(
-                    -1,
-                    Math.min(1, sample)
-                );
-
-                // Converte Float32 para PCM 16-bit
                 const intSample =
                     sample < 0
                         ? sample * 0x8000
@@ -1255,9 +1416,11 @@ function createWavBlob(audioData, sampleRate) {
 // ========================================================================
 
 function writeString(view, offset, text) {
-
-    for (let i = 0; i < text.length; i++) {
-
+    for (
+        let i = 0;
+        i < text.length;
+        i++
+    ) {
         view.setUint8(
             offset + i,
             text.charCodeAt(i)

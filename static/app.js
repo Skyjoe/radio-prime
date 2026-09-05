@@ -903,171 +903,349 @@ if (identifyBtn) {
 
             console.log("AudioContext:", audioCtx.state);
 
-            // Cria o destino para captura do áudio
-            const destination = audioCtx.createMediaStreamDestination();
+            // ============================================================
+            // CRIA UM DESTINO DE CAPTURA
+            // ============================================================
+
+            const destination = audioCtx.crpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
 
             console.log("MediaStreamDestination criado:", destination);
             console.log("Stream:", destination.stream);
             console.log("Tracks:", destination.stream.getAudioTracks());
 
-            // Conecta o áudio do analyser ao destino de captura
+            // Conecta o analyser ao destino de captura
             analyser.connect(destination);
 
             console.log("Analyser conectado ao destination.");
 
-            // Descobre um formato suportado pelo navegador
-            let mimeType = "";
+            // ============================================================
+            // CAPTURA DO ÁUDIO
+            // ============================================================
 
-            if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
-                mimeType = "audio/webm;codecs=opus";
-            } else if (MediaRecorder.isTypeSupported("audio/ogg;codecs=opus")) {
-                mimeType = "audio/ogg;codecs=opus";
-            } else {
-                mimeType = "";
+            const source = audioCtx.createMediaStreamSource(destination.stream);
+
+            const captureNode = audioCtx.createScriptProcessor(4096, 2, 2);
+
+            const audioData = [];
+
+            captureNode.onaudioprocess = (event) => {
+
+                const inputBuffer = event.inputBuffer;
+
+                const channelCount = inputBuffer.numberOfChannels;
+
+                const channelData = [];
+
+                for (let channel = 0; channel < channelCount; channel++) {
+                    channelData.push(
+                        new Float32Array(
+                            inputBuffer.getChannelData(channel)
+                        )
+                    );
+                }
+
+                audioData.push(channelData);
+            };
+
+            source.connect(captureNode);
+            captureNode.connect(audioCtx.destination);
+
+            console.log("Captura PCM iniciada.");
+
+            // ============================================================
+            // AGUARDA 7 SEGUNDOS
+            // ============================================================
+
+            await new Promise(resolve => {
+                setTimeout(resolve, 7000);
+            });
+
+            console.log("=== CAPTURA FINALIZADA ===");
+
+            // Desconecta a captura
+            source.disconnect();
+            captureNode.disconnect();
+
+            analyser.disconnect(destination);
+
+            // ============================================================
+            // CONVERTE PCM PARA WAV
+            // ============================================================
+
+            console.log("Blocos PCM capturados:", audioData.length);
+
+            if (audioData.length === 0) {
+                throw new Error("Nenhum dado de áudio foi capturado.");
             }
 
-            console.log("MIME escolhido:", mimeType);
+            const wavBlob = createWavBlob(
+                audioData,
+                audioCtx.sampleRate
+            );
 
-            const mediaRecorder = mimeType
-                ? new MediaRecorder(destination.stream, { mimeType })
-                : new MediaRecorder(destination.stream);
+            console.log("WAV criado:", wavBlob);
+            console.log("Tamanho:", wavBlob.size);
+            console.log("Tipo:", wavBlob.type);
 
-            console.log("MediaRecorder criado:", mediaRecorder);
-            console.log("MediaRecorder MIME:", mediaRecorder.mimeType);
+            // ============================================================
+            // ENVIA PARA O SHAZAM
+            // ============================================================
 
-            const audioChunks = [];
+            songResultEl.textContent = "🔍 Consultando o Shazam...";
 
-            mediaRecorder.ondataavailable = (event) => {
+            const formData = new FormData();
+
+            formData.append(
+                "file",
+                wavBlob,
+                "sample.wav"
+            );
+
+            try {
+
+                console.log("Enviando áudio para o Shazam...");
                 console.log(
-                    "Chunk recebido:",
-                    event.data.size,
-                    "bytes",
-                    event.data.type
+                    "Endpoint:",
+                    `https://${RAPIDAPI_HOST}/v1/tracks/recognize`
                 );
 
-                if (event.data.size > 0) {
-                    audioChunks.push(event.data);
-                }
-            };
+                const response = await fetch(
+                    `https://${RAPIDAPI_HOST}/v1/tracks/recognize`,
+                    {
+                        method: "POST",
 
-            mediaRecorder.onerror = (event) => {
-                console.error("ERRO DO MEDIA RECORDER:", event);
-            };
+                        headers: {
+                            "X-RapidAPI-Key": RAPIDAPI_KEY,
+                            "X-RapidAPI-Host": RAPIDAPI_HOST
+                        },
 
-            mediaRecorder.onstop = async () => {
-
-                console.log("=== GRAVAÇÃO FINALIZADA ===");
-                console.log("Chunks:", audioChunks.length);
-
-                analyser.disconnect(destination);
-
-                const audioBlob = new Blob(audioChunks, {
-                    type: mediaRecorder.mimeType
-                });
-
-                console.log("Blob final:", audioBlob);
-                console.log("Tamanho:", audioBlob.size);
-                console.log("Tipo:", audioBlob.type);
-
-                songResultEl.textContent = "🔍 Consultando o Shazam...";
-
-                const formData = new FormData();
-
-                formData.append(
-                    "file",
-                    audioBlob,
-                    "sample.webm"
+                        body: formData
+                    }
                 );
+
+                console.log("HTTP status:", response.status);
+
+                const responseText = await response.text();
+
+                console.log("Resposta bruta:", responseText);
+
+                let data;
 
                 try {
+                    data = JSON.parse(responseText);
+                } catch {
+                    console.error("Resposta não é JSON.");
+                    data = null;
+                }
 
-                    console.log("Enviando áudio para o Shazam...");
-                    console.log(
-                        "Endpoint:",
-                        `https://${RAPIDAPI_HOST}/v1/tracks/recognize`
-                    );
+                console.log("Dados recebidos:", data);
 
-                    const response = await fetch(
-                        `https://${RAPIDAPI_HOST}/v1/tracks/recognize`,
-                        {
-                            method: "POST",
-
-                            headers: {
-                                "X-RapidAPI-Key": RAPIDAPI_KEY,
-                                "X-RapidAPI-Host": RAPIDAPI_HOST
-                            },
-
-                            body: formData
-                        }
-                    );
-
-                    console.log("HTTP status:", response.status);
-
-                    const responseText = await response.text();
-
-                    console.log("Resposta bruta:", responseText);
-
-                    let data;
-
-                    try {
-                        data = JSON.parse(responseText);
-                    } catch {
-                        console.error("Resposta não é JSON.");
-                        data = null;
-                    }
-
-                    console.log("Dados recebidos:", data);
-
-                    if (data && data.track) {
-
-                        songResultEl.textContent =
-                            `🎵 Encontrada: ${data.track.title} - ${data.track.subtitle}`;
-
-                    } else {
-
-                        songResultEl.textContent =
-                            "🤷 Não foi possível identificar.";
-
-                    }
-
-                } catch (err) {
-
-                    console.error("ERRO AO CONSULTAR SHAZAM:", err);
+                if (data && data.track) {
 
                     songResultEl.textContent =
-                        "❌ Falha ao consultar o servidor.";
+                        `🎵 Encontrada: ${data.track.title} - ${data.track.subtitle}`;
 
-                } finally {
+                } else {
 
-                    identifyBtn.disabled = false;
+                    songResultEl.textContent =
+                        "🤷 Não foi possível identificar.";
 
                 }
-            };
 
-            // Inicia a gravação
-            mediaRecorder.start();
+            } catch (err) {
 
-            console.log("Gravação iniciada.");
+                console.error("ERRO AO CONSULTAR SHAZAM:", err);
 
-            // Grava por 7 segundos
-            setTimeout(() => {
+                songResultEl.textContent =
+                    "❌ Falha ao consultar o servidor.";
 
-                if (mediaRecorder.state === "recording") {
-                    console.log("Parando gravação após 7 segundos...");
-                    mediaRecorder.stop();
-                }
+            } finally {
 
-            }, 7000);
+                identifyBtn.disabled = false;
+
+            }
 
         } catch (err) {
 
-            console.error("ERRO NA IDENTIFICAÇÃO:", err);
+            console.error("ERRO NA CAPTURA:", err);
 
             songResultEl.textContent =
-                "❌ Erro durante a identificação.";
+                "❌ Erro ao capturar o áudio.";
 
             identifyBtn.disabled = false;
         }
-
     });
+}
+
+
+// ========================================================================
+// CONVERTE OS DADOS PCM CAPTURADOS EM UM ARQUIVO WAV
+// ========================================================================
+
+function createWavBlob(audioData, sampleRate) {
+
+    const channelCount = audioData[0].length;
+
+    // Descobre quantas amostras existem no total
+    let totalSamples = 0;
+
+    for (const block of audioData) {
+        totalSamples += block[0].length;
+    }
+
+    console.log("Canais:", channelCount);
+    console.log("Sample rate:", sampleRate);
+    console.log("Total de amostras:", totalSamples);
+
+    // Vamos trabalhar com no máximo 2 canais
+    const channels = Math.min(channelCount, 2);
+
+    // WAV PCM 16-bit
+    const bytesPerSample = 2;
+
+    const dataSize =
+        totalSamples *
+        channels *
+        bytesPerSample;
+
+    const buffer = new ArrayBuffer(44 + dataSize);
+
+    const view = new DataView(buffer);
+
+    // ============================================================
+    // CABEÇALHO WAV
+    // ============================================================
+
+    writeString(view, 0, "RIFF");
+
+    view.setUint32(
+        4,
+        36 + dataSize,
+        true
+    );
+
+    writeString(view, 8, "WAVE");
+
+    writeString(view, 12, "fmt ");
+
+    view.setUint32(
+        16,
+        16,
+        true
+    );
+
+    // PCM
+    view.setUint16(
+        20,
+        1,
+        true
+    );
+
+    // Número de canais
+    view.setUint16(
+        22,
+        channels,
+        true
+    );
+
+    // Sample rate
+    view.setUint32(
+        24,
+        sampleRate,
+        true
+    );
+
+    // Byte rate
+    view.setUint32(
+        28,
+        sampleRate *
+        channels *
+        bytesPerSample,
+        true
+    );
+
+    // Block align
+    view.setUint16(
+        32,
+        channels *
+        bytesPerSample,
+        true
+    );
+
+    // Bits por sample
+    view.setUint16(
+        34,
+        16,
+        true
+    );
+
+    writeString(view, 36, "data");
+
+    view.setUint32(
+        40,
+        dataSize,
+        true
+    );
+
+    // ============================================================
+    // DADOS PCM
+    // ============================================================
+
+    let offset = 44;
+
+    for (const block of audioData) {
+
+        const samples = block[0].length;
+
+        for (let i = 0; i < samples; i++) {
+
+            for (let channel = 0; channel < channels; channel++) {
+
+                let sample = block[channel][i];
+
+                // Limita entre -1 e +1
+                sample = Math.max(
+                    -1,
+                    Math.min(1, sample)
+                );
+
+                // Converte Float32 para PCM 16-bit
+                const intSample =
+                    sample < 0
+                        ? sample * 0x8000
+                        : sample * 0x7FFF;
+
+                view.setInt16(
+                    offset,
+                    intSample,
+                    true
+                );
+
+                offset += 2;
+            }
+        }
+    }
+
+    return new Blob(
+        [buffer],
+        {
+            type: "audio/wav"
+        }
+    );
+}
+
+
+// ========================================================================
+// ESCREVE TEXTO NO CABEÇALHO WAV
+// ========================================================================
+
+function writeString(view, offset, text) {
+
+    for (let i = 0; i < text.length; i++) {
+
+        view.setUint8(
+            offset + i,
+            text.charCodeAt(i)
+        );
+    }
 }

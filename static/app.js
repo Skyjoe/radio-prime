@@ -977,20 +977,22 @@ if (identifyBtn) {
                 );
 
                 const response = await fetch(
-                    `https://${RAPIDAPI_HOST}/v1/tracks/recognize`,
+                    "https://shazam-core.p.rapidapi.com/v1/tracks/recognize",
                     {
                         method: "POST",
                         headers: {
                             "X-RapidAPI-Key": RAPIDAPI_KEY,
-                            "X-RapidAPI-Host": RAPIDAPI_HOST
+                            "X-RapidAPI-Host": "shazam-core.p.rapidapi.com"
                         },
                         body: formData
                     }
                 );
-
+                
                 console.log("HTTP status:", response.status);
-
+                
                 const responseText = await response.text();
+                
+                console.log("Resposta do servidor:", responseText);
 
                 let data;
 

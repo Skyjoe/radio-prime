@@ -866,9 +866,9 @@ cityInput.addEventListener('keypress', (event) => {
 
 // Referências dos novos elementos HTML de identificação de músicas
 
-code = r'''const identifyBtn = document.getElementById('identify-song-btn');
-const songResultEl = document.getElementById('song-result-el');
-const RAPIDAPI_KEY = "COLOQUE_SUA_NOVA_CHAVE_AQUI";
+const identifyBtn = document.getElementById('identify-song-btn');
+const songResultEl = document.getElementById('song-result-el'); 
+const RAPIDAPI_KEY = "d5d4636078msh5f548e19051a72p15bba8jsn97ddac3c4604"; 
 const RAPIDAPI_HOST = "shazam-core.p.rapidapi.com";
 
 if (identifyBtn) {
@@ -900,7 +900,7 @@ if (identifyBtn) {
 
             console.log("AudioContext:", audioCtx.state);
 
-            const destination = audioCtx.crpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+            const destination = audioCtx.createMediaStreamDestination();
 
             console.log("MediaStreamDestination criado:", destination);
             console.log("Stream:", destination.stream);

@@ -864,3 +864,94 @@ cityInput.addEventListener('keypress', (event) => {
 const chartScript = document.createElement('script');
 chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js';
 document.head.appendChild(chartScript);
+
+
+// Referências dos novos elementos HTML de identificação de músicas
+const identifyBtn = document.getElementById('identify-song-btn');
+const songResultEl = document.getElementById('song-result-el');
+
+// Dados extraídos diretamente da imagem que você enviou
+const RAPIDAPI_KEY = "d5d4636078mshf5b548e19051a72p15bba8jsn97ddac3c4604";
+const RAPIDAPI_HOST = "shazam-core.p.rapidapi.com";
+
+identifyBtn.addEventListener('click', async () => {
+    // 1. Validações iniciais do player
+    if (!isPlaying || !audioPlayer.src) {
+        songResultEl.textContent = "❌ Dê o play em uma rádio primeiro!";
+        return;
+    }
+    if (!audioCtx) {
+        songResultEl.textContent = "❌ Aguarde o áudio conectar e tente de novo.";
+        return;
+    }
+
+    identifyBtn.disabled = true;
+    songResultEl.textContent = "👂 Ouvindo a rádio por 7 segundos...";
+
+    try {
+        // 2. Intercepta o fluxo de áudio interno do Equalizador
+        const destination = audioCtx.crpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+        analyser.connect(destination);
+
+        const mediaRecorder = new MediaRecorder(destination.stream);
+        const audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+            songResultEl.textContent = "🔍 Consultando o Shazam...";
+            
+            // Transforma os pedaços de áudio em um arquivo bruto (Blob)
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            
+            // Cria um formulário virtual (FormData) para enviar o arquivo como binário (exigido pelo Shazam)
+            const formData = new FormData();
+            formData.append('file', audioBlob, 'sample.wav');
+
+            try {
+                // 3. Faz a requisição para o endpoint correto de reconhecimento de faixa
+                const response = await fetch(`https://${RAPIDAPI_HOST}/v1/tracks/recognize`, {
+                    method: 'POST',
+                    headers: {
+                        'X-RapidAPI-Key': RAPIDAPI_KEY,
+                        'X-RapidAPI-Host': RAPIDAPI_HOST
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error("Erro na resposta do RapidAPI");
+
+                const data = await response.json();
+                
+                // 4. Trata e exibe o resultado retornado
+                if (data && data.track) {
+                    const songTitle = data.track.title;
+                    const songArtist = data.track.subtitle;
+                    songResultEl.textContent = `🎵 Encontrada: ${songTitle} - ${songArtist}`;
+                } else {
+                    songResultEl.textContent = "🤷 Não foi possível identificar. Pode ser uma vinheta ou música muito rara.";
+                }
+            } catch (err) {
+                console.error("Erro na API de reconhecimento:", err);
+                songResultEl.textContent = "❌ Falha ao consultar o servidor do Shazam.";
+            } finally {
+                identifyBtn.disabled = false;
+            }
+        };
+
+        // Grava por 7 segundos e para automaticamente
+        mediaRecorder.start();
+        setTimeout(() => {
+            mediaRecorder.stop();
+            analyser.disconnect(destination); // Desconecta para liberar memória
+        }, 7000);
+
+    } catch (e) {
+        console.error("Erro ao iniciar gravação:", e);
+        songResultEl.textContent = "❌ Não foi possível capturar o áudio interno.";
+        identifyBtn.disabled = false;
+    }
+});
+

@@ -1003,7 +1003,7 @@ async function identificarComShazam(wavBlob) {
         formData.append("file", wavBlob, "sample.wav");
 
         const response = await fetch("/api/shazam", {
-           : "POST",
+           method: "POST",
             body: formData
         });
 

@@ -981,7 +981,7 @@ if (identifyBtn) {
                 console.log("Enviando áudio para o Shazam...");
                 console.log(
                     "Endpoint:",
-                    `https://${RAPIDAPI_HOST}/v1/tracks/recognize`
+                    `https://${RAPIDAPI_HOST}/v1/tracks/related`
                 );
 
                 const response = await fetch("/api/shazam", {

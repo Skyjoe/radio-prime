@@ -289,26 +289,32 @@ def shazam_proxy():
             else:
                 logging.warning('[AudD] AUDD_API_KEY não configurada.')
 
-        # ============================================================
-        # RETORNA PARA O FRONTEND
-        # ============================================================
-        resposta = {'track': track}
+# ============================================================
+# RETORNA PARA O FRONTEND
+# ============================================================
+fonte = 'shazam' if shazam_usado else ('audd' if audd_usado else 'nenhuma')
 
-        if not track:
-            resposta['_debug'] = {
-                'shazam': shazam_usado,
-                'audd': audd_usado,
-                'mensagem': 'Nenhuma das APIs conseguiu identificar a música'
-            }
+resposta = {
+    'track': track,
+    'fonte': fonte
+}
 
-        return Response(
-            json.dumps(resposta),
-            status=200,
-            headers={
-                'Access-Control-Allow-Origin': '*',
-                'Content-Type': 'application/json'
-            }
-        )
+if not track:
+    resposta['_debug'] = {
+        'shazam': shazam_usado,
+        'audd': audd_usado,
+        'mensagem': 'Nenhuma das APIs conseguiu identificar a música'
+    }
+
+return Response(
+    json.dumps(resposta),
+    status=200,
+    headers={
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+    }
+)
+
 
     except Exception as e:
         logging.error(f'Erro no proxy Shazam: {str(e)}')

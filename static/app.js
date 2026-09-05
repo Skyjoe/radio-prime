@@ -1025,20 +1025,20 @@ if (identifyBtn) {
 
                 console.log("HTTP status:", response.status);
 
-                const responseText = await response.text();
+const responseText = await response.text();
 
-                console.log("Shazam:", data?.track?.title, "-", data?.track?.subtitle);
+let data;
 
-                let data;
+try {
+    data = JSON.parse(responseText);
+} catch {
+    console.error("Resposta não é JSON.");
+    data = null;
+}
 
-                try {
-                    data = JSON.parse(responseText);
-                } catch {
-                    console.error("Resposta não é JSON.");
-                    data = null;
-                }
-
-                console.log("Dados recebidos:", data);
+console.log("Shazam:", data?.track?.title, "-", data?.track?.subtitle);
+console.log("Hub:", data?.track?.hub);
+console.log("Providers:", data?.track?.hub?.providers);
 
                 if (data && data.track) {
 

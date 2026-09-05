@@ -868,7 +868,7 @@ cityInput.addEventListener('keypress', (event) => {
 
 const identifyBtn = document.getElementById('identify-song-btn');
 const songResultEl = document.getElementById('song-result-el'); 
-const RAPIDAPI_KEY = "d5d4636078msh5f548e19051a72p15bba8jsn97ddac3c4604"; 
+const RAPIDAPI_KEY = "5f9a3f3b63msh35824af014bd060p1c944bjsn529e57a53b8d"; 
 const RAPIDAPI_HOST = "shazam-core.p.rapidapi.com";
 
 if (identifyBtn) {

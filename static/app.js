@@ -868,7 +868,6 @@ cityInput.addEventListener('keypress', (event) => {
 
 const identifyBtn = document.getElementById('identify-song-btn');
 const songResultEl = document.getElementById('song-result-el'); 
-const RAPIDAPI_KEY = "5f9a3f3b63msh35824af014bd060p1c944bjsn529e57a53b8d"; 
 const RAPIDAPI_HOST = "shazam-core.p.rapidapi.com";
 
 if (identifyBtn) {
@@ -976,17 +975,10 @@ if (identifyBtn) {
                     `https://${RAPIDAPI_HOST}/v1/tracks/recognize`
                 );
 
-                const response = await fetch(
-                    "https://shazam-core.p.rapidapi.com/v1/tracks/recognize",
-                    {
-                        method: "POST",
-                        headers: {
-                            "X-RapidAPI-Key": RAPIDAPI_KEY,
-                            "X-RapidAPI-Host": "shazam-core.p.rapidapi.com"
-                        },
-                        body: formData
-                    }
-                );
+                const response = await fetch("/api/shazam", {
+                    method: "POST",
+                    body: formData
+                });
                 
                 console.log("HTTP status:", response.status);
                 

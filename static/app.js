@@ -51,7 +51,7 @@ const radioStations = [
     { name: 'Beautiful Instrumental', url: '/api/proxy?url=' + encodeURIComponent('http://s3.voscast.com:10038/stream') },
     { name: 'Best New Age', url: '/api/proxy?url=' + encodeURIComponent('http://104.153.209.180:8000/;stream.mp3') },
     { name: 'Cinemix', url: '/api/proxy?url=' + encodeURIComponent('https://kathy.torontocast.com:1825/stream') },
-    { name: 'Esotérica Fm', url: '/api/proxy?url=' + encodeURIComponent('https://canais.esoterica.fm.br/8002/stream/1/') },
+    { name: 'Scalla Instrumental SP', url: '/api/proxy?url=' + encodeURIComponent('https://s01.svrdedicado.org:6782/stream?1788582683900') },
     { name: 'Beautiful Instrumental Channel', url: '/api/proxy?url=' + encodeURIComponent('https://hydra.cdnstream.com/1822_128') },
     { name: 'Beautiful Music', url: '/api/proxy?url=' + encodeURIComponent('https://radio.streemlion.com:1665/stream?') },
     { name: 'Chinese Music', url: '/api/proxy?url=' + encodeURIComponent('https://radio.chinesemusicworld.com/chinesemusic.mp3') },
@@ -69,7 +69,20 @@ const radioStations = [
     { name: 'Web Rádio E5 (Ambient e Calma)', url: '/api/proxy?url=' + encodeURIComponent('https://paineldj6.com.br:20131/stream?1788556084556') },
     { name: 'Rádio Sol Maior Instrumental', url: '/api/proxy?url=' + encodeURIComponent('http://server02.ouvir.radio.br:8045/stream?1788556175088') },
     { name: 'SurferNetwork - Relaxing Audio Stream', url: '/api/proxy?url=' + encodeURIComponent('https://stream-177.surfernetwork.com/9nm481kbya0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI5bm00ODFrYnlhMHV2IiwiaG9zdCI6InN0cmVhbS0xNzcuc3VyZmVybmV0d29yay5jb20iLCJydHRsIjo1LCJqdGkiOiJsV1lyWUlVNVFudUxCcnlJeGs4eHhRIiwiaWF0IjoxNzg4NTU2MzEzLCJleHAiOjE3ODg1NTYzNzN9.CXL5ZlMfLQ7V0gOzmNv6hR6HD-q9Ns4-xqMqqDmqdkc&1788556313391') },
-    { name: 'Adoradores Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://stm11.painelcast.com:7530/stream?1788556431582') }
+    { name: 'Adoradores Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://stm11.painelcast.com:7530/stream?1788556431582') },
+    { name: 'Suave Excalla', url: '/api/proxy?url=' + encodeURIComponent('http://server02.ouvir.radio.br:8045/stream?1788582818637') },
+    { name: 'Radio Nos', url: '/api/proxy?url=' + encodeURIComponent('https://nos.radio.br/stream/2/;?1788583074916') },
+    { name: 'Esotérica FM', url: '/api/proxy?url=' + encodeURIComponent('https://radio.esoterica.fm.br:8002/stream?1788583215514') },
+    { name: 'Esotérica FM Mantras', url: '/api/proxy?url=' + encodeURIComponent('https://radio.esoterica.fm.br:8010/stream?1788583366712') },
+    { name: 'Naphtali Web', url: '/api/proxy?url=' + encodeURIComponent('https://servidor28-5.brlogic.com:8272/live?1788583515523') },
+    { name: 'Anjo de Luz', url: '/api/proxy?url=' + encodeURIComponent('https://servidor26.brlogic.com:8196/live?1788583657889') },
+    { name: 'Blog Lyriah', url: '/api/proxy?url=' + encodeURIComponent('https://centova.svdns.com.br:20290/live?1788583727918') }
+
+
+
+
+
+    
 ];
 
 let allAvailableCryptos = [];

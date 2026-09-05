@@ -903,7 +903,7 @@ if (identifyBtn) {
 
             console.log("AudioContext:", audioCtx.state);
 
-            // CORRETO
+            // Cria o destino para captura do áudio
             const destination = audioCtx.createMediaStreamDestination();
 
             console.log("MediaStreamDestination criado:", destination);
@@ -956,87 +956,118 @@ if (identifyBtn) {
 
             mediaRecorder.onstop = async () => {
 
-    console.log("=== GRAVAÇÃO FINALIZADA ===");
-    console.log("Chunks:", audioChunks.length);
+                console.log("=== GRAVAÇÃO FINALIZADA ===");
+                console.log("Chunks:", audioChunks.length);
 
-    analyser.disconnect(destination);
+                analyser.disconnect(destination);
 
-    const audioBlob = new Blob(audioChunks, {
-        type: mediaRecorder.mimeType
+                const audioBlob = new Blob(audioChunks, {
+                    type: mediaRecorder.mimeType
+                });
+
+                console.log("Blob final:", audioBlob);
+                console.log("Tamanho:", audioBlob.size);
+                console.log("Tipo:", audioBlob.type);
+
+                songResultEl.textContent = "🔍 Consultando o Shazam...";
+
+                const formData = new FormData();
+
+                formData.append(
+                    "file",
+                    audioBlob,
+                    "sample.webm"
+                );
+
+                try {
+
+                    console.log("Enviando áudio para o Shazam...");
+                    console.log(
+                        "Endpoint:",
+                        `https://${RAPIDAPI_HOST}/v1/tracks/recognize`
+                    );
+
+                    const response = await fetch(
+                        `https://${RAPIDAPI_HOST}/v1/tracks/recognize`,
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "X-RapidAPI-Key": RAPIDAPI_KEY,
+                                "X-RapidAPI-Host": RAPIDAPI_HOST
+                            },
+
+                            body: formData
+                        }
+                    );
+
+                    console.log("HTTP status:", response.status);
+
+                    const responseText = await response.text();
+
+                    console.log("Resposta bruta:", responseText);
+
+                    let data;
+
+                    try {
+                        data = JSON.parse(responseText);
+                    } catch {
+                        console.error("Resposta não é JSON.");
+                        data = null;
+                    }
+
+                    console.log("Dados recebidos:", data);
+
+                    if (data && data.track) {
+
+                        songResultEl.textContent =
+                            `🎵 Encontrada: ${data.track.title} - ${data.track.subtitle}`;
+
+                    } else {
+
+                        songResultEl.textContent =
+                            "🤷 Não foi possível identificar.";
+
+                    }
+
+                } catch (err) {
+
+                    console.error("ERRO AO CONSULTAR SHAZAM:", err);
+
+                    songResultEl.textContent =
+                        "❌ Falha ao consultar o servidor.";
+
+                } finally {
+
+                    identifyBtn.disabled = false;
+
+                }
+            };
+
+            // Inicia a gravação
+            mediaRecorder.start();
+
+            console.log("Gravação iniciada.");
+
+            // Grava por 7 segundos
+            setTimeout(() => {
+
+                if (mediaRecorder.state === "recording") {
+                    console.log("Parando gravação após 7 segundos...");
+                    mediaRecorder.stop();
+                }
+
+            }, 7000);
+
+        } catch (err) {
+
+            console.error("ERRO NA IDENTIFICAÇÃO:", err);
+
+            songResultEl.textContent =
+                "❌ Erro durante a identificação.";
+
+            identifyBtn.disabled = false;
+        }
+
     });
-
-    console.log("Blob final:", audioBlob);
-    console.log("Tamanho:", audioBlob.size);
-    console.log("Tipo:", audioBlob.type);
-
-    songResultEl.textContent = "🔍 Consultando o Shazam...";
-
-    const formData = new FormData();
-
-    formData.append(
-        "file",
-        audioBlob,
-        "sample.webm"
-    );
-
-    try {
-
-        console.log("Enviando áudio para o Shazam...");
-        console.log("Endpoint:", `https://${RAPIDAPI_HOST}/v1/tracks/recognize`);
-
-        const response = await fetch(
-            `https://${RAPIDAPI_HOST}/v1/tracks/recognize`,
-            {
-                method: "POST",
-
-                headers: {
-                    "X-RapidAPI-Key": RAPIDAPI_KEY,
-                    "X-RapidAPI-Host": RAPIDAPI_HOST
-                },
-
-                body: formData
-            }
-        );
-
-        console.log("HTTP status:", response.status);
-
-        const responseText = await response.text();
-
-        console.log("Resposta bruta:", responseText);
-
-        let data;
-
-        try {
-            data = JSON.parse(responseText);
-        } catch {
-            console.error("Resposta não é JSON.");
-            data = null;
-        }
-
-        console.log("Dados recebidos:", data);
-
-        if (data && data.track) {
-
-            songResultEl.textContent =
-                `🎵 Encontrada: ${data.track.title} - ${data.track.subtitle}`;
-
-        } else {
-
-            songResultEl.textContent =
-                "🤷 Não foi possível identificar.";
-
-        }
-
-    } catch (err) {
-
-        console.error("ERRO AO CONSULTAR SHAZAM:", err);
-
-        songResultEl.textContent =
-            "❌ Falha ao consultar o servidor.";
-
-    } finally {
-
-        identifyBtn.disabled = false;
-
-    }
-};
+}

@@ -1036,6 +1036,8 @@ try {
     data = null;
 }
 
+console.log("RESPOSTA SHAZAM:", responseText);
+console.log("OBJETO SHAZAM:", data);
 console.log("Shazam:", data?.track?.title, "-", data?.track?.subtitle);
 console.log("Hub:", data?.track?.hub);
 console.log("Providers:", data?.track?.hub?.providers);

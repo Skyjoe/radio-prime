@@ -169,6 +169,9 @@ def crypto_proxy():
         return jsonify({'error': str(e)}), 500
 
 
+# ============================================================
+# ROTA SHAZAM + FALLBACK AUDD
+# ============================================================
 @app.route('/api/shazam', methods=['POST', 'OPTIONS'])
 def shazam_proxy():
     if request.method == 'OPTIONS':
@@ -179,7 +182,6 @@ def shazam_proxy():
         return response
 
     try:
-        # Verifica se o arquivo de áudio foi enviado
         if 'file' not in request.files:
             return jsonify({'track': None, 'error': 'Arquivo de áudio não foi enviado'}), 400
 
@@ -193,13 +195,14 @@ def shazam_proxy():
         audio_filename = audio_file.filename
         audio_mimetype = audio_file.mimetype or 'audio/wav'
 
+        track = None
+        shazam_usado = False
+        audd_usado = False
+
         # ============================================================
         # PASSO 1: TENTA COM SHAZAM CORE
         # ============================================================
         rapidapi_key = os.environ.get('RAPIDAPI_KEY')
-        track = None
-        shazam_usado = False
-        audd_usado = False
 
         if rapidapi_key:
             try:
@@ -212,7 +215,7 @@ def shazam_proxy():
                     'file': (audio_filename, audio_bytes, audio_mimetype)
                 }
 
-                logging.info('[Shazam] Enviando áudio para identificação...')
+                logging.info('[Shazam] Enviando áudio...')
                 shazam_response = requests.post(
                     shazam_url,
                     headers=shazam_headers,
@@ -241,7 +244,7 @@ def shazam_proxy():
             logging.warning('[Shazam] RAPIDAPI_KEY não configurada. Pulando para AudD.')
 
         # ============================================================
-        # PASSO 2: FALLBACK PARA AUDD (SE SHAZAM FALHOU)
+        # PASSO 2: FALLBACK PARA AUDD
         # ============================================================
         if not track:
             audd_token = os.environ.get('AUDD_API_TOKEN')
@@ -257,7 +260,7 @@ def shazam_proxy():
                         'return': 'apple_music,spotify,deezer'
                     }
 
-                    logging.info('[AudD] Enviando áudio para identificação...')
+                    logging.info('[AudD] Enviando áudio...')
                     audd_response = requests.post(
                         audd_url,
                         data=audd_data,
@@ -287,11 +290,10 @@ def shazam_proxy():
                 logging.warning('[AudD] AUDD_API_TOKEN não configurada.')
 
         # ============================================================
-        # RETORNA PARA O FRONTEND (mesmo formato de sempre)
+        # RETORNA PARA O FRONTEND
         # ============================================================
         resposta = {'track': track}
 
-        # Debug no console do Vercel — remova em produção se quiser
         if not track:
             resposta['_debug'] = {
                 'shazam': shazam_usado,
@@ -314,25 +316,19 @@ def shazam_proxy():
 
 
 # ============================================================
-# NORMALIZA RESPOSTA AUDD → FORMATO SHAZAM (frontend não muda!)
+# NORMALIZA RESPOSTA AUDD → FORMATO SHAZAM
 # ============================================================
 def normalizar_audd_para_shazam(result):
-    """
-    Converte a resposta da API AudD para o formato que o frontend
-    já espera (formato Shazam Core), assim não precisa alterar nada no app.js.
-    """
     apple_music = result.get('apple_music', {}) or {}
     spotify = result.get('spotify', {}) or {}
     deezer = result.get('deezer', {}) or {}
 
-    # Artwork: tenta Apple Music primeiro, depois Deezer
     artwork_url = ''
     if apple_music.get('artwork', {}).get('url'):
         artwork_url = apple_music['artwork']['url'].replace('{w}', '400').replace('{h}', '400')
     elif deezer.get('album', {}).get('cover'):
         artwork_url = deezer['album']['cover']
 
-    # Monta os providers no formato que o frontend já lê
     providers = []
 
     if spotify.get('external_urls', {}).get('spotify'):
@@ -353,12 +349,10 @@ def normalizar_audd_para_shazam(result):
             'actions': [{'uri': deezer['link']}]
         })
 
-    # Metadados (álbum / ano)
     metadata = []
     if result.get('album'):
         metadata.append({'title': 'Album', 'text': result['album']})
     if result.get('release_date'):
-        # Pega só o ano (ex: "2019-11-29" → "2019")
         ano = str(result['release_date']).split('-')[0]
         if ano:
             metadata.append({'title': 'Released', 'text': ano})
@@ -392,9 +386,8 @@ def proxy():
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': '*/*',
-            'Accept-Encoding': 'identity',  # Força áudio não compactado para não ter falhas
+            'Accept-Encoding': 'identity',
             'Connection': 'keep-alive',
-
         }
         
         response = requests.get(
@@ -413,7 +406,6 @@ def proxy():
         if 'audio' not in content_type and 'application' not in content_type:
             content_type = 'audio/mpeg'
         
-        # O segredo para acabar com os soluços está no chunk_size=4096 (fluxo contínuo e suave)
         def generate():
             try:
                 for chunk in response.iter_content(chunk_size=4096):
@@ -471,7 +463,6 @@ def proxy():
 
 @app.route('/api/nominatim', methods=['GET'])
 def nominatim_proxy():
-    """Proxy para a API Nominatim do OpenStreetMap"""
     try:
         query = request.args.get('q')
         if not query:
@@ -518,9 +509,3 @@ def nominatim_proxy():
 @app.route('/')
 def index():
     return 'Radio Prime API is running!'
-
-if __name__ == '__main__':
-    print('=' * 60)
-    print('Radio Prime API Server')
-    print('=' * 60)
-    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)

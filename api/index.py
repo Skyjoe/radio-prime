@@ -4,6 +4,7 @@ import requests
 import logging
 import json
 import urllib.parse
+import os
 
 app = Flask(__name__)
 CORS(app)
@@ -166,6 +167,96 @@ def crypto_proxy():
     except Exception as e:
         logging.error(f'Proxy error: {str(e)}')
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/shazam', methods=['POST', 'OPTIONS'])
+def shazam_proxy():
+    if request.method == 'OPTIONS':
+        response = Response()
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = '*'
+        return response
+
+    try:
+        # Verifica se o arquivo de áudio foi enviado
+        if 'file' not in request.files:
+            return jsonify({
+                'error': 'Arquivo de áudio não foi enviado'
+            }), 400
+
+        audio_file = request.files['file']
+
+        if not audio_file.filename:
+            return jsonify({
+                'error': 'Arquivo de áudio inválido'
+            }), 400
+
+        # Obtém a chave armazenada na Vercel
+        rapidapi_key = os.environ.get('RAPIDAPI_KEY')
+
+        if not rapidapi_key:
+            logging.error('RAPIDAPI_KEY não configurada')
+            return jsonify({
+                'error': 'RAPIDAPI_KEY não configurada no servidor'
+            }), 500
+
+        # Envia o WAV para o Shazam Core
+        rapidapi_url = 'https://shazam-core.p.rapidapi.com/v1/tracks/recognize'
+
+        headers = {
+            'x-rapidapi-host': 'shazam-core.p.rapidapi.com',
+            'x-rapidapi-key': rapidapi_key
+        }
+
+        files = {
+            'file': (
+                audio_file.filename,
+                audio_file.stream,
+                audio_file.mimetype or 'audio/wav'
+            )
+        }
+
+        logging.info('Enviando áudio para Shazam Core...')
+
+        response = requests.post(
+            rapidapi_url,
+            headers=headers,
+            files=files,
+            timeout=30
+        )
+
+        logging.info(
+            f'Shazam Core respondeu: {response.status_code}'
+        )
+
+        return Response(
+            response.content,
+            status=response.status_code,
+            headers={
+                'Access-Control-Allow-Origin': '*',
+                'Content-Type': 'application/json'
+            }
+        )
+
+    except requests.exceptions.Timeout:
+        logging.error('Timeout ao conectar ao Shazam Core')
+        return jsonify({
+            'error': 'Timeout ao conectar ao Shazam'
+        }), 504
+
+    except requests.exceptions.RequestException as e:
+        logging.error(f'Erro na requisição ao Shazam: {str(e)}')
+        return jsonify({
+            'error': 'Erro ao conectar ao Shazam'
+        }), 502
+
+    except Exception as e:
+        logging.error(f'Erro no proxy Shazam: {str(e)}')
+        return jsonify({
+            'error': str(e)
+        }), 500
+
 
 @app.route('/api/proxy')
 def proxy():

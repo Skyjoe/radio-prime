@@ -1027,7 +1027,7 @@ if (identifyBtn) {
 
                 const responseText = await response.text();
 
-                console.log("Resposta bruta:", responseText);
+                console.log("Shazam:", data?.track?.title, "-", data?.track?.subtitle);
 
                 let data;
 

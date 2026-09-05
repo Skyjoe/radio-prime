@@ -68,7 +68,7 @@ const radioStations = [
     { name: 'Rádio Melodia Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://servidor29.brlogic.com:8578/live?1788556000340') },
     { name: 'Web Rádio E5 (Ambient e Calma)', url: '/api/proxy?url=' + encodeURIComponent('https://paineldj6.com.br:20131/stream?1788556084556') },
     { name: 'Rádio Sol Maior Instrumental', url: '/api/proxy?url=' + encodeURIComponent('http://server02.ouvir.radio.br:8045/stream?1788556175088') },
-    { name: 'SurferNetwork - Relaxing Audio Stream', url: '/api/proxy?url=' + encodeURIComponent('https://stream-177.surfernetwork.com/9nm481kbya0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI5bm00ODFrYnlhMHV2IiwiaG9zdCI6InN0cmVhbS0xNzcuc3VyZmVybmV0d29yay5jb20iLCJydHRsIjo1LCJqdGkiOiJsV1lyWUlVNVFudUxCcnlJeGs4eHhRIiwiaWF0IjoxNzg4NTU2MzEzLCJleHAiOjE3ODg1NTYzNzN9.CXL5ZlMfLQ7V0gOzmNv6hR6HD-q9Ns4-xqMqqDmqdkc&1788556313391') },
+    { name: 'Surfer Network', url: '/api/proxy?url=' + encodeURIComponent('https://stream-177.surfernetwork.com/9nm481kbya0uv?zt=eyJhbGciOiJIUzI1NiJ9.eyJzdHJlYW0iOiI5bm00ODFrYnlhMHV2IiwiaG9zdCI6InN0cmVhbS0xNzcuc3VyZmVybmV0d29yay5jb20iLCJydHRsIjo1LCJqdGkiOiJsV1lyWUlVNVFudUxCcnlJeGs4eHhRIiwiaWF0IjoxNzg4NTU2MzEzLCJleHAiOjE3ODg1NTYzNzN9.CXL5ZlMfLQ7V0gOzmNv6hR6HD-q9Ns4-xqMqqDmqdkc&1788556313391') },
     { name: 'Adoradores Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://stm11.painelcast.com:7530/stream?1788556431582') },
     { name: 'Suave Excalla', url: '/api/proxy?url=' + encodeURIComponent('http://server02.ouvir.radio.br:8045/stream?1788582818637') },
     { name: 'Radio Nos', url: '/api/proxy?url=' + encodeURIComponent('https://nos.radio.br/stream/2/;?1788583074916') },

@@ -11,7 +11,7 @@ const forecastContainer = document.getElementById('forecast-container');
 const themeBtn = document.getElementById('theme-btn');
 const appContainer = document.getElementById('app-container');
 
-// --- NOVO: referência ao mapa
+// --- referência ao mapa
 let mapInstance;
 
 // Crypto Elements
@@ -81,9 +81,8 @@ let timeInterval;
 
 let usdToBrl = 5.25;
 let lastUsdBrlFetch = 0;
-const USD_BRL_CACHE_TIME = 300000; // 5 minutos
+const USD_BRL_CACHE_TIME = 300000;
 
-// Função para normalizar URLs
 function normalizeUrl(url) {
     if (!url) return url;
     url = url.trim();
@@ -266,7 +265,6 @@ async function loadAvailableCryptos() {
             allAvailableCryptos = data.data;
             console.log(`${allAvailableCryptos.length} criptomoedas carregadas`);
             
-            // Corrige a falha de carregamento inicial atualizando os preços agora que a lista chegou
             if (trackedCryptos.length > 0) {
                 updateCryptoPrices();
             }
@@ -458,7 +456,7 @@ async function updateCryptoPrices() {
     }
 
     if (allAvailableCryptos.length === 0) {
-        print('🔄 Aguardando catálogo de criptomoedas carregar antes de atualizar preços...');
+        console.log('🔄 Aguardando catálogo de criptomoedas carregar antes de atualizar preços...');
         return;
     }
 
@@ -486,14 +484,14 @@ async function updateCryptoPrices() {
                     });
                 }
             } catch (e) {
-                print(`Erro ao buscar preço de ${cryptoId}:`, e)
+                console.error(`Erro ao buscar preço de ${cryptoId}:`, e);
             }
         }
         
         cryptoList.innerHTML = '';
         results.forEach(displayCrypto);
     } catch (error) {
-        print("Erro geral em updateCryptoPrices:", error)
+        console.error("Erro geral em updateCryptoPrices:", error);
     }
 }
 
@@ -513,7 +511,7 @@ function loadTrackedCryptos() {
                 cryptoUpdateInterval = setInterval(updateCryptoPrices, 120000);
             }
         } catch (e) {
-            print('Erro ao carregar cryptos salvas:', e)
+            console.error('Erro ao carregar cryptos salvas:', e);
             trackedCryptos = [];
         }
     }
@@ -667,8 +665,8 @@ async function showMap(lat, lon, city) {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
 
     try {
-        const baseUrl = isLocal ? 'http://localhost:5000' : '';
-        const res = await fetch(`${baseUrl}/api/nominatim?q=${encodeURIComponent(city)}`);
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&polygon_geojson=1`;
+        const res = await fetch(url, { headers: { 'Accept-Language': 'pt-BR' } });
         const data = await res.json();
 
         if (data.length > 0 && data[0].geojson) {
@@ -676,13 +674,17 @@ async function showMap(lat, lon, city) {
                 style: { color: "red", weight: 2, fillColor: "rgba(255,0,0,0.2)", fillOpacity: 0.3 }
             }).addTo(mapInstance);
             mapInstance.fitBounds(geoLayer.getBounds());
-            mapInstance.setZoom(9);
+            mapInstance.setZoom(10);
         } else {
             L.marker([lat, lon]).addTo(mapInstance).bindPopup(city).openPopup();
         }
     } catch (err) {
-        print(err);
+        console.error("Erro ao carregar o contorno do mapa:", err);
+        mapInstance.setView([lat, lon], 12);
+        L.marker([lat, lon]).addTo(mapInstance).bindPopup(city).openPopup();
     }
+    
+    setTimeout(() => { mapInstance.invalidateSize(); }, 300);
 }
 
 // ===== BACKGROUND ESTILOS EQUALIZADOR =====
@@ -813,7 +815,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadAvailableCryptos();
     loadTrackedCryptos();
 
-    // --- CORREÇÃO: TEMA CLARO INICIAL FORÇADO ---
+    // --- TEMA CLARO INICIAL FORÇADO ---
     currentContainerColor = 0;
     const initialContainerColor = containerColors[currentContainerColor];
     appContainer.style.backgroundColor = initialContainerColor;
@@ -825,7 +827,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.body.style.backgroundColor = initialBgColor;
     setTextColor(document.body, initialBgColor);
     currentBackgroundColor = 1;
-    // ---------------------------------------------
 
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('chart-time-btn')) {

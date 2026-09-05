@@ -861,9 +861,6 @@ cityInput.addEventListener('keypress', (event) => {
     }
 });
 
-const chartScript = document.createElement('script');
-chartScript.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-document.head.appendChild(chartScript);
 
 
 // Referências dos novos elementos HTML de identificação de músicas

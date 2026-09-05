@@ -53,7 +53,6 @@ const radioStations = [
     { name: 'Cinemix', url: '/api/proxy?url=' + encodeURIComponent('https://kathy.torontocast.com:1825/stream') },
     { name: 'Scalla Instrumental SP', url: '/api/proxy?url=' + encodeURIComponent('https://s01.svrdedicado.org:6782/stream?1788582683900') },
     { name: 'Beautiful Instrumental', url: '/api/proxy?url=' + encodeURIComponent('https://hydra.cdnstream.com/1822_128') },
-    { name: 'Beautiful Music', url: '/api/proxy?url=' + encodeURIComponent('https://radio.streemlion.com:1665/stream?') },
     { name: 'Chinese Music', url: '/api/proxy?url=' + encodeURIComponent('https://radio.chinesemusicworld.com/chinesemusic.mp3') },
     { name: 'Lynn Classical', url: '/api/proxy?url=' + encodeURIComponent('https://radio.linn.co.uk:8004/autodj') },    
     { name: 'Soothing Radio', url: '/api/proxy?url=' + encodeURIComponent('http://193.111.125.15:8010/soothingradio') },

@@ -1027,6 +1027,9 @@ if (identifyBtn) {
 
 const responseText = await response.text();
 
+console.log("=== RESPOSTA COMPLETA DO SHAZAM ===");
+console.log(responseText);
+
 let data;
 
 try {
@@ -1035,6 +1038,16 @@ try {
     console.error("Resposta não é JSON.");
     data = null;
 }
+
+console.log("=== DADOS PARSEADOS ===");
+console.log(data);
+
+console.log(
+    "Shazam:",
+    data?.track?.title,
+    "-",
+    data?.track?.subtitle
+);
 
 console.log("RESPOSTA SHAZAM:", responseText);
 console.log("OBJETO SHAZAM:", data);

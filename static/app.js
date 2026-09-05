@@ -1096,16 +1096,20 @@ function mostrarResultado(track, fonte) {
     }
 
     if (buttons.children.length > 0) info.appendChild(buttons);
-    container.appendChild(info);
-    songResultEl.appendChild(container);
-}
 
- if (fonte && fonte !== 'nenhuma') {
+    // ============================================================
+    // BADGE DISCRETO DA FONTE (Shazam / audD)
+    // ============================================================
+    if (fonte && fonte !== 'nenhuma') {
         const badge = document.createElement("div");
         badge.className = "shazam-source-badge";
         badge.textContent = fonte === 'shazam' ? '● Shazam' : '● audD';
         info.appendChild(badge);
     }
+
+    container.appendChild(info);
+    songResultEl.appendChild(container);
+}
 
 
 

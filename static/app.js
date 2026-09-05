@@ -904,7 +904,7 @@ if (identifyBtn) {
             console.log("AudioContext:", audioCtx.state);
 
             // CORRETO
-            const destination = audioCtx.crpZEAWYtiB6bJ16NuLbGCc6CZ6jJdKfb63();
+            const destination = audioCtx.createMediaStreamDestination();
 
             console.log("MediaStreamDestination criado:", destination);
             console.log("Stream:", destination.stream);

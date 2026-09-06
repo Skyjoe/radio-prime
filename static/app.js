@@ -985,14 +985,14 @@ if (identifyBtn) {
             }
 
             if (data && data.track) {
-    mostrarResultado(data.track, data.fonte || '');
-    } else {
-        songResultEl.innerHTML = `
-            🤷 Não foi possível identificar.<br>
-            <small>Volume detectado: ${(volume * 100).toFixed(1)}% · 
-            Tente quando não houver locução ou comercial.</small>
-        `;
-    }
+                mostrarResultado(data.track, data.fonte || '');
+                } else {
+                    songResultEl.innerHTML = `
+                        🤷 Não foi possível identificar.<br>
+                        <small>Volume detectado: ${(volume * 100).toFixed(1)}% · 
+                        Tente quando não houver locução ou comercial.</small>
+                    `;
+                }
 
 
         } catch (err) {

@@ -646,7 +646,8 @@ h1, h2, h3, h4, h5, h6 {
 .shazam-source-badge {
     margin-top: 6px;
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.45);
+    color: red; font-size: 16px;
     letter-spacing: 0.5px;
 }
+
 

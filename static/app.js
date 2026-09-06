@@ -1055,7 +1055,7 @@ function mostrarResultado(track, fonte) {
         if (album || ano) {
             const metaElement = document.createElement("div");
             metaElement.className = "shazam-meta";
-            metaElement.textContent = album && ano ? `album⋅{album} ·album⋅{ano}` : (album || ano);
+            metaElement.textContent = album && ano ? album + " · " + ano : (album || ano);
             
             info.appendChild(metaElement);
         }

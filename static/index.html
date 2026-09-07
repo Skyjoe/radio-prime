@@ -13,8 +13,10 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
 <body>
+    <!-- Fundo de Equalizador Animado -->
     <div class="wrapper" id="wrapper"></div>
 
+    <!-- PAINEL CENTRAL DO APLICATIVO -->
     <div id="app-container">
         <h2>Rádio Relaxante</h2>
         <div id="radio-player">
@@ -32,22 +34,22 @@
             <audio id="audio-player" preload="none" crossorigin="anonymous"></audio>
         </div>
 
-        <!-- NOVO BLOCO DO IDENTIFICADOR (Cole exatamente aqui) -->
+        <!-- Identificador de Músicas -->
         <div class="song-identifier-container" style="margin: 15px 0; text-align: center;">
             <button id="identify-song-btn" style="padding: 10px 20px; font-size: 14px; border-radius: 20px; cursor: pointer; border: 1px solid #ccc; background-color: #fff; transition: background 0.3s;">🎵 Descobrir Música</button>
             <p id="song-result-el" style="margin-top: 12px; font-weight: bold; font-size: 15px; min-height: 20px;"></p>
         </div>
         
-                <!-- Botões de Controle Superior -->
+        <!-- Botões de Controle Superior -->
         <button id="phrase-fetch-btn" title="Buscar Novas Frases">✍️</button>
         <button id="theme-btn" title="Mudar Cor de Fundo">🎨</button>
 
-        
         <h1>Clima e Hora Mundial</h1>
         <div class="search-box">
             <input type="text" id="city-input" placeholder="Digite uma cidade...">
             <button id="search-btn">Buscar</button>
         </div>
+        
         <div id="result-container" class="hidden">
             <h2 id="city-name"></h2>
             <p id="temperature"></p>
@@ -61,6 +63,8 @@
                 <div id="forecast-container"></div>
             </div>
         </div>
+
+        <!-- Painel de Criptomoedas -->
         <div id="crypto-container">
             <h2>Preços de Criptomoedas</h2>
             <div class="crypto-selector">
@@ -86,16 +90,21 @@
                 <div id="modal-loading" class="hidden">Carregando gráfico...</div>
             </div>
         </div>
+        
         <div id="loader" class="hidden"></div>
         <p id="error-message"></p>
-    </div>
+    </div> <!-- Fim do #app-container -->
     
-    <!-- Caixa Lateral Direita para Exibição das Frases -->
+    <!-- COLUNA LATERAL DIREITA (Frases e Notícias unificadas) -->
     <div id="phrases-sidebar">
+        
+        <!-- Card de Frases Motivacionais -->
         <div class="phrase-card">
-            <p id="phrase-author"></p>
+            <p id="phrase-text">"Clique em ✍️ para carregar as primeiras frases brasileiras!"</p>
+            <div id="phrase-author"></div>
         </div> 
-        <!-- Bloco de Notícias (MOVIDO PARA CÁ) -->
+
+        <!-- Card Rotativo de Notícias -->
         <div id="news-card">
             <div class="news-header">
                 <span>📰 Últimas Notícias</span>
@@ -111,10 +120,7 @@
 
     </div> <!-- Fim do #phrases-sidebar -->
 
-    <link rel="stylesheet" href="style.css">
-    <script src="app.js"></script>
-</body>
-</html>
+    <!-- Carregamento dos Scripts e Estilos Locais -->
     <link rel="stylesheet" href="style.css">
     <script src="app.js"></script>
 </body>

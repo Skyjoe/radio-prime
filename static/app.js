@@ -293,6 +293,90 @@ audioPlayer.addEventListener('playing', () => {
 });
 
 
+
+document.addEventListener("DOMContentLoaded", () => {
+    const fetchBtn = document.getElementById("phrase-fetch-btn");
+    const textEl = document.getElementById("phrase-text");
+    const authorEl = document.getElementById("phrase-author");
+    const cardEl = document.querySelector(".phrase-card");
+
+    let rotationInterval = null;
+
+    // Função para renderizar uma frase aleatória vinda do armazenamento local
+    function displayRandomStoredPhrase() {
+        const localData = localStorage.getItem("pensador_frases");
+        
+        if (!localData) return;
+
+        const data = JSON.parse(localData);
+        if (data.frases && data.frases.length > 0) {
+            // Efeito visual suave de transição na mudança
+            cardEl.style.opacity = 0;
+            
+            setTimeout(() => {
+                const randomIndex = Math.floor(Math.random() * data.frases.length);
+                const fraseEscolhida = data.frases[randomIndex];
+                
+                textEl.textContent = `"${fraseEscolhida.texto.trim()}"`;
+                authorEl.textContent = `- ${fraseEscolhida.autor.trim() || "Autor Desconhecido"}`;
+                cardEl.style.opacity = 1;
+                cardEl.style.animation = 'fadeIn 0.5s ease';
+            }, 400);
+        }
+    }
+
+    // Função que busca frases novas da API e alimenta o "JSON local"
+    async function fetchPhrasesFromAPI() {
+        const termoBusca = "Motivacao"; // Modifique este termo para mudar o nicho de frases
+        const maxResultados = 30; // Puxa um lote grande para alimentar o sistema por bastante tempo
+        const url = `https://vercel.app{termoBusca}&max=${maxResultados}`;
+
+        // Altera visualmente o botão para indicar processamento
+        fetchBtn.textContent = "⏳";
+        fetchBtn.style.pointerEvents = "none";
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Erro na resposta do servidor.");
+
+            const data = await response.json();
+
+            if (data.frases && data.frases.length > 0) {
+                // Guarda o lote todo no localStorage (Substituindo o "JSON local")
+                localStorage.setItem("pensador_frases", JSON.stringify(data));
+                
+                // Exibe uma de imediato
+                displayRandomStoredPhrase();
+                
+                // (Re)inicia o ciclo de rotação a cada 1 minuto (60000 milissegundos)
+                if (rotationInterval) clearInterval(rotationInterval);
+                rotationInterval = setInterval(displayRandomStoredPhrase, 60000);
+                
+                alert(`Sucesso! ${data.frases.length} frases salvas localmente.`);
+            } else {
+                alert("Nenhuma frase encontrada para esse termo.");
+            }
+        } catch (error) {
+            console.error("Erro ao buscar frases:", error);
+            alert("Não foi possível carregar as frases. Verifique a API ou tente mais tarde.");
+        } finally {
+            fetchBtn.textContent = "✍️";
+            fetchBtn.style.pointerEvents = "auto";
+        }
+    }
+
+    // Ouvinte de evento do botão inserido ao lado do tema
+    fetchBtn.addEventListener("click", fetchPhrasesFromAPI);
+
+    // Inicialização ao carregar a página: Se já existirem frases salvas, inicia o loop
+    if (localStorage.getItem("pensador_frases")) {
+        displayRandomStoredPhrase();
+        rotationInterval = setInterval(displayRandomStoredPhrase, 60000);
+    }
+});
+
+
+
 // ===== FUNÇÕES DE CRIPTOMOEDAS =====
 
 async function fetchUsdToBrl() {

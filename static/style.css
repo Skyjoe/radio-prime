@@ -814,10 +814,17 @@ body {
 
 #news-description {
     font-family: 'Quicksand', sans-serif !important;
-    font-size: 1.05rem !important; /* Aumentado de 0.9rem para 1.05rem */
-    color: #444444 !important; /* Um cinza um pouco mais escuro para melhorar o contraste */
-    line-height: 1.6; /* Deixa os blocos de parágrafos mais confortáveis para ler */
+    font-size: 1.05rem !important;
+    color: #444444 !important;
+    line-height: 1.6;
     margin: 0 0 15px 0 !important;
+
+    /* REGRAS MÁGICAS PARA TRAVAR EM 10 LINHAS COM PONTINHOS */
+    display: -webkit-box !important;
+    -webkit-line-clamp: 10 !important; /* Trava o parágrafo em no máximo 10 linhas */
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important; /* Esconde o texto que passar do limite */
+    text-overflow: ellipsis !important;
 }
 
 /* Controles do Carrossel */

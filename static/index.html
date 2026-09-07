@@ -38,7 +38,10 @@
             <p id="song-result-el" style="margin-top: 12px; font-weight: bold; font-size: 15px; min-height: 20px;"></p>
         </div>
         
+                <!-- Botões de Controle Superior -->
+        <button id="phrase-fetch-btn" title="Buscar Novas Frases">✍️</button>
         <button id="theme-btn" title="Mudar Cor de Fundo">🎨</button>
+
         
         <h1>Clima e Hora Mundial</h1>
         <div class="search-box">
@@ -85,6 +88,13 @@
         </div>
         <div id="loader" class="hidden"></div>
         <p id="error-message"></p>
+    </div>
+    <!-- Caixa Lateral Direita para Exibição das Frases -->
+    <div id="phrases-sidebar">
+        <div class="phrase-card">
+            <p id="phrase-text">"Clique em ✍️ para carregar as primeiras frases brasileiras!"</p>
+            <p id="phrase-author"></p>
+        </div>
     </div>
     <link rel="stylesheet" href="style.css">
     <script src="app.js"></script>

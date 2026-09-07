@@ -411,7 +411,7 @@ async function buscarNoticiasAPI() {
     }
 
     // Chama a rota segura do seu próprio servidor back-end
-    const url = `${SERVER_URL}/api/noticias`;
+    const url = SERVER_URL + '/api/noticias';
 
     try {
         const response = await fetch(url);

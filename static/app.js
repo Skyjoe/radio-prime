@@ -157,6 +157,20 @@ function togglePlayPause() {
     }
 }
 
+audioPlayer.addEventListener('ended', () => {
+    console.warn('Stream encerrado pelo servidor, reconectando...');
+    if (isPlaying && audioPlayer.src) {
+        const currentSrc = audioPlayer.src;
+        audioPlayer.src = currentSrc; // força nova conexão ao proxy
+        audioPlayer.load();
+        audioPlayer.play().catch(e => {
+            console.error('Falha ao reconectar:', e);
+            setTimeout(() => audioPlayer.play().catch(() => {}), 3000);
+        });
+    }
+});
+
+
 function handleStationChange() {
     const selectedUrl = stationSelect.value;
     if (selectedUrl) {

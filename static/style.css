@@ -713,8 +713,9 @@ body {
 }
 
 
-/* Garante que o card de frases não perca o comportamento visual */
+/* Garante que o card de frases ocupe toda a nova largura */
 .phrase-card {
+    width: 100% !important;
     background: #ffffff !important;
     border: 1px solid #e0e0e0 !important;
     padding: 22px;
@@ -746,6 +747,20 @@ body {
     display: block !important;
 }
 
+#phrases-sidebar {
+    width: 100%;
+    max-width: 380px; /* Aumentado de 320px para 380px (Ajuste para 400px se quiser ainda maior) */
+    margin-top: 15px;
+    
+    position: -webkit-sticky;
+    position: sticky;
+    top: 15px;
+    
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    z-index: 5;
+}
 
 /* Texto da citação com contraste máximo */
 #phrase-text {
@@ -775,8 +790,9 @@ body {
 }
 
 
-/* Card de Notícias (Agora perfeitamente integrado na coluna com rolagem) */
+/* Garante que o card de notícias ocupe toda a nova largura */
 #news-card {
+    width: 100% !important;
     background: #ffffff !important;
     border: 1px solid #e0e0e0 !important;
     padding: 20px;
@@ -785,7 +801,7 @@ body {
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1) !important;
     text-align: left;
     transition: all 0.4s ease;
-    margin-top: 0 !important; /* Reseta margens antigas para usar o gap do pai */
+    margin-top: 0 !important;
 }
 
 .news-header {

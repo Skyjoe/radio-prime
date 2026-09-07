@@ -62,6 +62,19 @@ SYMBOL_MAP = {
     'monero': 'XMRUSDT'
 }
 
+
+NEWSDATA_API_KEY = os.environ.get("NEWSDATA_KEY", "pub_e551fed731c14f9bb8d7274d1998feac")
+
+@app.route('/api/noticias', methods=['GET'])
+def obter_noticias():
+    url = f"https://newsdata.io{NEWSDATA_API_KEY}&country=br&language=pt"
+    try:
+        response = requests.get(url)
+        return jsonify(response.json()), response.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/api/crypto', methods=['GET', 'OPTIONS'])
 def crypto_proxy():
     if request.method == 'OPTIONS':

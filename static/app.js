@@ -405,17 +405,13 @@ function exibirNoticia() {
 }
 
 async function buscarNoticiasAPI() {
-    if (!NEWSDATA_API_KEY) {
-        alert("Chave de API não configurada. Configure a variável NEXT_PUBLIC_NEWSDATA_KEY na Vercel.");
-        return;
-    }
-
     if (newsFetchBtn) {
         newsFetchBtn.textContent = "⏳";
         newsFetchBtn.style.pointerEvents = "none";
     }
 
-    const url = `https://newsdata.io{NEWSDATA_API_KEY}&country=br&language=pt`;
+    // Chama a rota segura do seu próprio servidor back-end
+    const url = "/api/noticias"; 
 
     try {
         const response = await fetch(url);
@@ -426,15 +422,14 @@ async function buscarNoticiasAPI() {
         if (data.results && data.results.length > 0) {
             noticiasSalvas = data.results;
             indiceNoticiaAtual = 0;
-            
             exibirNoticia();
             if (newsNextBtn) newsNextBtn.disabled = false;
         } else {
-            if (newsTitle) newsTitle.textContent = "Nenhuma notícia encontrada no momento.";
+            if (newsTitle) newsTitle.textContent = "Nenhuma notícia encontrada.";
         }
     } catch (error) {
-        console.error("Erro na API de Notícias:", error);
-        if (newsTitle) newsTitle.textContent = "Não foi possível carregar as notícias mundiais.";
+        console.error("Erro:", error);
+        if (newsTitle) newsTitle.textContent = "Não foi possível carregar as notícias.";
     } finally {
         if (newsFetchBtn) {
             newsFetchBtn.textContent = "🔄";
@@ -442,6 +437,7 @@ async function buscarNoticiasAPI() {
         }
     }
 }
+
 
 if (newsNextBtn) {
     newsNextBtn.addEventListener("click", () => {

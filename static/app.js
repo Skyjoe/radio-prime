@@ -329,10 +329,9 @@ document.addEventListener("DOMContentLoaded", () => {
     async function fetchPhrasesFromAPI() {
         const termoBusca = "Motivacao"; // Modifique este termo para mudar o nicho de frases
         const maxResultados = 30; // Puxa um lote grande para alimentar o sistema por bastante tempo
-        // CORREÇÃO: Certifique-se de usar a crase ( ` ) para abrir e fechar a string da URL
+        
+        // URL CORRIGIDA: Copie exatamente esta linha abaixo
         const url = `https://vercel.app{termoBusca}&max=${maxResultados}`;
-
-
 
         // Altera visualmente o botão para indicar processamento
         fetchBtn.textContent = "⏳";
@@ -367,6 +366,7 @@ document.addEventListener("DOMContentLoaded", () => {
             fetchBtn.style.pointerEvents = "auto";
         }
     }
+
 
     // Ouvinte de evento do botão inserido ao lado do tema
     fetchBtn.addEventListener("click", fetchPhrasesFromAPI);

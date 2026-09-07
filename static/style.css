@@ -650,4 +650,78 @@ h1, h2, h3, h4, h5, h6 {
     letter-spacing: 0.5px;
 }
 
+/* Alinhamento geral para comportar a lateral */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px; /* Distância entre o app central e as frases */
+    flex-wrap: wrap; /* Garante adaptabilidade em telas menores/celulares */
+}
+
+/* Estilo do Botão de Buscar Frases */
+#phrase-fetch-btn {
+    position: absolute;
+    top: 20px;
+    right: 70px; /* Posicionado exatamente ao lado do botão de tema */
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#phrase-fetch-btn:hover {
+    transform: scale(1.05);
+    background-color: #e0e0e0;
+}
+
+/* Estrutura da barra lateral de frases */
+#phrases-sidebar {
+    width: 100%;
+    max-width: 300px;
+    animation: fadeIn 0.5s ease;
+}
+
+.phrase-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.5s ease;
+    text-align: right; /* Estilo padrão para citações */
+}
+
+#phrase-text {
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    line-height: 1.5;
+    margin-bottom: 10px;
+    text-align: left;
+    color: inherit; /* Segue o padrão de cor do seu tema atual */
+}
+
+#phrase-author {
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.9rem;
+    font-weight: bold;
+    opacity: 0.8;
+    margin: 0;
+}
+
+/* Animação suave para quando a frase mudar */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
 

@@ -68,7 +68,9 @@ NEWSDATA_API_KEY = os.environ.get("NEWSDATA_KEY", "pub_e551fed731c14f9bb8d7274d1
 @app.route('/api/noticias', methods=['GET'])
 def obter_noticias():
     # ATUALIZAÇÃO: Inclusão do parâmetro &category com os temas escolhidos separados por vírgula
-    url = f"https://newsdata.io{NEWSDATA_API_KEY}&country=br&language=pt&category=politics,business,technology,world"
+    # O seu padrão original com o filtro de categorias anexado de forma correta no final
+url = f"https://newsdata.io/api/1/latest?apikey={NEWSDATA_API_KEY}&country=br&language=pt&category=politics,business,technology,world"
+
     try:
         response = requests.get(url)
         return jsonify(response.json()), response.status_code

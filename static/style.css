@@ -853,5 +853,24 @@ body {
     background: #ccc;
     cursor: not-allowed;
 }
+.news-link-container {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+#news-url {
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 0.9rem !important;
+    font-weight: bold !important;
+    color: #2575fc !important; /* Usa o mesmo azul moderno do seu player */
+    text-decoration: none !important;
+    transition: color 0.2s ease;
+    display: inline-block;
+}
+
+#news-url:hover {
+    color: #6a11cb !important; /* Muda sutilmente para roxo ao passar o mouse */
+    text-decoration: underline !important;
+}
 
 

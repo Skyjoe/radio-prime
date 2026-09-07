@@ -3,12 +3,18 @@ body {
     background-color: rgba(255,255,255,0.08);
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     min-height: 100vh;
     margin: 0;
     padding: 20px;
     box-sizing: border-box;
+    gap: 35px; /* Mantém um espaço confortável entre a esquerda e a direita */
+    
+    /* Garante que o navegador use o máximo de tela disponível antes de quebrar linha */
+    width: 100vw;
+    overflow-x: hidden; 
 }
+
 
 #app-container {
     position: relative;
@@ -713,16 +719,11 @@ body {
 }
 
 
-/* Garante que o card de frases ocupe toda a nova largura */
-.phrase-card {
+/* Garante que as caixas internas preencham os novos 420px sem restrições */
+.phrase-card, #news-card {
     width: 100% !important;
-    background: #ffffff !important;
-    border: 1px solid #e0e0e0 !important;
-    padding: 22px;
-    border-radius: 12px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1) !important;
+    min-width: 100% !important;
     box-sizing: border-box;
-    text-align: left;
 }
 
 /* Texto da citação com contraste máximo (Letras escuras no fundo branco) */
@@ -748,10 +749,12 @@ body {
 }
 
 #phrases-sidebar {
-    width: 100%;
-    max-width: 380px; /* Aumentado de 320px para 380px (Ajuste para 400px se quiser ainda maior) */
-    margin-top: 15px;
+    /* Mudamos de max-width para min-width e width para obrigar o navegador a alargar os cards */
+    width: 420px !important; 
+    min-width: 380px !important; 
+    max-width: 450px !important;
     
+    margin-top: 15px;
     position: -webkit-sticky;
     position: sticky;
     top: 15px;
@@ -760,6 +763,7 @@ body {
     flex-direction: column;
     gap: 20px;
     z-index: 5;
+    box-sizing: border-box;
 }
 
 /* Texto da citação com contraste máximo */

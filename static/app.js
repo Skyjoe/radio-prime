@@ -158,17 +158,29 @@ function togglePlayPause() {
 }
 
 audioPlayer.addEventListener('ended', () => {
-    console.warn('Stream encerrado pelo servidor, reconectando...');
-    if (isPlaying && audioPlayer.src) {
-        const currentSrc = audioPlayer.src;
-        audioPlayer.src = currentSrc; // força nova conexão ao proxy
+    if (isPlaying && !isReconnecting && currentStationUrl) {
+        console.warn('Stream encerrado, reconectando...');
+        isReconnecting = true;
+        audioPlayer.removeAttribute('src');
         audioPlayer.load();
-        audioPlayer.play().catch(e => {
-            console.error('Falha ao reconectar:', e);
-            setTimeout(() => audioPlayer.play().catch(() => {}), 3000);
-        });
+        setTimeout(() => {
+            const sep = currentStationUrl.includes('?') ? '&' : '?';
+            audioPlayer.src = currentStationUrl + sep + '_r=' + Date.now();
+            audioPlayer.load();
+            audioPlayer.play()
+                .then(() => { isReconnecting = false; })
+                .catch(e => {
+                    console.error('Falha ao reconectar:', e);
+                    setTimeout(() => {
+                        audioPlayer.play()
+                            .then(() => { isReconnecting = false; })
+                            .catch(() => { isReconnecting = false; });
+                    }, 3000);
+                });
+        }, 500);
     }
 });
+
 
 
 function handleStationChange() {
@@ -230,17 +242,50 @@ audioPlayer.addEventListener('error', (e) => {
     }
 });
 
+// no topo, junto das outras variáveis:
+let isReconnecting = false;
+let stalledTimer = null;
+
 audioPlayer.addEventListener('stalled', () => {
-    console.warn('Stream travado, tentando recarregar...');
-    if (audioPlayer.src && isPlaying) {
-        if (audioPlayer.readyState > 0) {
+    if (isReconnecting) return; // ignora stalled durante reconexão
+
+    // dá 8s de tolerância antes de agir — stalled sozinho é normal
+    clearTimeout(stalledTimer);
+    stalledTimer = setTimeout(() => {
+        if (!isPlaying || isReconnecting) return;
+        console.warn('Stream travado por 8s, tentando recarregar...');
+        isReconnecting = true;
+        audioPlayer.pause();
+        audioPlayer.removeAttribute('src');
+        audioPlayer.load();
+        setTimeout(() => {
+            const sep = currentStationUrl.includes('?') ? '&' : '?';
+            audioPlayer.src = currentStationUrl + sep + '_r=' + Date.now();
             audioPlayer.load();
-            setTimeout(() => {
-                audioPlayer.play().catch(e => console.error('Falha ao retomar:', e));
-            }, 1000);
-        }
-    }
+            audioPlayer.play()
+                .then(() => { isReconnecting = false; })
+                .catch(e => {
+                    console.error('Falha no reload:', e);
+                    setTimeout(() => {
+                        audioPlayer.play()
+                            .then(() => { isReconnecting = false; })
+                            .catch(() => {
+                                showRadioError("Não foi possível reconectar à rádio.");
+                                isPlaying = false;
+                                isReconnecting = false;
+                            });
+                    }, 3000);
+                });
+        }, 1000);
+    }, 8000);
 });
+
+// limpa o timer quando o áudio volta a tocar
+audioPlayer.addEventListener('playing', () => {
+    clearTimeout(stalledTimer);
+    isReconnecting = false;
+});
+
 
 // ===== FUNÇÕES DE CRIPTOMOEDAS =====
 

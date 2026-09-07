@@ -696,18 +696,40 @@ body {
     animation: fadeIn 0.5s ease;
 }
 
-/* Cartão com fundo mais opaco/escuro para destacar no background escuro */
+/* Cartão com fundo claro e sólido para dar leitura perfeita */
 .phrase-card {
-    background: rgba(20, 20, 20, 0.75); /* Fundo escuro sólido com opacidade controlada */
-    backdrop-filter: blur(12px); /* Efeito de desfoque sutil atrás do card */
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.25); /* Borda branca um pouco mais evidente */
+    background: #ffffff !important; /* Força fundo branco puro igual ao seu contêiner principal */
+    border: 1px solid #e0e0e0 !important;
     padding: 22px;
     border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); /* Sombra projetada mais forte para dar profundidade */
+    box-sizing: border-box;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1) !important; /* Mesma sombra do seu app principal */
     transition: all 0.5s ease;
     text-align: left;
 }
+
+/* Texto da citação com contraste máximo (Letras escuras no fundo branco) */
+#phrase-text {
+    font-family: 'Quicksand', sans-serif !important;
+    font-size: 1.15rem !important;
+    font-style: italic !important;
+    line-height: 1.6 !important;
+    margin-bottom: 12px !important;
+    color: #222222 !important; /* Força cor grafite escura e legível */
+    text-shadow: none !important; /* Remove sombras antigas que atrapalham no fundo claro */
+}
+
+/* Nome do Autor destacado */
+#phrase-author {
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 0.95rem !important;
+    font-weight: bold !important;
+    color: #2575fc !important; /* Mantém o azul moderno do botão de play */
+    text-align: right !important;
+    margin: 0 !important;
+    display: block !important;
+}
+
 
 /* Texto da citação com contraste máximo */
 #phrase-text {

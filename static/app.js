@@ -372,6 +372,89 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+// ==========================================================================
+// SEÇÃO: CARD ROTATIVO DE NOTÍCIAS (NEWSDATA.IO)
+// ==========================================================================
+
+const newsFetchBtn = document.getElementById("news-fetch-btn");
+const newsNextBtn = document.getElementById("news-next-btn");
+const newsTitle = document.getElementById("news-title");
+const newsDesc = document.getElementById("news-description");
+const newsSource = document.getElementById("news-source");
+
+let noticiasSalvas = [];
+let indiceNoticiaAtual = 0;
+
+// Configuração da Chave da API
+const NEWSDATA_API_KEY = (typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_NEWSDATA_KEY) || '';
+
+function exibirNoticia() {
+    if (noticiasSalvas.length === 0) return;
+
+    const noticia = noticiasSalvas[indiceNoticiaAtual];
+    const newsCard = document.getElementById("news-card");
+    
+    if (newsCard) newsCard.style.opacity = 0.5;
+    
+    setTimeout(() => {
+        if (newsTitle) newsTitle.textContent = noticia.title;
+        if (newsDesc) newsDesc.textContent = noticia.description || "Clique em 'Próxima' ou acesse o portal de origem para ler mais.";
+        if (newsSource) newsSource.textContent = noticia.source_id.toUpperCase();
+        if (newsCard) newsCard.style.opacity = 1;
+    }, 200);
+}
+
+async function buscarNoticiasAPI() {
+    if (!NEWSDATA_API_KEY) {
+        alert("Chave de API não configurada. Configure a variável NEXT_PUBLIC_NEWSDATA_KEY na Vercel.");
+        return;
+    }
+
+    if (newsFetchBtn) {
+        newsFetchBtn.textContent = "⏳";
+        newsFetchBtn.style.pointerEvents = "none";
+    }
+
+    const url = `https://newsdata.io{NEWSDATA_API_KEY}&country=br&language=pt`;
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Erro ao buscar notícias");
+
+        const data = await response.json();
+
+        if (data.results && data.results.length > 0) {
+            noticiasSalvas = data.results;
+            indiceNoticiaAtual = 0;
+            
+            exibirNoticia();
+            if (newsNextBtn) newsNextBtn.disabled = false;
+        } else {
+            if (newsTitle) newsTitle.textContent = "Nenhuma notícia encontrada no momento.";
+        }
+    } catch (error) {
+        console.error("Erro na API de Notícias:", error);
+        if (newsTitle) newsTitle.textContent = "Não foi possível carregar as notícias mundiais.";
+    } finally {
+        if (newsFetchBtn) {
+            newsFetchBtn.textContent = "🔄";
+            newsFetchBtn.style.pointerEvents = "auto";
+        }
+    }
+}
+
+if (newsNextBtn) {
+    newsNextBtn.addEventListener("click", () => {
+        if (noticiasSalvas.length === 0) return;
+        indiceNoticiaAtual = (indiceNoticiaAtual + 1) % noticiasSalvas.length;
+        exibirNoticia();
+    });
+}
+
+if (newsFetchBtn) {
+    newsFetchBtn.addEventListener("click", buscarNoticiasAPI);
+}
+
 
 // ===== FUNÇÕES DE CRIPTOMOEDAS =====
 

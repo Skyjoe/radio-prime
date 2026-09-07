@@ -87,6 +87,8 @@ let cryptoUpdateInterval;
 
 let isPlaying = false;
 let timeInterval;
+let currentStationUrl = null;
+
 
 let usdToBrl = 5.25;
 let lastUsdBrlFetch = 0;
@@ -134,8 +136,9 @@ function togglePlayPause() {
             isPlaying = false;
         } else {
             audioPlayer.play().catch(e => {
+                if (e.name === 'AbortError') return; // interrupção esperada (pause/load), ignore
                 console.error("Error playing audio:", e);
-                if (e.name === 'AbortError' || e.name === 'NotSupportedError') {
+                if (e.name === 'NotSupportedError') {
                     audioPlayer.load();
                     setTimeout(() => {
                         audioPlayer.play().catch(err => {
@@ -203,6 +206,9 @@ function handleStationChange() {
         
         audioPlayer.src = url;
         audioPlayer.load();
+        audioPlayer.src = url;
+        currentStationUrl = url;   // ← guarda a URL original
+
         
         const playPromise = audioPlayer.play();
         if (playPromise !== undefined) {

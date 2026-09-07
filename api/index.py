@@ -384,76 +384,81 @@ def proxy():
     url = request.args.get('url')
     if not url:
         return 'URL parameter is required', 400
-
+    
     try:
         decoded_url = urllib.parse.unquote(url)
         logging.info(f'Proxying request to: {decoded_url}')
-
+        
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': '*/*',
             'Accept-Encoding': 'identity',
             'Connection': 'keep-alive',
-            'Icy-MetaData': '0',
         }
-
-        def open_stream():
-            return requests.get(
-                decoded_url,
-                headers=headers,
-                stream=True,
-                timeout=(15, None),  # 15s p/ conectar; SEM timeout de leitura
-                verify=False
-            )
-
-        response = open_stream()
-
+        
+        response = requests.get(
+            decoded_url, 
+            headers=headers, 
+            stream=True, 
+            timeout=30,
+            verify=False
+        )
+        
         if response.status_code != 200:
             logging.error(f'Radio returned status: {response.status_code}')
             return f'Radio server error: {response.status_code}', response.status_code
-
+        
         content_type = response.headers.get('content-type', 'audio/mpeg')
         if 'audio' not in content_type and 'application' not in content_type:
             content_type = 'audio/mpeg'
-
+        
         def generate():
             try:
-                while True:  # loop de reconexão
-                    try:
-                        for chunk in response.iter_content(chunk_size=8192):
-                            if chunk:
-                                yield chunk
-                        # stream acabou normalmente — reconecta
-                        logging.warning('Stream ended normally, reconnecting...')
-                    except (requests.exceptions.ChunkedEncodingError,
-                            requests.exceptions.ConnectionError,
-                            requests.exceptions.Timeout) as e:
-                        logging.warning(f'Stream interrupted ({e}), reconnecting...')
-                    finally:
-                        response.close()
-
-                    import time
-                    time.sleep(2)  # espera antes de reconectar
-                    response = open_stream()
-                    if response.status_code != 200:
-                        logging.error(f'Reconnect failed: {response.status_code}')
-                        time.sleep(5)
-                        response = open_stream()
+                for chunk in response.iter_content(chunk_size=4096):
+                    if chunk:
+                        yield chunk
             except Exception as e:
-                logging.error(f'Fatal streaming error: {str(e)}')
-
+                logging.error(f'Error streaming: {str(e)}')
+                yield b''
+        
         return Response(
             generate(),
             status=200,
             headers={
                 'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, OPTIONS',
+                'Access-Control-Allow-Headers': '*',
                 'Content-Type': content_type,
                 'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
                 'Connection': 'keep-alive'
             }
         )
-
+        
+    except requests.exceptions.SSLError as e:
+        logging.error(f'SSL Error: {str(e)}')
+        try:
+            response = requests.get(decoded_url, headers=headers, stream=True, timeout=30, verify=False)
+            if response.status_code == 200:
+                def generate():
+                    for chunk in response.iter_content(chunk_size=4096):
+                        if chunk:
+                            yield chunk
+                return Response(
+                    generate(),
+                    status=200,
+                    headers={
+                        'Access-Control-Allow-Origin': '*',
+                        'Content-Type': 'audio/mpeg',
+                        'Cache-Control': 'no-cache'
+                    }
+                )
+        except:
+            pass
+        return 'SSL Error connecting to radio', 500
     except requests.exceptions.Timeout:
+        logging.error('Timeout connecting to radio')
         return 'Timeout connecting to radio', 504
     except requests.exceptions.ConnectionError as e:
         logging.error(f'Connection error: {str(e)}')
@@ -461,7 +466,6 @@ def proxy():
     except Exception as e:
         logging.error(f'Proxy error: {str(e)}')
         return f'Error proxying request: {str(e)}', 500
-
 
 @app.route('/api/nominatim', methods=['GET'])
 def nominatim_proxy():

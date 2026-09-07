@@ -67,9 +67,11 @@ NEWSDATA_API_KEY = os.environ.get("NEWSDATA_KEY", "pub_e551fed731c14f9bb8d7274d1
 
 @app.route('/api/noticias', methods=['GET'])
 def obter_noticias():
+    # URL oficial de requisição segura direto do servidor Python
     url = f"https://newsdata.io{NEWSDATA_API_KEY}&country=br&language=pt"
     try:
         response = requests.get(url)
+        # Retorna a resposta da NewsData diretamente para o seu app.js
         return jsonify(response.json()), response.status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 500

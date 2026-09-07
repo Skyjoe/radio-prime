@@ -81,6 +81,7 @@ def obter_noticias():
     try:
         # O 'requests' junta tudo sozinho no formato correto da URL nos bastidores
         response = requests.get(url, params=filtros)
+        response.encoding = 'utf-8'
         return jsonify(response.json()), response.status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 500

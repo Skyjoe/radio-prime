@@ -805,17 +805,18 @@ body {
 
 #news-title {
     font-family: 'Roboto', sans-serif !important;
-    font-size: 1.05rem !important;
+    font-size: 1.2rem !important; /* Aumentado de 1.05rem para 1.2rem */
     color: #111111 !important;
-    margin: 0 0 10px 0 !important;
-    line-height: 1.4;
+    margin: 0 0 12px 0 !important;
+    line-height: 1.5; /* Dá mais espaço vertical entre as linhas do título */
+    font-weight: 700 !important;
 }
 
 #news-description {
     font-family: 'Quicksand', sans-serif !important;
-    font-size: 0.9rem !important;
-    color: #555555 !important;
-    line-height: 1.5;
+    font-size: 1.05rem !important; /* Aumentado de 0.9rem para 1.05rem */
+    color: #444444 !important; /* Um cinza um pouco mais escuro para melhorar o contraste */
+    line-height: 1.6; /* Deixa os blocos de parágrafos mais confortáveis para ler */
     margin: 0 0 15px 0 !important;
 }
 

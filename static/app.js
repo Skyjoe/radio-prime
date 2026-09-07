@@ -329,7 +329,8 @@ document.addEventListener("DOMContentLoaded", () => {
     async function fetchPhrasesFromAPI() {
         const termoBusca = "Motivacao"; // Modifique este termo para mudar o nicho de frases
         const maxResultados = 30; // Puxa um lote grande para alimentar o sistema por bastante tempo
-        const url = `https://vercel.app{termoBusca}&max=${maxResultados}`;
+        const url = `https://pensador-api.vercel.app{termoBusca}&max=${maxResultados}`;
+
 
         // Altera visualmente o botão para indicar processamento
         fetchBtn.textContent = "⏳";

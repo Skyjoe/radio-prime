@@ -120,8 +120,16 @@
 
     </div> <!-- Fim do #phrases-sidebar -->
 
-    <!-- Carregamento dos Scripts e Estilos Locais -->
+<!-- 1. Estilos do Mapa -->
+    <link rel="stylesheet" href="https://unpkg.com" />
+    
+    <!-- 2. Código Base do Mapa (Carrega obrigatoriamente antes do app.js) -->
+    <script src="https://unpkg.com"></script>
+    
+    <!-- 3. Estilos Locais do seu Painel -->
     <link rel="stylesheet" href="style.css">
+    
+    <!-- 4. Seu Script Principal (Lê todas as bibliotecas acima prontas na memória) -->
     <script src="app.js"></script>
 </body>
 </html>

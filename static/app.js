@@ -381,6 +381,7 @@ const newsNextBtn = document.getElementById("news-next-btn");
 const newsTitle = document.getElementById("news-title");
 const newsDesc = document.getElementById("news-description");
 const newsSource = document.getElementById("news-source");
+const newsUrlEl = document.getElementById("news-url");
 
 let noticiasSalvas = [];
 let indiceNoticiaAtual = 0;
@@ -398,11 +399,21 @@ function exibirNoticia() {
     
     setTimeout(() => {
         if (newsTitle) newsTitle.textContent = noticia.title;
-        if (newsDesc) newsDesc.textContent = noticia.description || "Clique em 'Próxima' ou acesse o portal de origem para ler mais.";
+        if (newsDesc) newsDesc.textContent = noticia.description || "Acesse o portal de origem para ler mais detalhes sobre esta manchete.";
         if (newsSource) newsSource.textContent = noticia.source_id.toUpperCase();
+        
+        // Atualiza o botão "Leia mais" com o link real
+        if (newsUrlEl && noticia.link) {
+            newsUrlEl.href = noticia.link;
+            newsUrlEl.classList.remove("hidden"); // Torna o link visível
+        } else if (newsUrlEl) {
+            newsUrlEl.classList.add("hidden"); // Oculta se a notícia não tiver link
+        }
+
         if (newsCard) newsCard.style.opacity = 1;
     }, 200);
 }
+
 
 async function buscarNoticiasAPI() {
     if (newsFetchBtn) {

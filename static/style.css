@@ -688,20 +688,24 @@ body {
     background-color: #e0e0e0;
 }
 
-/* Estrutura da barra lateral de frases (Acompanha o Scroll) */
+/* Estrutura da coluna lateral direita (Mantém a posição grudada na tela) */
 #phrases-sidebar {
     width: 100%;
     max-width: 320px;
     margin-top: 15px;
     
-    /* Efeito para a frase descer junto com o mouse */
+    /* Configuração mágica para a coluna inteira descer com o mouse */
     position: -webkit-sticky;
     position: sticky;
-    top: 20px; /* Distância que ela vai manter do topo da tela enquanto você rola para baixo */
+    top: 15px; /* Distância fixa que a coluna manterá do topo enquanto você rola */
     
-    transition: opacity 0.4s ease, transform 0.4s ease;
+    /* Organiza os cards um abaixo do outro em coluna */
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Cria um espaçamento elegante e fixo entre o card de frases e o de notícias */
+    
+    z-index: 5;
 }
-
 /* Nova classe de animação para a troca de frases */
 .fade-change {
     opacity: 0;
@@ -709,15 +713,14 @@ body {
 }
 
 
-/* Cartão com fundo claro e sólido para dar leitura perfeita */
+/* Garante que o card de frases não perca o comportamento visual */
 .phrase-card {
-    background: #ffffff !important; /* Força fundo branco puro igual ao seu contêiner principal */
+    background: #ffffff !important;
     border: 1px solid #e0e0e0 !important;
     padding: 22px;
     border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1) !important;
     box-sizing: border-box;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1) !important; /* Mesma sombra do seu app principal */
-    transition: all 0.5s ease;
     text-align: left;
 }
 
@@ -772,7 +775,7 @@ body {
 }
 
 
-/* Card de Notícias */
+/* Card de Notícias (Agora perfeitamente integrado na coluna com rolagem) */
 #news-card {
     background: #ffffff !important;
     border: 1px solid #e0e0e0 !important;
@@ -780,9 +783,9 @@ body {
     border-radius: 12px;
     box-sizing: border-box;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1) !important;
-    margin-top: 20px; /* Separação do bloco de frases */
     text-align: left;
     transition: all 0.4s ease;
+    margin-top: 0 !important; /* Reseta margens antigas para usar o gap do pai */
 }
 
 .news-header {

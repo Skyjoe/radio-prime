@@ -17,14 +17,16 @@ body {
 
 
 #app-container {
-    position: relative;
-
+    position: relative; /* Mantém sua estrutura original */
     padding: 2em;
     border-radius: 12px;
     box-shadow: 0 6px 12px rgba(0,0,0,0.1);
     text-align: center;
-    width: 100%;
-    max-width: 450px;
+    
+    /* MUDANÇA: Expandido de 450px para 520px de largura máxima */
+    width: 100% !important;
+    max-width: 520px !important; 
+    
     transition: all 0.3s ease;
 }
 
@@ -749,10 +751,10 @@ body {
 }
 
 #phrases-sidebar {
-    /* Mudamos de max-width para min-width e width para obrigar o navegador a alargar os cards */
-    width: 420px !important; 
-    min-width: 380px !important; 
-    max-width: 450px !important;
+    /* MUDANÇA: Forçando a nova largura de 420px para 480px fixos */
+    width: 480px !important; 
+    min-width: 450px !important; 
+    max-width: 500px !important;
     
     margin-top: 15px;
     position: -webkit-sticky;

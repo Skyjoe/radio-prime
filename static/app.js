@@ -325,43 +325,38 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Função que busca frases novas da API e alimenta o "JSON local"
+       // Função que lê as frases do arquivo JSON local do seu próprio projeto
     async function fetchPhrasesFromAPI() {
-        const termoBusca = "Motivacao"; // Modifique este termo para mudar o nicho de frases
-        const maxResultados = 30; // Puxa um lote grande para alimentar o sistema por bastante tempo
-        
-        // URL CORRIGIDA: Copie exatamente esta linha abaixo
-        const url = `https://pensador-api.vercel.app/?term=${termoBusca}&max=${maxResultados}`;
-
-
-        // Altera visualmente o botão para indicar processamento
+        // Altera visualmente o botão para indicar carregamento
         fetchBtn.textContent = "⏳";
         fetchBtn.style.pointerEvents = "none";
 
         try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error("Erro na resposta do servidor.");
+            // Busca o arquivo dentro da sua própria pasta do projeto
+            const response = await fetch('./frases.json');
+            if (!response.ok) throw new Error("Não foi possível carregar o arquivo frases.json");
 
-            const data = await response.json();
+            const frasesArray = await response.json();
 
-            if (data.frases && data.frases.length > 0) {
-                // Guarda o lote todo no localStorage (Substituindo o "JSON local")
-                localStorage.setItem("pensador_frases", JSON.stringify(data));
+            if (frasesArray && frasesArray.length > 0) {
+                // Monta a estrutura para simular o comportamento anterior
+                const dataFormatada = { frases: frasesArray };
                 
-                // Exibe uma de imediato
+                // Salva no localStorage para manter o funcionamento da rotação
+                localStorage.setItem("pensador_frases", JSON.stringify(dataFormatada));
+                
+                // Exibe uma frase imediatamente
                 displayRandomStoredPhrase();
                 
-                // (Re)inicia o ciclo de rotação a cada 1 minuto (60000 milissegundos)
+                // Inicia o cronômetro de 1 minuto
                 if (rotationInterval) clearInterval(rotationInterval);
                 rotationInterval = setInterval(displayRandomStoredPhrase, 60000);
                 
-                alert(`Sucesso! ${data.frases.length} frases salvas localmente.`);
-            } else {
-                alert("Nenhuma frase encontrada para esse termo.");
+                alert(`Sucesso! ${frasesArray.length} frases locais carregadas.`);
             }
         } catch (error) {
-            console.error("Erro ao buscar frases:", error);
-            alert("Não foi possível carregar as frases. Verifique a API ou tente mais tarde.");
+            console.error("Erro ao ler o arquivo de frases:", error);
+            alert("Erro local: Certifique-se de que o arquivo 'frases.json' está na mesma pasta do seu HTML.");
         } finally {
             fetchBtn.textContent = "✍️";
             fetchBtn.style.pointerEvents = "auto";

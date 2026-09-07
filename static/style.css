@@ -651,19 +651,24 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Alinhamento geral para comportar a lateral */
+/* ==========================================================================
+   ATUALIZAÇÃO DO LAYOUT E BLOCO DE FRASES (LATERIAL DIREITA)
+   ========================================================================== */
+
+/* Ajusta o alinhamento do body para permitir que elementos fiquem no topo */
 body {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start; /* Alinha o início de todos os contêineres pelo topo da página */
     gap: 30px; /* Distância entre o app central e as frases */
-    flex-wrap: wrap; /* Garante adaptabilidade em telas menores/celulares */
+    flex-wrap: wrap; /* Mantém a responsividade em telas menores */
 }
 
 /* Estilo do Botão de Buscar Frases */
 #phrase-fetch-btn {
     position: absolute;
     top: 20px;
-    right: 70px; /* Posicionado exatamente ao lado do botão de tema */
+    right: 70px; /* Posicionado perfeitamente ao lado esquerdo do botão de tema */
     background: #f0f0f0;
     border: 1px solid #ddd;
     border-radius: 50%;
@@ -675,6 +680,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 10;
 }
 
 #phrase-fetch-btn:hover {
@@ -682,46 +688,51 @@ body {
     background-color: #e0e0e0;
 }
 
-/* Estrutura da barra lateral de frases */
+/* Estrutura da barra lateral de frases (Forçada para o topo) */
 #phrases-sidebar {
     width: 100%;
-    max-width: 300px;
+    max-width: 320px;
+    margin-top: 15px; /* Pequeno recuo para alinhar visualmente com o topo do #app-container */
     animation: fadeIn 0.5s ease;
 }
 
+/* Cartão com fundo mais opaco/escuro para destacar no background escuro */
 .phrase-card {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    padding: 20px;
+    background: rgba(20, 20, 20, 0.75); /* Fundo escuro sólido com opacidade controlada */
+    backdrop-filter: blur(12px); /* Efeito de desfoque sutil atrás do card */
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.25); /* Borda branca um pouco mais evidente */
+    padding: 22px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); /* Sombra projetada mais forte para dar profundidade */
     transition: all 0.5s ease;
-    text-align: right; /* Estilo padrão para citações */
+    text-align: left;
 }
 
+/* Texto da citação com contraste máximo */
 #phrase-text {
     font-family: 'Quicksand', sans-serif;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     font-style: italic;
-    line-height: 1.5;
-    margin-bottom: 10px;
-    text-align: left;
-    color: inherit; /* Segue o padrão de cor do seu tema atual */
+    line-height: 1.6;
+    margin-bottom: 12px;
+    color: #ffffff; /* Força o texto em branco puro para leitura perfeita */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8); /* Sombra na própria letra para destacar */
 }
 
+/* Nome do Autor */
 #phrase-author {
     font-family: 'Roboto', sans-serif;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: bold;
-    opacity: 0.8;
+    color: #2575fc; /* Usa um azul vibrante (combinando com seu player) para o autor */
+    text-align: right;
     margin: 0;
 }
 
 /* Animação suave para quando a frase mudar */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateX(10px); }
-    to { opacity: 1; transform: translateX(0); }
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 

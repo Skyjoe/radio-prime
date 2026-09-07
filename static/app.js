@@ -331,7 +331,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const maxResultados = 30; // Puxa um lote grande para alimentar o sistema por bastante tempo
         
         // URL CORRIGIDA: Copie exatamente esta linha abaixo
-        const url = `https://vercel.app{termoBusca}&max=${maxResultados}`;
+        const url = `https://pensador-api.vercel.app/?term=${termoBusca}&max=${maxResultados}`;
+
 
         // Altera visualmente o botão para indicar processamento
         fetchBtn.textContent = "⏳";

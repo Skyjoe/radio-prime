@@ -104,7 +104,7 @@
             <p id="phrase-author"></p> <!-- CORREÇÃO: Voltado para tag <p> para o script encontrar -->
         </div> 
 
-        <!-- Card Rotativo de Notícias -->
+                <!-- Card Rotativo de Notícias -->
         <div id="news-card">
             <div class="news-header">
                 <span>📰 Últimas Notícias</span>
@@ -112,11 +112,18 @@
             </div>
             <h4 id="news-title">Clique no botão abaixo para carregar as notícias de hoje.</h4>
             <p id="news-description">Acompanhe os principais fatos do Brasil em tempo real no seu painel.</p>
+            
+            <!-- NOVO: Link discreto para a matéria completa -->
+            <div class="news-link-container">
+                <a id="news-url" href="#" target="_blank" rel="noopener noreferrer" class="hidden">Leia mais ↗</a>
+            </div>
+
             <div class="news-controls">
                 <button id="news-fetch-btn" title="Atualizar Notícias">🔄</button>
                 <button id="news-next-btn" title="Próxima Notícia" disabled>Próxima ➡️</button>
             </div>
         </div>
+
 
     </div> <!-- Fim do #phrases-sidebar -->
 

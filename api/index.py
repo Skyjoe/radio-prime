@@ -70,7 +70,6 @@ def obter_noticias():
     # ATUALIZAÇÃO: Inclusão do parâmetro &category com os temas escolhidos separados por vírgula
     # O seu padrão original com o filtro de categorias anexado de forma correta no final
 url = f"https://newsdata.io/api/1/latest?apikey={NEWSDATA_API_KEY}&country=br&language=pt&category=politics,business,technology,world"
-
     try:
         response = requests.get(url)
         return jsonify(response.json()), response.status_code

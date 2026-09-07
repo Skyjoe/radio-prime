@@ -3,6 +3,7 @@ from flask_cors import CORS
 import requests
 import logging
 import json
+import time
 import urllib.parse
 import os
 
@@ -384,43 +385,73 @@ def proxy():
     url = request.args.get('url')
     if not url:
         return 'URL parameter is required', 400
-    
+
     try:
         decoded_url = urllib.parse.unquote(url)
         logging.info(f'Proxying request to: {decoded_url}')
-        
+
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Accept': '*/*',
             'Accept-Encoding': 'identity',
             'Connection': 'keep-alive',
         }
-        
-        response = requests.get(
-            decoded_url, 
-            headers=headers, 
-            stream=True, 
-            timeout=30,
-            verify=False
-        )
-        
+
+        def open_stream():
+            return requests.get(
+                decoded_url,
+                headers=headers,
+                stream=True,
+                timeout=(15, None),  # 15s para conectar; SEM timeout de leitura
+                verify=False
+            )
+
+        response = open_stream()
+
         if response.status_code != 200:
             logging.error(f'Radio returned status: {response.status_code}')
             return f'Radio server error: {response.status_code}', response.status_code
-        
+
         content_type = response.headers.get('content-type', 'audio/mpeg')
         if 'audio' not in content_type and 'application' not in content_type:
             content_type = 'audio/mpeg'
-        
+
         def generate():
-            try:
-                for chunk in response.iter_content(chunk_size=4096):
-                    if chunk:
-                        yield chunk
-            except Exception as e:
-                logging.error(f'Error streaming: {str(e)}')
-                yield b''
-        
+            nonlocal response  # permite reconectar dentro do gerador
+            while True:
+                try:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:
+                            yield chunk
+                    logging.warning('Stream ended normally, reconnecting...')
+                except (requests.exceptions.ChunkedEncodingError,
+                        requests.exceptions.ConnectionError,
+                        requests.exceptions.Timeout) as e:
+                    logging.warning(f'Stream interrupted ({type(e).__name__}), reconnecting...')
+                except Exception as e:
+                    logging.error(f'Unexpected streaming error: {str(e)}')
+                finally:
+                    response.close()
+
+                # Loop de reconexão: até 5 tentativas
+                reconnected = False
+                for tentativa in range(5):
+                    time.sleep(2)
+                    try:
+                        response = open_stream()
+                        if response.status_code == 200:
+                            logging.info(f'Reconnected to radio (attempt {tentativa + 1})')
+                            reconnected = True
+                            break
+                        logging.warning(f'Reconnect attempt {tentativa + 1} failed: status {response.status_code}')
+                        response.close()
+                    except Exception as e:
+                        logging.warning(f'Reconnect attempt {tentativa + 1} failed: {str(e)}')
+
+                if not reconnected:
+                    logging.error('Could not reconnect to radio after 5 attempts. Ending stream.')
+                    return
+
         return Response(
             generate(),
             status=200,
@@ -435,28 +466,7 @@ def proxy():
                 'Connection': 'keep-alive'
             }
         )
-        
-    except requests.exceptions.SSLError as e:
-        logging.error(f'SSL Error: {str(e)}')
-        try:
-            response = requests.get(decoded_url, headers=headers, stream=True, timeout=30, verify=False)
-            if response.status_code == 200:
-                def generate():
-                    for chunk in response.iter_content(chunk_size=4096):
-                        if chunk:
-                            yield chunk
-                return Response(
-                    generate(),
-                    status=200,
-                    headers={
-                        'Access-Control-Allow-Origin': '*',
-                        'Content-Type': 'audio/mpeg',
-                        'Cache-Control': 'no-cache'
-                    }
-                )
-        except:
-            pass
-        return 'SSL Error connecting to radio', 500
+
     except requests.exceptions.Timeout:
         logging.error('Timeout connecting to radio')
         return 'Timeout connecting to radio', 504
@@ -515,3 +525,7 @@ def nominatim_proxy():
 @app.route('/')
 def index():
     return 'Radio Prime API is running!'
+
+
+if __name__ == '__main__':
+    app.run(threaded=True, debug=False)

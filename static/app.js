@@ -294,6 +294,7 @@ audioPlayer.addEventListener('playing', () => {
 
 
 
+// Configurações das Frases Motivacionais
 document.addEventListener("DOMContentLoaded", () => {
     const fetchBtn = document.getElementById("phrase-fetch-btn");
     const textEl = document.getElementById("phrase-text");
@@ -302,61 +303,57 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let rotationInterval = null;
 
-    // Função para renderizar uma frase aleatória vinda do armazenamento local
+       // Função para renderizar uma frase aleatória com efeito de transição
     function displayRandomStoredPhrase() {
         const localData = localStorage.getItem("pensador_frases");
-        
         if (!localData) return;
 
         const data = JSON.parse(localData);
         if (data.frases && data.frases.length > 0) {
-            // Efeito visual suave de transição na mudança
-            cardEl.style.opacity = 0;
             
+            // 1. Adiciona a classe que deixa o painel invisível e joga um pouco para baixo
+            cardEl.classList.add("fade-change");
+            
+            // 2. Espera o tempo do efeito sumir (400ms) para trocar o texto de verdade
             setTimeout(() => {
                 const randomIndex = Math.floor(Math.random() * data.frases.length);
                 const fraseEscolhida = data.frases[randomIndex];
                 
                 textEl.textContent = `"${fraseEscolhida.texto.trim()}"`;
                 authorEl.textContent = `- ${fraseEscolhida.autor.trim() || "Autor Desconhecido"}`;
-                cardEl.style.opacity = 1;
-                cardEl.style.animation = 'fadeIn 0.5s ease';
+                
+                // 3. Remove a classe para fazer o painel reaparecer subindo suavemente
+                cardEl.classList.remove("fade-change");
             }, 400);
         }
     }
 
-       // Função que lê as frases do arquivo JSON local do seu próprio projeto
+    // Função que lê as frases do arquivo JSON local (Agora sem o Alert)
     async function fetchPhrasesFromAPI() {
-        // Altera visualmente o botão para indicar carregamento
         fetchBtn.textContent = "⏳";
         fetchBtn.style.pointerEvents = "none";
 
         try {
-            // Busca o arquivo dentro da sua própria pasta do projeto
             const response = await fetch('./frases.json');
             if (!response.ok) throw new Error("Não foi possível carregar o arquivo frases.json");
 
             const frasesArray = await response.json();
 
             if (frasesArray && frasesArray.length > 0) {
-                // Monta a estrutura para simular o comportamento anterior
                 const dataFormatada = { frases: frasesArray };
-                
-                // Salva no localStorage para manter o funcionamento da rotação
                 localStorage.setItem("pensador_frases", JSON.stringify(dataFormatada));
                 
-                // Exibe uma frase imediatamente
+                // Troca a frase imediatamente com a nova animação
                 displayRandomStoredPhrase();
                 
-                // Inicia o cronômetro de 1 minuto
                 if (rotationInterval) clearInterval(rotationInterval);
                 rotationInterval = setInterval(displayRandomStoredPhrase, 60000);
                 
-
+                // O alert antigo foi removido daqui para atualizar silenciosamente!
             }
         } catch (error) {
             console.error("Erro ao ler o arquivo de frases:", error);
-            alert("Erro local: Certifique-se de que o arquivo 'frases.json' está na mesma pasta do seu HTML.");
+            alert("Erro local: Certifique-se de que o arquivo 'frases.json' está na mesma pasta.");
         } finally {
             fetchBtn.textContent = "✍️";
             fetchBtn.style.pointerEvents = "auto";

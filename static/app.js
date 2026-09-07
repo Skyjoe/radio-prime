@@ -352,7 +352,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (rotationInterval) clearInterval(rotationInterval);
                 rotationInterval = setInterval(displayRandomStoredPhrase, 60000);
                 
-                alert(`Sucesso! ${frasesArray.length} frases locais carregadas.`);
+
             }
         } catch (error) {
             console.error("Erro ao ler o arquivo de frases:", error);

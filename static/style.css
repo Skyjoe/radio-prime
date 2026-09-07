@@ -688,13 +688,26 @@ body {
     background-color: #e0e0e0;
 }
 
-/* Estrutura da barra lateral de frases (Forçada para o topo) */
+/* Estrutura da barra lateral de frases (Acompanha o Scroll) */
 #phrases-sidebar {
     width: 100%;
     max-width: 320px;
-    margin-top: 15px; /* Pequeno recuo para alinhar visualmente com o topo do #app-container */
-    animation: fadeIn 0.5s ease;
+    margin-top: 15px;
+    
+    /* Efeito para a frase descer junto com o mouse */
+    position: -webkit-sticky;
+    position: sticky;
+    top: 20px; /* Distância que ela vai manter do topo da tela enquanto você rola para baixo */
+    
+    transition: opacity 0.4s ease, transform 0.4s ease;
 }
+
+/* Nova classe de animação para a troca de frases */
+.fade-change {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
 
 /* Cartão com fundo claro e sólido para dar leitura perfeita */
 .phrase-card {

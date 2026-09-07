@@ -659,36 +659,6 @@ h1, h2, h3, h4, h5, h6 {
     letter-spacing: 0.5px;
 }
 
-/* Alinhamento geral para comportar a lateral */
-/* ==========================================================================
-   ATUALIZAÇÃO DO LAYOUT E BLOCO DE FRASES (LATERIAL DIREITA)
-   ========================================================================== */
-
-
-
-/* Estilo do Botão de Buscar Frases */
-#phrase-fetch-btn {
-    position: absolute;
-    top: 20px;
-    right: 70px; /* Posicionado perfeitamente ao lado esquerdo do botão de tema */
-    background: #f0f0f0;
-    border: 1px solid #ddd;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10;
-}
-
-#phrase-fetch-btn:hover {
-    transform: scale(1.05);
-    background-color: #e0e0e0;
-}
 
 /* ==========================================================================
    SEÇÃO: COLUNA LATERAL DIREITA (FRASES + NOTÍCIAS)

@@ -82,25 +82,28 @@ def obter_noticias():
         "country": "br",
         "language": "pt",
         "category": "politics,business,technology,world,science,top",
-        
-        # 1. OS ASSUNTOS: Agrupados com o operador lógico OR e aspas duplas internas
         "qInTitle": '"Renan Santos" OR "Kim Kataguiri" OR "Tarcísio de Freitas" OR "Tic Trens" OR "Jundiaí" OR "Elon Musk" OR "SpaceX"',
-        
-        # 2. AS FONTES PERMITIDAS: IDs de domínio limpos (sem espaços e sem .com)
-        "domain": "cnnbrasil,jovempan,recordtv,sbtnews,r7,g1,metropoles",
-        
-        # 3. FILTRO EXTRA DE SEGURANÇA: Domínio completo para exclusão com .com.br
-        "excludedomain": "brasil247.com.br"
+        "domain": "cnnbrasil,jovempan,recordtv,sbtnews,r7,g1,metropoles"
     }
     
-    # O requests se encarrega de transformar o dicionário acima em: ?apikey=...&country=br&domain=...
-    resposta = requests.get(url_news, params=filtros)
-    
-    if resposta.status_code == 200:
-        return resposta.json()
-    else:
-        print(f"Erro na API: {resposta.status_code}")
-        return None
+    try:
+        resposta = requests.get(url_news, params=filtros, timeout=10)
+        
+        # Se a API responder sucesso (200)
+        if resposta.status_code == 200:
+            return jsonify(resposta.json())
+        
+        # Se a API falhar (ex: 400 por filtros conflitantes ou plano esgotado)
+        else:
+            print(f"Erro NewsData API {resposta.status_code}: {resposta.text}")
+            return jsonify({
+                "status": "error", 
+                "message": f"NewsData retornou status {resposta.status_code}"
+            }), resposta.status_code
+
+    except requests.exceptions.RequestException as e:
+        print(f"Erro de conexão: {e}")
+        return jsonify({"status": "error", "message": "Erro de conexão com o provedor"}), 503
 
 
     

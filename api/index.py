@@ -94,17 +94,23 @@ def obter_noticias():
                 titulo_lower = n.get("title", "").lower() if n.get("title") else ""
                 desc_lower = n.get("description", "").lower() if n.get("description") else ""
                 
-                # Pula links promocionais de afiliados
-                if "cupom" in titulo_lower or "shopee" in titulo_lower or "oferta" in titulo_lower:
+                # 1. Pula propagandas, cupons e matérias visivelmente trancadas por assinatura (Paywall)
+                if any(termo in titulo_lower or termo in desc_lower for termo in ["cupom", "shopee", "oferta", "exclusiva para assinantes", "assinante"]):
                     continue
                     
-                # Se não tem descrição válida, criamos um contexto provisório para a IA trabalhar
-                if not n.get("description") or "acesse o portal de origem" in desc_lower:
-                    n["description"] = "Acompanhe os desdobramentos desta manchete jornalística de última hora."
+                # 2. Se a descrição contiver o texto de redirecionamento ou estiver vazia, cria um contexto neutro para a IA expandir
+                if not n.get("description") or "acesse o portal" in desc_lower or "acesse o link" in desc_lower:
+                    n["description"] = "Acompanhe os desdobramentos e informações desta manchete jornalística de última hora."
                 
+                # 3. Limpeza estética rápida (Ex: remove assinaturas do Antagonista ou quebras brutas)
+                if "the post" in desc_lower and "appeared first on" in desc_lower:
+                    # Remove o padrão repetitivo de blogs mantendo apenas o texto principal
+                    n["description"] = n["description"].split("The post")[0].strip()
+
                 lote_filtrado.append(n)
                 if len(lote_filtrado) == 10:
                     break
+
 
             # 2. Monta o bloco de prompt estruturado
             texto_agrupado = (

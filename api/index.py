@@ -90,9 +90,9 @@ def obter_noticias():
         "apikey": NEWSDATA_API_KEY,
         "country": "br",
         "language": "pt",
-        "category": "politics,business,technology,world,science,top",
+        "category": "politics,business,technology,world,science",
         "qInTitle": termo_sorteado,
-        "domain": "cnnbrasil,jovempan,recordtv,sbtnews,r7,g1,metropoles"
+        "domain": "jovempan,recordtv,sbtnews,r7,metropoles"
     }
     
     try:

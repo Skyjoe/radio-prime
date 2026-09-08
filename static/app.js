@@ -451,7 +451,7 @@ async function buscarNoticiasAPI() {
             newsFetchBtn.style.pointerEvents = "auto";
         }
     }
-
+}
 
 if (newsNextBtn) {
     newsNextBtn.addEventListener("click", () => {

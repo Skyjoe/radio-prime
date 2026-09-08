@@ -372,8 +372,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+
+
 // ==========================================================================
-// SEÇÃO: CARD ROTATIVO DE NOTÍCIAS (NEWSDATA.IO)
+// SEÇÃO: CARD ROTATIVO DE NOTÍCIAS (NEWSDATA.IO + GPT SUMMARY)
 // ==========================================================================
 
 const newsFetchBtn = document.getElementById("news-fetch-btn");
@@ -386,9 +388,6 @@ const newsUrlEl = document.getElementById("news-url");
 let noticiasSalvas = [];
 let indiceNoticiaAtual = 0;
 
-// Configuração da Chave da API
-const NEWSDATA_API_KEY = (typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_NEWSDATA_KEY) || '';
-
 function exibirNoticia() {
     if (noticiasSalvas.length === 0) return;
 
@@ -399,8 +398,15 @@ function exibirNoticia() {
     
     setTimeout(() => {
         if (newsTitle) newsTitle.textContent = noticia.title;
-        if (newsDesc) newsDesc.textContent = noticia.description || "Acesse o portal de origem para ler mais detalhes sobre esta manchete.";
-        if (newsSource) newsSource.textContent = noticia.source_id.toUpperCase();
+        
+        // Exibe o parágrafo inteligente (gerado pela IA no seu servidor Flask)
+        if (newsDesc) {
+            newsDesc.textContent = noticia.description || "Acesse o portal de origem para ler mais detalhes sobre esta manchete.";
+        }
+        
+        if (newsSource) {
+            newsSource.textContent = noticia.source_id ? noticia.source_id.toUpperCase() : "FONTE OMITIDA";
+        }
         
         // Atualiza o botão "Leia mais" com o link real
         if (newsUrlEl && noticia.link) {
@@ -414,14 +420,13 @@ function exibirNoticia() {
     }, 200);
 }
 
-
 async function buscarNoticiasAPI() {
     if (newsFetchBtn) {
         newsFetchBtn.textContent = "⏳";
         newsFetchBtn.style.pointerEvents = "none";
     }
 
-    // Chama a rota segura do seu próprio servidor back-end
+    // Chama a rota segura do seu próprio servidor back-end em Python
     const url = SERVER_URL + '/api/noticias';
 
     try {
@@ -430,6 +435,7 @@ async function buscarNoticiasAPI() {
 
         const data = await response.json();
 
+        // O backend já processou, filtrou e resumiu o lote de 10 notícias com a IA
         if (data.results && data.results.length > 0) {
             noticiasSalvas = data.results;
             indiceNoticiaAtual = 0;
@@ -439,9 +445,9 @@ async function buscarNoticiasAPI() {
             if (newsTitle) newsTitle.textContent = "Nenhuma notícia encontrada.";
         }
     } catch (error) {
-        console.error("Erro:", error);
+        console.error("Erro ao carregar o painel integrado:", error);
         if (newsTitle) newsTitle.textContent = "Não foi possível carregar as notícias.";
-     } finally {
+    } finally {
         if (newsFetchBtn) {
             // Reinjeta o SVG da Opção 2 perfeitamente quando o carregamento termina
             newsFetchBtn.innerHTML = `
@@ -453,6 +459,7 @@ async function buscarNoticiasAPI() {
     }
 }
 
+// Ouvintes de eventos (Listeners)
 if (newsNextBtn) {
     newsNextBtn.addEventListener("click", () => {
         if (noticiasSalvas.length === 0) return;
@@ -464,6 +471,9 @@ if (newsNextBtn) {
 if (newsFetchBtn) {
     newsFetchBtn.addEventListener("click", buscarNoticiasAPI);
 }
+
+
+
 
 
 // ===== FUNÇÕES DE CRIPTOMOEDAS =====

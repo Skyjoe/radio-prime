@@ -125,7 +125,7 @@ def obter_noticias():
                     palavras = descricao_limpa.split()
                     
                     # Remove conectivos cortados no fim da frase
-                    if palabras and palavras[-1].lower() in ["as", "os", "a", "o", "com", "de", "e", "em", "para", "por"]:
+                    if palavras[-1].lower() in ["as", "os", "a", "o", "com", "de", "e", "em", "para", "por"]:
                         descricao_limpa = " ".join(palavras[:-1]) + "..."
                     n["description"] = descricao_limpa
 

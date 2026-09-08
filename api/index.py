@@ -76,19 +76,31 @@ def obter_noticias():
     # para não zerar os resultados no Brasil.
     url_news = "https://newsdata.io/api/1/latest"
     
-filtros = {
-    "apikey": NEWSDATA_API_KEY,
-    "country": "br",
-    "language": "pt",
-    "category": "politics,business,technology,world,science,top",
-    "qInTitle": '"Renan Santos" OR "Kim Kataguiri" OR "Tarcísio de Freitas" OR "Tic Trens" OR "Jundiaí" OR "Elon Musk" OR "SpaceX"',
+# Todos os parâmetros devem ser separados estritamente por CHAVE: VALOR
+    filtros = {
+        "apikey": NEWSDATA_API_KEY,
+        "country": "br",
+        "language": "pt",
+        "category": "politics,business,technology,world,science,top",
+        
+        # 1. OS ASSUNTOS: Agrupados com o operador lógico OR e aspas duplas internas
+        "qInTitle": '"Renan Santos" OR "Kim Kataguiri" OR "Tarcísio de Freitas" OR "Tic Trens" OR "Jundiaí" OR "Elon Musk" OR "SpaceX"',
+        
+        # 2. AS FONTES PERMITIDAS: IDs de domínio limpos (sem espaços e sem .com)
+        "domain": "cnnbrasil,jovempan,recordtv,sbtnews,r7,g1,metropoles",
+        
+        # 3. FILTRO EXTRA DE SEGURANÇA: Domínio completo para exclusão com .com.br
+        "excludedomain": "brasil247.com.br"
+    }
     
-    # Se usar o "domain", a API só trará estes (o que já exclui o resto automaticamente)
-    "domain": "cnnbrasil,jovempan,recordtv,sbtnews,r7,g1,metropoles",
+    # O requests se encarrega de transformar o dicionário acima em: ?apikey=...&country=br&domain=...
+    resposta = requests.get(url_news, params=filtros)
     
-    # Se optar por usar exclusão direta (respeitando o limite de 5 domínios com .com/.com.br):
-    "excludedomain": "brasil247.com.br,cartacapital.com.br,diariodocentrodomundo.com.br,revistaforum.com.br,intercept.com.br"
-}
+    if resposta.status_code == 200:
+        return resposta.json()
+    else:
+        print(f"Erro na API: {resposta.status_code}")
+        return None
 
 
     

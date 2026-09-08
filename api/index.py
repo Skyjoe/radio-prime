@@ -76,13 +76,13 @@ def obter_noticias():
     # para não zerar os resultados no Brasil.
     url_news = "https://newsdata.io/api/1/latest"
     
- grupos_de_busca = [
+   
+    grupos_de_busca = [
         '"Renan Santos" OR "Kim Kataguiri"',
         '"Tarcísio de Freitas" OR "Tic Trens"',
         '"Jundiaí" OR "Elon Musk" OR "SpaceX"'
     ]
     
-    # Sorteia um grupo a cada requisição para trazer conteúdos variados
     termo_sorteado = random.choice(grupos_de_busca)
     
     filtros = {
@@ -95,23 +95,13 @@ def obter_noticias():
     }
     
     try:
-        resposta = requests.get(url_news, params=filtros, timeout=10)
+        # 1. Busca única das notícias na NewsData.io
+        response = requests.get(url_news, params=filtros, timeout=10)
         
-        if resposta.status_code == 200:
-            return jsonify(resposta.json())
-        else:
-            return jsonify({
-                "status": "error", 
-                "message": f"Erro NewsData: {resposta.text}"
-            }), resposta.status_code
+        if response.status_code != 200:
+            print(f"Erro NewsData API {response.status_code}: {response.text}")
+            return jsonify({"status": "error", "message": f"Erro NewsData: {response.text}"}), response.status_code
 
-    except requests.exceptions.RequestException as e:
-        return jsonify({"status": "error", "message": "Erro de conexão"}), 503
-
-    
-    try:
-        # 1. Busca as notícias na NewsData.io
-        response = requests.get(url_news, params=filtros)
         response.encoding = 'utf-8'
         data = response.json()
         
@@ -123,36 +113,31 @@ def obter_noticias():
                 titulo_lower = n.get("title", "").lower() if n.get("title") else ""
                 desc_lower = n.get("description", "").lower() if n.get("description") else ""
                 
-                # 1. Pula propagandas, cupons e matérias visivelmente trancadas por assinatura (Paywall)
+                # Pula propagandas, cupons e matérias trancadas
                 if any(termo in titulo_lower or termo in desc_lower for termo in ["cupom", "shopee", "oferta", "exclusiva para assinantes", "assinante"]):
                     continue
                     
-                              # 2. Se a descrição contiver o texto de redirecionamento ou estiver vazia, cria um contexto neutro para a IA expandir
+                # Trata descrições vazias ou com redirecionamento
                 if not n.get("description") or "acesse o portal" in desc_lower or "acesse o link" in desc_lower:
                     n["description"] = "Acompanhe os desdobramentos e informações desta manchete jornalística de última hora."
                 else:
-                    # Limpa caracteres de corte brutos como [...] ou terminações feias
                     descricao_limpa = n["description"].replace("[...]", "").strip()
-                    
-                    # Se a frase terminar com conectivos cortados (como "As", "O", "Com", "De"), removemos a última palavra incompleta
                     palavras = descricao_limpa.split()
-                if palavras and palavras[-1].lower() in ["as", "os", "a", "o", "com", "de", "e", "em", "para", "por"]:
-                    descricao_limpa = " ".join(palavras[:-1]) + "..."
-                        
+                    
+                    # Remove conectivos cortados no fim da frase
+                    if palabras and palavras[-1].lower() in ["as", "os", "a", "o", "com", "de", "e", "em", "para", "por"]:
+                        descricao_limpa = " ".join(palavras[:-1]) + "..."
                     n["description"] = descricao_limpa
 
-                
-                # 3. Limpeza estética rápida (Ex: remove assinaturas do Antagonista ou quebras brutas)
+                # Limpeza estética do padrão de blogs
                 if "the post" in desc_lower and "appeared first on" in desc_lower:
-                    # Remove o padrão repetitivo de blogs mantendo apenas o texto principal
                     n["description"] = n["description"].split("The post")[0].strip()
 
                 lote_filtrado.append(n)
                 if len(lote_filtrado) == 10:
                     break
 
-
-            # 2. Monta o bloco de prompt estruturado
+            # 2. Monta o bloco de prompt estruturado para a IA
             texto_agrupado = (
                 "Você é um jornalista profissional. Sua tarefa é transformar cada item abaixo em um ÚNICO parágrafo jornalístico contínuo, coeso e fluido. "
                 "Regras obrigatórias:\n"
@@ -167,12 +152,12 @@ def obter_noticias():
                 descricao = noticia.get("description", "").strip()
                 texto_agrupado += f"--- ITEM {index + 1} ---\nTítulo da Notícia: {titulo}\nContexto Adicional: {descricao}\n\n"
             
-            # 3. Bloco Isolado da IA (Se falhar aqui dentro, NÃO quebra a rota inteira)
+            # 3. Bloco Isolado da IA (Se falhar, não quebra a requisição de notícias)
             try:
                 url_summary = "https://rapidapi.com"
                 headers_summary = {
                     "Content-Type": "application/json",
-                    "x-rapidapi-host": "://rapidapi.com",
+                    "x-rapidapi-host": "rapidapi.com",
                     "x-rapidapi-key": RAPIDAPI_KEY
                 }
                 payload_summary = {
@@ -183,37 +168,23 @@ def obter_noticias():
                 
                 if res_summary.status_code == 200:
                     data_summary = res_summary.json()
-                    
-                    # Extrai o texto garantindo que tratamos formato string ou formato dicionário
-                    texto_formatado = ""
-                    if isinstance(data_summary, dict):
-                        texto_formatado = data_summary.get("summary", "")
-                    elif isinstance(data_summary, str):
-                        texto_formatado = data_summary
+                    texto_formatado = data_summary.get("summary", "") if isinstance(data_summary, dict) else data_summary
                     
                     if texto_formatado:
-                        # Divide as respostas com base no marcador [RESUMO]
                         lista_resumos = [t.strip() for t in texto_formatado.split("[RESUMO]") if t.strip()]
-                        
-                        # Aloca os resumos se a quantidade retornar idêntica ao lote enviado
                         if len(lista_resumos) == len(lote_filtrado):
                             for idx, resumo in enumerate(lista_resumos):
                                 lote_filtrado[idx]["description"] = resumo
             except Exception as summary_error:
                 print(f"Alerta: Falha na IA de Resumos, usando texto original. Erro: {summary_error}")
             
-            # Atualiza os dados finais com o lote processado (ou original se a IA falhou)
             data["results"] = lote_filtrado
 
-        return jsonify(data), response.status_code
+        return jsonify(data), 200
         
     except Exception as e:
         print(f"Erro Crítico na Rota de Notícias: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
-
-
-
 
 
 

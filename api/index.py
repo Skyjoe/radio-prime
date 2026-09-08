@@ -68,9 +68,10 @@ SYMBOL_MAP = {
 NEWSDATA_API_KEY = os.environ.get("NEWSDATA_KEY")
 RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY")
 
+
 @app.route('/api/noticias', methods=['GET'])
-def obtener_noticias():
-    url_news = "https://newsdata.io"
+def obter_noticias():
+    url_news = "https://newsdata.io/api/1/latest"
     
     filtros = {
         "apikey": NEWSDATA_API_KEY,

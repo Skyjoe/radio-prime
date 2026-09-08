@@ -873,4 +873,12 @@ h1, h2, h3, h4, h5, h6 {
     text-decoration: underline !important;
 }
 
+#news-fetch-btn svg {
+    margin-right: 4px;
+    transition: transform 0.3s ease;
+}
+#news-fetch-btn:hover svg {
+    transform: rotate(180deg); /* Faz o ícone girar quando passa o mouse por cima! */
+}
+
 

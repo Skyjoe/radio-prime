@@ -397,9 +397,12 @@ function exibirNoticia() {
     if (newsCard) newsCard.style.opacity = 0.5;
     
     setTimeout(() => {
-        if (newsTitle) newsTitle.textContent = noticia.title;
+        // Se a descrição já contém o texto modificado da IA, ocultamos o título <h4> para exibir apenas o parágrafo único
+        if (newsTitle) {
+            newsTitle.style.display = "none"; // Oculta o título para não duplicar a informação
+        }
         
-        // Exibe o parágrafo inteligente (gerado pela IA no seu servidor Flask)
+        // Exibe o parágrafo mesclado e integrado vindo do servidor
         if (newsDesc) {
             newsDesc.textContent = noticia.description || "Acesse o portal de origem para ler mais detalhes sobre esta manchete.";
         }
@@ -408,17 +411,17 @@ function exibirNoticia() {
             newsSource.textContent = noticia.source_id ? noticia.source_id.toUpperCase() : "FONTE OMITIDA";
         }
         
-        // Atualiza o botão "Leia mais" com o link real
         if (newsUrlEl && noticia.link) {
             newsUrlEl.href = noticia.link;
-            newsUrlEl.classList.remove("hidden"); // Torna o link visível
+            newsUrlEl.classList.remove("hidden");
         } else if (newsUrlEl) {
-            newsUrlEl.classList.add("hidden"); // Oculta se a notícia não tiver link
+            newsUrlEl.classList.add("hidden");
         }
 
         if (newsCard) newsCard.style.opacity = 1;
     }, 200);
 }
+
 
 async function buscarNoticiasAPI() {
     if (newsFetchBtn) {

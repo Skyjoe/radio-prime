@@ -90,9 +90,31 @@ def obter_noticias():
             # Garante o teto máximo de 10 notícias para o lote
             lote_noticias = data["results"][:10]
             
-            # 2. Monta o prompt delimitando as notícias para o GPT
-            texto_agrupado = "Escreva um único parágrafo corrido, coeso e jornalístico para cada notícia combinando o título e o contexto fornecidos. Comece estritamente cada resposta com o marcador [RESUMO]:\n\n"
+            # 2. Monta o prompt delimitando as notícias para o GPT            # 2. Monta o prompt com instruções severas e exemplos (Few-Shot)
+            texto_agrupado = (
+                "Você é um jornalista sênior. Sua tarefa é fundir o título e o contexto fornecidos em um único parágrafo jornalístico contínuo e coeso. "
+                "O título DEVE ser integrado naturalmente na primeira frase do parágrafo, sem cabeçalhos ou divisões. "
+                "Importante: Ignore contextos que digam 'Acesse o portal para ler mais'. "
+                "Comece estritamente cada resposta com o marcador [RESUMO]:\n\n"
+                
+                "Exemplo:\n"
+                "Título: Nova variante do vírus preocupa médicos\n"
+                "Contexto: Casos subiram 10% na Europa neste mês.\n"
+                "[RESUMO] Com o aumento de 10% nos casos registrados na Europa neste mês, uma nova variante do vírus preocupa médicos e acende o alerta nas autoridades de saúde.\n\n"
+                
+                "Agora processe as notícias abaixo:\n\n"
+            )
             
+            for index, noticia in enumerate(lote_noticias):
+                titulo = noticia.get("title", "").strip()
+                descricao = noticia.get("description", "")
+                
+                # Se a descrição não existir ou for o texto padrão de fallback, limpamos para não confundir a IA
+                if not descricao or "Acesse o portal de origem" in descricao:
+                    descricao = "Não há detalhes adicionais disponíveis."
+                
+                texto_agrupado += f"[NOTICIA {index + 1}]\nTítulo: {titulo}\nContexto: {descricao.strip()}\n\n"
+
             for index, noticia in enumerate(lote_noticias):
                 titulo = noticia.get("title", "")
                 descricao = noticia.get("description", "Sem descrição disponível.")

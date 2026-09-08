@@ -87,40 +87,39 @@ def obter_noticias():
         
         # Se houver resultados, processamos o resumo com a IA antes de responder
         if "results" in data and len(data["results"]) > 0:
-            # Garante o teto máximo de 10 notícias para o lote
-            lote_noticias = data["results"][:10]
-            
-            # 2. Monta o prompt delimitando as notícias para o GPT            # 2. Monta o prompt com instruções severas e exemplos (Few-Shot)
+                        # 1. Filtra notícias indesejadas (cupons, links vazios, anúncios)
+            lote_filtrado = []
+            for n in data["results"]:
+                titulo_lower = n.get("title", "").lower()
+                desc_lower = n.get("description", "").lower() if n.get("description") else ""
+                
+                # Critérios para pular anúncios ou notícias sem conteúdo útil
+                if "cupom" in titulo_lower or "shopee" in titulo_lower or "oferta" in titulo_lower:
+                    continue
+                if not n.get("description") or "acesse o portal" in desc_lower:
+                    # Se não tem descrição válida, usamos o próprio título como base de contexto
+                    n["description"] = "Expandir detalhes sobre esta manchete jornalística de última hora."
+                
+                lote_filtrado.append(n)
+                if len(lote_filtrado) == 10: # Limita ao teto de 10
+                    break
+
+            # 2. Monta o prompt utilizando uma estrutura de tópicos isolados para a IA não misturar os temas
             texto_agrupado = (
-                "Você é um jornalista sênior. Sua tarefa é fundir o título e o contexto fornecidos em um único parágrafo jornalístico contínuo e coeso. "
-                "O título DEVE ser integrado naturalmente na primeira frase do parágrafo, sem cabeçalhos ou divisões. "
-                "Importante: Ignore contextos que digam 'Acesse o portal para ler mais'. "
-                "Comece estritamente cada resposta com o marcador [RESUMO]:\n\n"
-                
-                "Exemplo:\n"
-                "Título: Nova variante do vírus preocupa médicos\n"
-                "Contexto: Casos subiram 10% na Europa neste mês.\n"
-                "[RESUMO] Com o aumento de 10% nos casos registrados na Europa neste mês, uma nova variante do vírus preocupa médicos e acende o alerta nas autoridades de saúde.\n\n"
-                
-                "Agora processe as notícias abaixo:\n\n"
+                "Você é um jornalista profissional. Sua tarefa é transformar cada item abaixo em um ÚNICO parágrafo jornalístico contínuo, coeso e fluido. "
+                "Regras obrigatórias:\n"
+                "1. O título DEVE ser fundido e integrado logo na primeira frase do parágrafo de forma natural.\n"
+                "2. Nunca misture as informações de um item com o outro.\n"
+                "3. Remova trechos cortados como '[...]' e dê um acabamento profissional.\n"
+                "4. Comece estritamente cada parágrafo com o marcador [RESUMO]:\n\n"
             )
             
-            for index, noticia in enumerate(lote_noticias):
+            for index, noticia in enumerate(lote_filtrado):
                 titulo = noticia.get("title", "").strip()
-                descricao = noticia.get("description", "")
-                
-                # Se a descrição não existir ou for o texto padrão de fallback, limpamos para não confundir a IA
-                if not descricao or "Acesse o portal de origem" in descricao:
-                    descricao = "Não há detalhes adicionais disponíveis."
-                
-                texto_agrupado += f"[NOTICIA {index + 1}]\nTítulo: {titulo}\nContexto: {descricao.strip()}\n\n"
-
-            for index, noticia in enumerate(lote_noticias):
-                titulo = noticia.get("title", "")
-                descricao = noticia.get("description", "Sem descrição disponível.")
-                texto_agrupado += f"[NOTICIA {index + 1}]\nTítulo: {titulo}\nContexto: {descricao}\n\n"
+                descricao = noticia.get("description", "").strip()
+                texto_agrupado += f"--- ITEM {index + 1} ---\nTítulo da Notícia: {titulo}\nContexto Adicional: {descricao}\n\n"
             
-            # 3. Faz a requisição para a API de Resumo no RapidAPI
+            # 3. Faz a requisição para a API do RapidAPI
             url_summary = "https://rapidapi.com"
             headers_summary = {
                 "Content-Type": "application/json",
@@ -135,23 +134,22 @@ def obter_noticias():
                 res_summary = requests.post(url_summary, json=payload_summary, headers=headers_summary)
                 if res_summary.status_code == 200:
                     data_summary = res_summary.json()
-                    # Trata o retorno caso ele venha como string direta ou dentro de uma propriedade 'summary'
                     texto_formatado = data_summary.get("summary", data_summary) if isinstance(data_summary, dict) else data_summary
                     
-                    # Quebra o bloco de texto enviado pela IA usando o marcador [RESUMO]
+                    # Divide as respostas com base no marcador [RESUMO]
                     lista_resumos = [t.strip() for t in texto_formatado.split("[RESUMO]") if t.strip()]
                     
-                    # Se a quantidade de resumos bater certinho com o lote, substitui as descrições
-                    if len(lista_resumos) == len(lote_noticias):
+                    # Se o número de respostas bater com o lote filtrado, injeta nas descrições
+                    if len(lista_resumos) == len(lote_filtrado):
                         for idx, resumo in enumerate(lista_resumos):
-                            lote_noticias[idx]["description"] = resumo
+                            lote_filtrado[idx]["description"] = resumo
                             
             except Exception as summary_error:
                 print(f"Erro ao gerar resumos com IA: {summary_error}")
-                # Caso a API de resumo falhe por falta de créditos ou timeout, 
-                # o código ignora e envia as descrições originais para não quebrar o seu app.
             
-            # Atualiza os resultados finais com o lote processado
+            # Devolve a lista filtrada e limpa para o front-end
+            data["results"] = lote_filtrado
+
             data["results"] = lote_noticias
 
         return jsonify(data), response.status_code

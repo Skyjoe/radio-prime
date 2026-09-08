@@ -76,35 +76,37 @@ def obter_noticias():
     # para não zerar os resultados no Brasil.
     url_news = "https://newsdata.io/api/1/latest"
     
-# Todos os parâmetros devem ser separados estritamente por CHAVE: VALOR
+ grupos_de_busca = [
+        '"Renan Santos" OR "Kim Kataguiri"',
+        '"Tarcísio de Freitas" OR "Tic Trens"',
+        '"Jundiaí" OR "Elon Musk" OR "SpaceX"'
+    ]
+    
+    # Sorteia um grupo a cada requisição para trazer conteúdos variados
+    termo_sorteado = random.choice(grupos_de_busca)
+    
     filtros = {
         "apikey": NEWSDATA_API_KEY,
         "country": "br",
         "language": "pt",
         "category": "politics,business,technology,world,science,top",
-        "qInTitle": '"Renan Santos" OR "Kim Kataguiri" OR "Tarcísio de Freitas" OR "Tic Trens" OR "Jundiaí" OR "Elon Musk" OR "SpaceX"',
+        "qInTitle": termo_sorteado,
         "domain": "cnnbrasil,jovempan,recordtv,sbtnews,r7,g1,metropoles"
     }
     
     try:
         resposta = requests.get(url_news, params=filtros, timeout=10)
         
-        # Se a API responder sucesso (200)
         if resposta.status_code == 200:
             return jsonify(resposta.json())
-        
-        # Se a API falhar (ex: 400 por filtros conflitantes ou plano esgotado)
         else:
-            print(f"Erro NewsData API {resposta.status_code}: {resposta.text}")
             return jsonify({
                 "status": "error", 
-                "message": f"NewsData retornou status {resposta.status_code}"
+                "message": f"Erro NewsData: {resposta.text}"
             }), resposta.status_code
 
     except requests.exceptions.RequestException as e:
-        print(f"Erro de conexão: {e}")
-        return jsonify({"status": "error", "message": "Erro de conexão com o provedor"}), 503
-
+        return jsonify({"status": "error", "message": "Erro de conexão"}), 503
 
     
     try:

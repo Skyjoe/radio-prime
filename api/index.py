@@ -64,13 +64,13 @@ SYMBOL_MAP = {
 
 
 
-# Configuração das Chaves de API via Variáveis de Ambiente (Segurança total na Vercel)
+# Configuração das Chaves de API via Variáveis de Ambiente
 NEWSDATA_API_KEY = os.environ.get("NEWSDATA_KEY")
 RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY")
 
 @app.route('/api/noticias', methods=['GET'])
-def obter_noticias():
-    url_news = "https://newsdata.io/api/1/latest"
+def obtener_noticias():
+    url_news = "https://newsdata.io"
     
     filtros = {
         "apikey": NEWSDATA_API_KEY,
@@ -85,26 +85,27 @@ def obter_noticias():
         response.encoding = 'utf-8'
         data = response.json()
         
-        # Se houver resultados, processamos o resumo com a IA antes de responder
+        # Se houver resultados, fazemos a filtragem e a chamada da IA de forma segura
         if "results" in data and len(data["results"]) > 0:
-                        # 1. Filtra notícias indesejadas (cupons, links vazios, anúncios)
             lote_filtrado = []
+            
             for n in data["results"]:
-                titulo_lower = n.get("title", "").lower()
+                titulo_lower = n.get("title", "").lower() if n.get("title") else ""
                 desc_lower = n.get("description", "").lower() if n.get("description") else ""
                 
-                # Critérios para pular anúncios ou notícias sem conteúdo útil
+                # Pula links promocionais de afiliados
                 if "cupom" in titulo_lower or "shopee" in titulo_lower or "oferta" in titulo_lower:
                     continue
-                if not n.get("description") or "acesse o portal" in desc_lower:
-                    # Se não tem descrição válida, usamos o próprio título como base de contexto
-                    n["description"] = "Expandir detalhes sobre esta manchete jornalística de última hora."
+                    
+                # Se não tem descrição válida, criamos um contexto provisório para a IA trabalhar
+                if not n.get("description") or "acesse o portal de origem" in desc_lower:
+                    n["description"] = "Acompanhe os desdobramentos desta manchete jornalística de última hora."
                 
                 lote_filtrado.append(n)
-                if len(lote_filtrado) == 10: # Limita ao teto de 10
+                if len(lote_filtrado) == 10:
                     break
 
-            # 2. Monta o prompt utilizando uma estrutura de tópicos isolados para a IA não misturar os temas
+            # 2. Monta o bloco de prompt estruturado
             texto_agrupado = (
                 "Você é um jornalista profissional. Sua tarefa é transformar cada item abaixo em um ÚNICO parágrafo jornalístico contínuo, coeso e fluido. "
                 "Regras obrigatórias:\n"
@@ -119,42 +120,48 @@ def obter_noticias():
                 descricao = noticia.get("description", "").strip()
                 texto_agrupado += f"--- ITEM {index + 1} ---\nTítulo da Notícia: {titulo}\nContexto Adicional: {descricao}\n\n"
             
-            # 3. Faz a requisição para a API do RapidAPI
-            url_summary = "https://rapidapi.com"
-            headers_summary = {
-                "Content-Type": "application/json",
-                "x-rapidapi-host": "://rapidapi.com",
-                "x-rapidapi-key": RAPIDAPI_KEY
-            }
-            payload_summary = {
-                "text": texto_agrupado
-            }
-            
+            # 3. Bloco Isolado da IA (Se falhar aqui dentro, NÃO quebra a rota inteira)
             try:
-                res_summary = requests.post(url_summary, json=payload_summary, headers=headers_summary)
+                url_summary = "https://rapidapi.com"
+                headers_summary = {
+                    "Content-Type": "application/json",
+                    "x-rapidapi-host": "://rapidapi.com",
+                    "x-rapidapi-key": RAPIDAPI_KEY
+                }
+                payload_summary = {
+                    "text": texto_agrupado
+                }
+                
+                res_summary = requests.post(url_summary, json=payload_summary, headers=headers_summary, timeout=8)
+                
                 if res_summary.status_code == 200:
                     data_summary = res_summary.json()
-                    texto_formatado = data_summary.get("summary", data_summary) if isinstance(data_summary, dict) else data_summary
                     
-                    # Divide as respostas com base no marcador [RESUMO]
-                    lista_resumos = [t.strip() for t in texto_formatado.split("[RESUMO]") if t.strip()]
+                    # Extrai o texto garantindo que tratamos formato string ou formato dicionário
+                    texto_formatado = ""
+                    if isinstance(data_summary, dict):
+                        texto_formatado = data_summary.get("summary", "")
+                    elif isinstance(data_summary, str):
+                        texto_formatado = data_summary
                     
-                    # Se o número de respostas bater com o lote filtrado, injeta nas descrições
-                    if len(lista_resumos) == len(lote_filtrado):
-                        for idx, resumo in enumerate(lista_resumos):
-                            lote_filtrado[idx]["description"] = resumo
-                            
+                    if texto_formatado:
+                        # Divide as respostas com base no marcador [RESUMO]
+                        lista_resumos = [t.strip() for t in texto_formatado.split("[RESUMO]") if t.strip()]
+                        
+                        # Aloca os resumos se a quantidade retornar idêntica ao lote enviado
+                        if len(lista_resumos) == len(lote_filtrado):
+                            for idx, resumo in enumerate(lista_resumos):
+                                lote_filtrado[idx]["description"] = resumo
             except Exception as summary_error:
-                print(f"Erro ao gerar resumos com IA: {summary_error}")
+                print(f"Alerta: Falha na IA de Resumos, usando texto original. Erro: {summary_error}")
             
-            # Devolve a lista filtrada e limpa para o front-end
+            # Atualiza os dados finais com o lote processado (ou original se a IA falhou)
             data["results"] = lote_filtrado
-
-            data["results"] = lote_noticias
 
         return jsonify(data), response.status_code
         
     except Exception as e:
+        print(f"Erro Crítico na Rota de Notícias: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 

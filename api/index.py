@@ -71,14 +71,26 @@ RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY")
 
 @app.route('/api/noticias', methods=['GET'])
 def obter_noticias():
+    # Nota: O endpoint /latest tem regras estritas de combinação. 
+    # Se filtrar por país/língua, evite misturar termos em inglês (como SpaceX) 
+    # para não zerar os resultados no Brasil.
     url_news = "https://newsdata.io/api/1/latest"
     
-    filtros = {
-        "apikey": NEWSDATA_API_KEY,
-        "country": "br",
-        "language": "pt",
-        "category": "politics,business,technology,world"
-    }
+filtros = {
+    "apikey": NEWSDATA_API_KEY,
+    "country": "br",
+    "language": "pt",
+    "category": "politics,business,technology,world,science,top",
+    "qInTitle": '"Renan Santos" OR "Kim Kataguiri" OR "Tarcísio de Freitas" OR "Tic Trens" OR "Jundiaí" OR "Elon Musk" OR "SpaceX"',
+    
+    # Se usar o "domain", a API só trará estes (o que já exclui o resto automaticamente)
+    "domain": "cnnbrasil,jovempan,recordtv,sbtnews,r7,g1,metropoles",
+    
+    # Se optar por usar exclusão direta (respeitando o limite de 5 domínios com .com/.com.br):
+    "excludedomain": "brasil247.com.br,cartacapital.com.br,diariodocentrodomundo.com.br,revistaforum.com.br,intercept.com.br"
+}
+
+
     
     try:
         # 1. Busca as notícias na NewsData.io

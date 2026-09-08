@@ -92,7 +92,6 @@ def obter_noticias():
         "language": "pt",
         "category": "politics,business,technology,world,science",
         "qInTitle": termo_sorteado,
-        "domain": "jovempan,recordtv,sbtnews,r7,metropoles"
     }
     
     try:

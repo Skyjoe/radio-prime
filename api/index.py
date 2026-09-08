@@ -98,9 +98,20 @@ def obter_noticias():
                 if any(termo in titulo_lower or termo in desc_lower for termo in ["cupom", "shopee", "oferta", "exclusiva para assinantes", "assinante"]):
                     continue
                     
-                # 2. Se a descrição contiver o texto de redirecionamento ou estiver vazia, cria um contexto neutro para a IA expandir
+                              # 2. Se a descrição contiver o texto de redirecionamento ou estiver vazia, cria um contexto neutro para a IA expandir
                 if not n.get("description") or "acesse o portal" in desc_lower or "acesse o link" in desc_lower:
                     n["description"] = "Acompanhe os desdobramentos e informações desta manchete jornalística de última hora."
+                else:
+                    # Limpa caracteres de corte brutos como [...] ou terminações feias
+                    descricao_limpa = n["description"].replace("[...]", "").strip()
+                    
+                    # Se a frase terminar com conectivos cortados (como "As", "O", "Com", "De"), removemos a última palavra incompleta
+                    palavras = descricao_limpa.split()
+                if palavras and palavras[-1].lower() in ["as", "os", "a", "o", "com", "de", "e", "em", "para", "por"]:
+                    descricao_limpa = " ".join(palavras[:-1]) + "..."
+                        
+                    n["description"] = descricao_limpa
+
                 
                 # 3. Limpeza estética rápida (Ex: remove assinaturas do Antagonista ou quebras brutas)
                 if "the post" in desc_lower and "appeared first on" in desc_lower:

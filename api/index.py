@@ -63,28 +63,82 @@ SYMBOL_MAP = {
 }
 
 
-NEWSDATA_API_KEY = os.environ.get("NEWSDATA_KEY", "pub_e551fed731c14f9bb8d7274d1998feac")
+
+# Configuração das Chaves de API via Variáveis de Ambiente (Segurança total na Vercel)
+NEWSDATA_API_KEY = os.environ.get("NEWSDATA_KEY")
+RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY")
 
 @app.route('/api/noticias', methods=['GET'])
 def obter_noticias():
-    # Endereço base limpo da API deles
-    url = "https://newsdata.io/api/1/latest"
+    url_news = "https://newsdata.io/api/1/latest"
     
-    # Todos os filtros organizados em tópicos (Fácil de ler e alterar)
     filtros = {
         "apikey": NEWSDATA_API_KEY,
         "country": "br",
         "language": "pt",
-        "category": "politics,business,technology,world" # Modifique as categorias aqui quando quiser!
+        "category": "politics,business,technology,world"
     }
     
     try:
-        # O 'requests' junta tudo sozinho no formato correto da URL nos bastidores
-        response = requests.get(url, params=filtros)
+        # 1. Busca as notícias na NewsData.io
+        response = requests.get(url_news, params=filtros)
         response.encoding = 'utf-8'
-        return jsonify(response.json()), response.status_code
+        data = response.json()
+        
+        # Se houver resultados, processamos o resumo com a IA antes de responder
+        if "results" in data and len(data["results"]) > 0:
+            # Garante o teto máximo de 10 notícias para o lote
+            lote_noticias = data["results"][:10]
+            
+            # 2. Monta o prompt delimitando as notícias para o GPT
+            texto_agrupado = "Escreva um único parágrafo corrido, coeso e jornalístico para cada notícia combinando o título e o contexto fornecidos. Comece estritamente cada resposta com o marcador [RESUMO]:\n\n"
+            
+            for index, noticia in enumerate(lote_noticias):
+                titulo = noticia.get("title", "")
+                descricao = noticia.get("description", "Sem descrição disponível.")
+                texto_agrupado += f"[NOTICIA {index + 1}]\nTítulo: {titulo}\nContexto: {descricao}\n\n"
+            
+            # 3. Faz a requisição para a API de Resumo no RapidAPI
+            url_summary = "https://rapidapi.com"
+            headers_summary = {
+                "Content-Type": "application/json",
+                "x-rapidapi-host": "://rapidapi.com",
+                "x-rapidapi-key": RAPIDAPI_KEY
+            }
+            payload_summary = {
+                "text": texto_agrupado
+            }
+            
+            try:
+                res_summary = requests.post(url_summary, json=payload_summary, headers=headers_summary)
+                if res_summary.status_code == 200:
+                    data_summary = res_summary.json()
+                    # Trata o retorno caso ele venha como string direta ou dentro de uma propriedade 'summary'
+                    texto_formatado = data_summary.get("summary", data_summary) if isinstance(data_summary, dict) else data_summary
+                    
+                    # Quebra o bloco de texto enviado pela IA usando o marcador [RESUMO]
+                    lista_resumos = [t.strip() for t in texto_formatado.split("[RESUMO]") if t.strip()]
+                    
+                    # Se a quantidade de resumos bater certinho com o lote, substitui as descrições
+                    if len(lista_resumos) == len(lote_noticias):
+                        for idx, resumo in enumerate(lista_resumos):
+                            lote_noticias[idx]["description"] = resumo
+                            
+            except Exception as summary_error:
+                print(f"Erro ao gerar resumos com IA: {summary_error}")
+                # Caso a API de resumo falhe por falta de créditos ou timeout, 
+                # o código ignora e envia as descrições originais para não quebrar o seu app.
+            
+            # Atualiza os resultados finais com o lote processado
+            data["results"] = lote_noticias
+
+        return jsonify(data), response.status_code
+        
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+
 
 
 

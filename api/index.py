@@ -94,7 +94,10 @@ def obter_noticias():
         "apikey": NEWSDATA_API_KEY,
         "country": "br",
         "language": "pt",
-        "category": "politics,business,technology,world,science"
+        "category": "politics,business,technology,world,science",
+        "qInTitle": "Spacex",
+        "excludedomain": "brasil247.com"
+        
     }
 
     # CORREÇÃO 2: Alinhamento da indentação do bloco try ajustada

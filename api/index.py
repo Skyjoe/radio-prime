@@ -171,7 +171,7 @@ def obter_noticias():
             url_summary = "https://gpt-summarization.p.rapidapi.com/summarize"  # placeholder — substitua pelo endpoint real
             headers_summary = {
                 "Content-Type": "application/json",
-                "x-rapidapi-host": "rapidapi.com",
+                "x-rapidapi-host": "gpt-summarization.p.rapidapi.com",
                 "x-rapidapi-key": RAPIDAPI_KEY
             }
             payload_summary = {

@@ -235,29 +235,41 @@ def obter_noticias():
                         truncated = " ".join(words[:50])
                         return truncated + "."
 
-                    # Aplicar limpeza e validação
-                    if len(lista_resumos) == len(lote_filtrado):
-                        for idx, resumo in enumerate(lista_resumos):
-                            r = clean_promotional(resumo)
-                            r = ensure_sentence_end(r)
-                            r = limit_to_50_words_keep_sentences(r)
-                            titulo_original = lote_filtrado[idx].get("title", "").strip()
-                            # Se o título não aparece no resumo, prefixar de forma simples (garantir integração)
-                            if titulo_original and titulo_original.lower() not in r.lower():
-                                prefix = f"{titulo_original}:"
-                                candidate = f"{prefix} {r}"
-                                candidate = limit_to_50_words_keep_sentences(candidate)
-                                r = candidate
-                            if not r.startswith("[RESUMO]:"):
-                                r = "[RESUMO]: " + r
-                            lote_filtrado[idx]["description"] = r
-                    else:
-                        print(f"[{request_id}] Aviso: número de resumos retornados ({len(lista_resumos)}) diferente do esperado ({len(lote_filtrado)}).")
-                        # fallback local para cada item
-                        for idx, noticia in enumerate(lote_filtrado):
-                            titulo_original = noticia.get("title", "").strip()
-                            descricao_original = noticia.get("description", "").strip()
-                            lote_filtrado[idx]["description"] = simple_local_summary(titulo_original, descricao_original, max_words=50)
+                   # Aplicar limpeza e validação (substituir o bloco antigo)
+                if len(lista_resumos) == len(lote_filtrado):
+                    for idx, resumo in enumerate(lista_resumos):
+                        # limpeza inicial e remoção de artefatos
+                        r = clean_promotional(resumo)
+                        # remover marcador [RESUMO]: caso exista
+                        r = re.sub(r'^\[RESUMO\]:\s*', '', r, flags=re.IGNORECASE).strip()
+                        # garantir fim de frase e remover tildes/colchetes finais
+                        r = ensure_sentence_end(r)
+                        # truncar mantendo sentenças inteiras até 50 palavras
+                        r = limit_to_50_words_keep_sentences(r)
+                
+                        # garantir que o título original esteja integrado na primeira frase
+                        titulo_original = lote_filtrado[idx].get("title", "").strip()
+                        if titulo_original and titulo_original.lower() not in r.lower():
+                            # prefixa o título e re-aplica o limite
+                            candidate = f"{titulo_original}: {r}"
+                            r = limit_to_50_words_keep_sentences(candidate)
+                
+                        # limpeza final: remover espaços duplicados e artefatos residuais
+                        r = re.sub(r'\s+', ' ', r).strip()
+                        r = re.sub(r'[\]\~]+', '', r).strip()
+                        # garantir ponto final final
+                        r = ensure_sentence_end(r)
+                
+                        # salvar sem o marcador [RESUMO]
+                        lote_filtrado[idx]["description"] = r
+                else:
+                    # fallback local se a IA não retornou o número esperado
+                    print(f"[{request_id}] Aviso: número de resumos retornados ({len(lista_resumos)}) diferente do esperado ({len(lote_filtrado)}).")
+                    for idx, noticia in enumerate(lote_filtrado):
+                        titulo_original = noticia.get("title", "").strip()
+                        descricao_original = noticia.get("description", "").strip()
+                        lote_filtrado[idx]["description"] = simple_local_summary(titulo_original, descricao_original, max_words=50)
+
                 else:
                     print(f"[{request_id}] Erro na API de resumo: {res_summary.status_code} - {res_summary.text}")
                     # fallback local para cada item

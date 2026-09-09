@@ -149,58 +149,123 @@ def obter_noticias():
                 texto_agrupado += f"--- ITEM {index + 1} ---\nTítulo da Notícia: {titulo}\nContexto Adicional: {descricao}\n\n"
 
 
-
-            # ... dentro do fluxo onde você monta texto_agrupado e vai chamar a IA ...
+            # Monta texto_agrupado com prompt + itens (certifique-se que prompt_header já foi definido)
+            texto_agrupado = prompt_header
+            for index, noticia in enumerate(lote_filtrado):
+                titulo = noticia.get("title", "").strip()
+                descricao = noticia.get("description", "").strip()
+                texto_agrupado += (
+                    f"--- ITEM {index + 1} ---\n"
+                    f"Título da Notícia: {titulo}\n"
+                    f"Contexto Adicional: {descricao}\n\n"
+                )
+            
+            # Defina URL, headers e payload ANTES do try para evitar UnboundLocalError
+            url_summary = "https://rapidapi.com"  # ajuste para seu endpoint real
+            headers_summary = {
+                "Content-Type": "application/json",
+                "x-rapidapi-host": "rapidapi.com",
+                "x-rapidapi-key": RAPIDAPI_KEY
+            }
+            payload_summary = {
+                "prompt": texto_agrupado,
+                "temperature": 0.0,
+                "max_tokens": 220,
+                "top_p": 1.0
+            }
+            
             request_id = str(uuid.uuid4())
-            print(f"[{request_id}] Iniciando processamento do lote - itens: {len(lote_filtrado)}")
+            print(f"[{request_id}] Iniciando chamada de resumo - itens: {len(lote_filtrado)}")
             
             try:
-                # Log antes de chamar a API de resumos
                 print(f"[{request_id}] Chamando API de resumos (POST) para gerar resumos...")
                 start = time.time()
                 res_summary = requests.post(url_summary, json=payload_summary, headers=headers_summary, timeout=12)
                 elapsed = time.time() - start
                 print(f"[{request_id}] POST concluído em {elapsed:.2f}s - status: {res_summary.status_code}")
             
-                # Log do corpo (limitado)
+                # Log do corpo (preview)
                 body_preview = res_summary.text[:2000] if hasattr(res_summary, "text") else str(res_summary)
                 print(f"[{request_id}] Response body (preview): {body_preview}")
             
-                # Continue com o processamento normal...
-            except Exception as e:
-                print(f"[{request_id}] Exceção ao chamar API de resumos: {e}")
-                traceback.print_exc()
-
-            
-            # 3. Bloco Isolado da IA (Se falhar, não quebra a requisição de notícias)
-            try:
-                url_summary = "https://rapidapi.com"
-                headers_summary = {
-                    "Content-Type": "application/json",
-                    "x-rapidapi-host": "rapidapi.com",
-                    "x-rapidapi-key": RAPIDAPI_KEY
-                }
-                payload_summary = {
-                    "text": texto_agrupado
-                }
-                
-                res_summary = requests.post(url_summary, json=payload_summary, headers=headers_summary, timeout=8)
-                
                 if res_summary.status_code == 200:
                     data_summary = res_summary.json()
-                    texto_formatado = data_summary.get("summary", "") if isinstance(data_summary, dict) else data_summary
-                    
-                    if texto_formatado:
-                        lista_resumos = [t.strip() for t in texto_formatado.split("[RESUMO]") if t.strip()]
-                        if len(lista_resumos) == len(lote_filtrado):
-                            for idx, resumo in enumerate(lista_resumos):
-                                lote_filtrado[idx]["description"] = resumo
-            except Exception as summary_error:
-                print(f"Alerta: Falha na IA de Resumos, usando texto original. Erro: {summary_error}")
+                    texto_formatado = data_summary.get("summary") or data_summary.get("text") or ""
+                    lista_resumos = [t.strip() for t in re.split(r"\[RESUMO\]\s*", texto_formatado) if t.strip()]
             
+                    # Funções auxiliares (clean_promotional, ensure_sentence_end, limit_to_50_words_keep_sentences)
+                    def clean_promotional(text):
+                        patterns = [r"\[.*?\]", r"acesse o portal", r"acesse o link", r"leia mais",
+                            r"assinante", r"exclusiva para assinantes", r"cupom", r"oferta", r"shopee"
+                        ]
+                        txt = text
+                        for p in patterns:
+                            txt = re.sub(p, "", txt, flags=re.IGNORECASE)
+                        return " ".join(txt.split()).strip()
+            
+                    def ensure_sentence_end(text):
+                        text = text.strip()
+                        text = re.sub(r"\.{2,}$", ".", text)
+                        if not re.search(r"[.!?]$", text):
+                            text = text + "."
+                        return text
+            
+                    def limit_to_50_words_keep_sentences(text):
+                        words = text.split()
+                        if len(words) <= 50:
+                            return text
+                        sentences = re.split(r'(?<=[.!?])\s+', text)
+                        out = ""
+                        for s in sentences:
+                            candidate = (out + " " + s).strip() if out else s
+                            if len(candidate.split()) <= 50:
+                                out = candidate
+                            else:
+                                break
+                        if out:
+                            return out if re.search(r"[.!?]$", out) else out + "."
+                        truncated = " ".join(words[:50])
+                        return truncated + "."
+            
+                    # Aplicar limpeza e validação
+                    if len(lista_resumos) == len(lote_filtrado):
+                        for idx, resumo in enumerate(lista_resumos):
+                            r = clean_promotional(resumo)
+                            r = ensure_sentence_end(r)
+                            r = limit_to_50_words_keep_sentences(r)
+                            titulo_original = lote_filtrado[idx].get("title", "").strip()
+                            if titulo_original and titulo_original.lower() not in r.lower():
+                                prefix = f"{titulo_original}:"
+                                candidate = f"{prefix} {r}"
+                                candidate = limit_to_50_words_keep_sentences(candidate)
+                                r = candidate
+                            if not r.startswith("[RESUMO]:"):
+                                r = "[RESUMO]: " + r
+                            lote_filtrado[idx]["description"] = r
+                    else:
+                        print(f"[{request_id}] Aviso: número de resumos retornados ({len(lista_resumos)}) diferente do esperado ({len(lote_filtrado)}).")
+                else:
+                    print(f"[{request_id}] Erro na API de resumo: {res_summary.status_code} - {res_summary.text}")
+                    # fallback local para cada item
+                    for idx, noticia in enumerate(lote_filtrado):
+                        titulo_original = noticia.get("title", "").strip()
+                        descricao_original = noticia.get("description", "").strip()
+                        lote_filtrado[idx]["description"] = simple_local_summary(titulo_original, descricao_original, max_words=50)
+            
+            except Exception as summary_error:
+                print(f"[{request_id}] Exceção ao chamar API de resumos: {summary_error}")
+                traceback.print_exc()
+                # fallback local para cada item
+                for idx, noticia in enumerate(lote_filtrado):
+                    titulo_original = noticia.get("title", "").strip()
+                    descricao_original = noticia.get("description", "").strip()
+                    lote_filtrado[idx]["description"] = simple_local_summary(titulo_original, descricao_original, max_words=50)
+            
+            # Continua o fluxo normal
             data["results"] = lote_filtrado
 
-        return jsonify(data), 200
+            
+    return jsonify(data), 200
         
     except Exception as e:
         print(f"Erro Crítico na Rota de Notícias: {str(e)}")

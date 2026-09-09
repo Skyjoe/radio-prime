@@ -90,7 +90,7 @@ def simple_local_summary(title, description, max_words=50):
 
 @app.route('/api/noticias', methods=['GET'])
 def obter_noticias():
-    url_news = "https://newsdata.io"
+    url_news = "https://newsdata.io/api/1/latest?"
     
     # Captura de forma dinâmica o parâmetro enviado pelo app.js
     termo_usuario = request.args.get("busca", "").strip()

@@ -481,6 +481,16 @@ if (newsFetchBtn) {
     newsFetchBtn.addEventListener("click", buscarNoticiasAPI);
 }
 
+// Listener para o botão de limpar busca
+const clearSearchBtn = document.getElementById("news-search-clear-btn");
+const searchInput = document.getElementById("news-search-input");
+
+if (clearSearchBtn && searchInput) {
+    clearSearchBtn.addEventListener("click", () => {
+        searchInput.value = ""; // Apaga o texto digitado
+        searchInput.focus();   // Devolve o cursor para o campo
+    });
+}
 
 
 

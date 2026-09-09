@@ -168,7 +168,7 @@ def obter_noticias():
 
             # Defina URL, headers e payload ANTES do try para evitar UnboundLocalError
             # OBS: ajuste url_summary e headers_summary para o endpoint/modelo real que você usa na RapidAPI
-            url_summary = "https://rapidapi.com"  # placeholder — substitua pelo endpoint real
+            url_summary = "https://gpt-summarization.p.rapidapi.com/summarize"  # placeholder — substitua pelo endpoint real
             headers_summary = {
                 "Content-Type": "application/json",
                 "x-rapidapi-host": "rapidapi.com",

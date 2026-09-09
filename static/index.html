@@ -110,12 +110,20 @@
                 <span>Últimas Notícias</span>
                 <span id="news-source">Carregando...</span>
             </div>
+            <!-- CARD DE NOTÍCIAS COM CONTROLES REORGANIZADOS -->
             <div class="news-controls">
+                <!-- Grupo de Busca Opcional (Ocupa o espaço que sobrou) -->
+                <div class="news-search-group">
+                    <input type="text" id="news-search-input" placeholder="Tema (Ex: Spacex, IA)..." />
+                    <button id="news-search-clear-btn" title="Limpar busca">✕</button>
+                </div>
+
+                <!-- Botões de Ação Compactos -->
                 <button id="news-fetch-btn" title="Atualizar Notícias">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
                     Atualizar
                 </button>
-                <button id="news-next-btn" title="Próxima Notícia" disabled>Próxima ➡️</button>
+                <button id="news-next-btn" title="Próxima Notícia" disabled aria-label="Próxima Notícia">➡️</button>
             </div> 
             <div class="news-link-container">
                 <a id="news-url" href="#" target="_blank" rel="noopener noreferrer" class="hidden">Leia mais ↗</a>

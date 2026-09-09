@@ -74,54 +74,66 @@ NEWSDATA_API_KEY = os.environ.get("NEWSDATA_KEY")
 RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY")
 
 
+# Trecho reescrito e corrigido para a rota /api/noticias
+# Coloque este bloco no lugar do trecho atual dentro de api/index.py
+# Certifique-se de que os imports no topo do arquivo incluem: re, requests, uuid, time, traceback
+
+# Função de fallback local (garante resumo mesmo se a IA falhar)
+def simple_local_summary(title, description, max_words=50):
+    base = f"{title}. {description or ''}".strip()
+    words = base.split()
+    if len(words) <= max_words:
+        out = " ".join(words)
+    else:
+        out = " ".join(words[:max_words])
+    if not re.search(r"[.!?]$", out):
+        out += "."
+    return "[RESUMO]: " + out
+
 @app.route('/api/noticias', methods=['GET'])
 def obter_noticias():
-    # Nota: O endpoint /latest tem regras estritas de combinação. 
-    # Se filtrar por país/língua, evite misturar termos em inglês (como SpaceX) 
-    # para não zerar os resultados no Brasil.
     url_news = "https://newsdata.io/api/1/latest"
-    
 
-    
     filtros = {
         "apikey": NEWSDATA_API_KEY,
         "country": "br",
         "language": "pt",
-        "category": "politics,business,technology,world,science"        
+        "category": "politics,business,technology,world,science"
     }
-    
+
     try:
         # 1. Busca única das notícias na NewsData.io
         response = requests.get(url_news, params=filtros, timeout=10)
-        
+
         if response.status_code != 200:
             print(f"Erro NewsData API {response.status_code}: {response.text}")
             return jsonify({"status": "error", "message": f"Erro NewsData: {response.text}"}), response.status_code
 
         response.encoding = 'utf-8'
         data = response.json()
-        
+
         # Se houver resultados, fazemos a filtragem e a chamada da IA de forma segura
         if "results" in data and len(data["results"]) > 0:
             lote_filtrado = []
-            
+
             for n in data["results"]:
                 titulo_lower = n.get("title", "").lower() if n.get("title") else ""
                 desc_lower = n.get("description", "").lower() if n.get("description") else ""
-                
+
                 # Pula propagandas, cupons e matérias trancadas
-                if any(termo in titulo_lower or termo in desc_lower for termo in ["cupom", "shopee", "oferta", "exclusiva para assinantes", "assinante"]):
+                if any(termo in titulo_lower or termo in desc_lower for termo in [
+                    "cupom", "shopee", "oferta", "exclusiva para assinantes", "assinante"
+                ]):
                     continue
-                    
+
                 # Trata descrições vazias ou com redirecionamento
                 if not n.get("description") or "acesse o portal" in desc_lower or "acesse o link" in desc_lower:
                     n["description"] = "Acompanhe os desdobramentos e informações desta manchete jornalística de última hora."
                 else:
                     descricao_limpa = n["description"].replace("[...]", "").strip()
                     palavras = descricao_limpa.split()
-                    
                     # Remove conectivos cortados no fim da frase
-                    if palavras[-1].lower() in ["as", "os", "a", "o", "com", "de", "e", "em", "para", "por"]:
+                    if palavras and palavras[-1].lower() in ["as", "os", "a", "o", "com", "de", "e", "em", "para", "por"]:
                         descricao_limpa = " ".join(palavras[:-1]) + "..."
                     n["description"] = descricao_limpa
 
@@ -133,23 +145,17 @@ def obter_noticias():
                 if len(lote_filtrado) == 10:
                     break
 
-            # 2. Monta o bloco de prompt estruturado para a IA
-            texto_agrupado = (
-                "Você é um jornalista profissional. Sua tarefa é transformar cada item abaixo em um ÚNICO parágrafo jornalístico contínuo, coeso e fluido. "
-                "Regras obrigatórias:\n"
-                "1. O título DEVE ser fundido e integrado logo na primeira frase do parágrafo de forma natural.\n"
-                "2. Nunca misture as informações de um item com o outro.\n"
-                "3. Remova trechos cortados como '[...]' e dê um acabamento profissional.\n"
-                "4. Comece estritamente cada parágrafo com o marcador [RESUMO]:\n\n"
+            # 2. Prompt header (defina instruções claras e rígidas)
+            prompt_header = (
+                "Você é um jornalista profissional. Para cada item abaixo, gere um único parágrafo jornalístico em português, "
+                "máximo 50 palavras, sem propaganda, sem chamadas para ler a matéria completa, sem menções a assinaturas ou links. "
+                "Integre o título na PRIMEIRA FRASE de forma natural e explícita, usando também a descrição para contextualizar. "
+                "Trate cada item isoladamente; não misture itens. Remova '[...]', 'acesse o portal', 'acesse o link', 'leia mais', "
+                "'assinante', 'cupom', 'oferta', 'shopee' e similares. Comece cada parágrafo com '[RESUMO]: ' e finalize sempre com ponto final. "
+                "Entregue sentenças completas; não deixe frases iniciadas sem conclusão.\n\n"
             )
-            
-            for index, noticia in enumerate(lote_filtrado):
-                titulo = noticia.get("title", "").strip()
-                descricao = noticia.get("description", "").strip()
-                texto_agrupado += f"--- ITEM {index + 1} ---\nTítulo da Notícia: {titulo}\nContexto Adicional: {descricao}\n\n"
 
-
-            # Monta texto_agrupado com prompt + itens (certifique-se que prompt_header já foi definido)
+            # Monta texto_agrupado com prompt + itens (uma única vez)
             texto_agrupado = prompt_header
             for index, noticia in enumerate(lote_filtrado):
                 titulo = noticia.get("title", "").strip()
@@ -159,9 +165,10 @@ def obter_noticias():
                     f"Título da Notícia: {titulo}\n"
                     f"Contexto Adicional: {descricao}\n\n"
                 )
-            
+
             # Defina URL, headers e payload ANTES do try para evitar UnboundLocalError
-            url_summary = "https://rapidapi.com"  # ajuste para seu endpoint real
+            # OBS: ajuste url_summary e headers_summary para o endpoint/modelo real que você usa na RapidAPI
+            url_summary = "https://rapidapi.com"  # placeholder — substitua pelo endpoint real
             headers_summary = {
                 "Content-Type": "application/json",
                 "x-rapidapi-host": "rapidapi.com",
@@ -173,27 +180,28 @@ def obter_noticias():
                 "max_tokens": 220,
                 "top_p": 1.0
             }
-            
+
             request_id = str(uuid.uuid4())
             print(f"[{request_id}] Iniciando chamada de resumo - itens: {len(lote_filtrado)}")
-            
+
             try:
                 print(f"[{request_id}] Chamando API de resumos (POST) para gerar resumos...")
                 start = time.time()
                 res_summary = requests.post(url_summary, json=payload_summary, headers=headers_summary, timeout=12)
                 elapsed = time.time() - start
                 print(f"[{request_id}] POST concluído em {elapsed:.2f}s - status: {res_summary.status_code}")
-            
+
                 # Log do corpo (preview)
                 body_preview = res_summary.text[:2000] if hasattr(res_summary, "text") else str(res_summary)
                 print(f"[{request_id}] Response body (preview): {body_preview}")
-            
+
                 if res_summary.status_code == 200:
                     data_summary = res_summary.json()
+                    # Ajuste conforme o campo retornado pela sua API (summary, text, choices[0].text, etc.)
                     texto_formatado = data_summary.get("summary") or data_summary.get("text") or ""
                     lista_resumos = [t.strip() for t in re.split(r"\[RESUMO\]\s*", texto_formatado) if t.strip()]
-            
-                    # Funções auxiliares (clean_promotional, ensure_sentence_end, limit_to_50_words_keep_sentences)
+
+                    # Funções auxiliares (limpeza e truncamento)
                     def clean_promotional(text):
                         patterns = [r"\[.*?\]", r"acesse o portal", r"acesse o link", r"leia mais",
                             r"assinante", r"exclusiva para assinantes", r"cupom", r"oferta", r"shopee"
@@ -202,14 +210,14 @@ def obter_noticias():
                         for p in patterns:
                             txt = re.sub(p, "", txt, flags=re.IGNORECASE)
                         return " ".join(txt.split()).strip()
-            
+
                     def ensure_sentence_end(text):
                         text = text.strip()
                         text = re.sub(r"\.{2,}$", ".", text)
                         if not re.search(r"[.!?]$", text):
                             text = text + "."
                         return text
-            
+
                     def limit_to_50_words_keep_sentences(text):
                         words = text.split()
                         if len(words) <= 50:
@@ -226,7 +234,7 @@ def obter_noticias():
                             return out if re.search(r"[.!?]$", out) else out + "."
                         truncated = " ".join(words[:50])
                         return truncated + "."
-            
+
                     # Aplicar limpeza e validação
                     if len(lista_resumos) == len(lote_filtrado):
                         for idx, resumo in enumerate(lista_resumos):
@@ -234,6 +242,7 @@ def obter_noticias():
                             r = ensure_sentence_end(r)
                             r = limit_to_50_words_keep_sentences(r)
                             titulo_original = lote_filtrado[idx].get("title", "").strip()
+                            # Se o título não aparece no resumo, prefixar de forma simples (garantir integração)
                             if titulo_original and titulo_original.lower() not in r.lower():
                                 prefix = f"{titulo_original}:"
                                 candidate = f"{prefix} {r}"
@@ -244,6 +253,11 @@ def obter_noticias():
                             lote_filtrado[idx]["description"] = r
                     else:
                         print(f"[{request_id}] Aviso: número de resumos retornados ({len(lista_resumos)}) diferente do esperado ({len(lote_filtrado)}).")
+                        # fallback local para cada item
+                        for idx, noticia in enumerate(lote_filtrado):
+                            titulo_original = noticia.get("title", "").strip()
+                            descricao_original = noticia.get("description", "").strip()
+                            lote_filtrado[idx]["description"] = simple_local_summary(titulo_original, descricao_original, max_words=50)
                 else:
                     print(f"[{request_id}] Erro na API de resumo: {res_summary.status_code} - {res_summary.text}")
                     # fallback local para cada item
@@ -251,7 +265,7 @@ def obter_noticias():
                         titulo_original = noticia.get("title", "").strip()
                         descricao_original = noticia.get("description", "").strip()
                         lote_filtrado[idx]["description"] = simple_local_summary(titulo_original, descricao_original, max_words=50)
-            
+
             except Exception as summary_error:
                 print(f"[{request_id}] Exceção ao chamar API de resumos: {summary_error}")
                 traceback.print_exc()
@@ -260,16 +274,18 @@ def obter_noticias():
                     titulo_original = noticia.get("title", "").strip()
                     descricao_original = noticia.get("description", "").strip()
                     lote_filtrado[idx]["description"] = simple_local_summary(titulo_original, descricao_original, max_words=50)
-            
+
             # Continua o fluxo normal
             data["results"] = lote_filtrado
 
-            
-    return jsonify(data), 200
-        
+        return jsonify(data), 200
+
     except Exception as e:
         print(f"Erro Crítico na Rota de Notícias: {str(e)}")
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
+
 
 
 

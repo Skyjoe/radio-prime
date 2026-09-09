@@ -151,7 +151,7 @@ def obter_noticias():
                 "máximo 50 palavras, sem propaganda, sem chamadas para ler a matéria completa, sem menções a assinaturas ou links. "
                 "Integre o título na PRIMEIRA FRASE de forma natural e explícita, usando também a descrição para contextualizar. "
                 "Trate cada item isoladamente; não misture itens. Remova '[...]', 'acesse o portal', 'acesse o link', 'leia mais', "
-                "'assinante', 'cupom', 'oferta', 'shopee' e similares. Comece cada parágrafo com '[\u2022]: ' e finalize sempre com ponto final. "
+                "'assinante', 'cupom', 'oferta', 'shopee' e similares. Comece cada parágrafo com '\u2022 ' e finalize sempre com ponto final. "
                 "Entregue sentenças completas; não deixe frases iniciadas sem conclusão.\n\n"
             )
 

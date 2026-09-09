@@ -68,22 +68,12 @@ SYMBOL_MAP = {
 }
 
 
-
-# Configuração das Chaves de API via Variáveis de Ambiente
-import os
-import re
-import requests
-import uuid
-import traceback
-from flask import jsonify
-from groq import Groq  # Garanta que este import esteja no topo do arquivo
-
 # Configuração das chaves
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY") # Cole sua chave direto aqui se preferir
 NEWSDATA_API_KEY = os.environ.get("NEWSDATA_KEY")
 
 # Inicializa o cliente oficial da Groq
-client_groq = Groq(api_key=CHAVE_GROQ)
+client_groq = Groq(api_key=GROQ_API_KEY)
 
 def simple_local_summary(title, description, max_words=50):
     base = f"{title}. {description or ''}".strip()

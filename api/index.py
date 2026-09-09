@@ -95,7 +95,6 @@ def obter_noticias():
         "country": "br",
         "language": "pt",
         "category": "politics,business,technology,world,science",
-        "qInTitle": "Spacex",
         "excludedomain": "brasil247.com"
         
     }

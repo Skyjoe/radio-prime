@@ -6,7 +6,7 @@ import json
 import time
 import urllib.parse
 import os
-import random
+
 
 app = Flask(__name__)
 CORS(app)
@@ -77,21 +77,13 @@ def obter_noticias():
     # para não zerar os resultados no Brasil.
     url_news = "https://newsdata.io/api/1/latest"
     
-   
-    grupos_de_busca = [
-        '"Renan Santos" OR "Kim Kataguiri"',
-        '"Tarcísio de Freitas" OR "Tic Trens"',
-        '"Jundiaí" OR "Elon Musk" OR "SpaceX"'
-    ]
-    
-    termo_sorteado = random.choice(grupos_de_busca)
+
     
     filtros = {
         "apikey": NEWSDATA_API_KEY,
         "country": "br",
         "language": "pt",
-        "category": "politics,business,technology,world,science",
-        "qInTitle": termo_sorteado,
+        "category": "politics,business,technology,world,science"        
     }
     
     try:

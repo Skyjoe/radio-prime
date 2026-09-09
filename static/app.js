@@ -429,35 +429,24 @@ async function buscarNoticiasAPI() {
         newsFetchBtn.style.pointerEvents = "none";
     }
 
-    // Bust cache com timestamp
-    const url = SERVER_URL + '/api/noticias';
-    const urlWithTs = `${url}?ts=${Date.now()}`;
+    // Captura o termo digitado pelo usuário
+    const searchInput = document.getElementById("news-search-input");
+    const termoBusca = searchInput ? searchInput.value.trim() : "";
 
-    console.log("[news] Iniciando fetch de notícias:", urlWithTs);
+    // Monta a URL base com o timestamp contra cache
+    const url = SERVER_URL + '/api/noticias';
+    let urlWithParams = `${url}?ts=${Date.now()}`;
+
+    // SE HOUVER TEXTO DIGITADO: Anexa o parâmetro de busca na URL que vai para o Python
+    if (termoBusca) {
+        urlWithParams += `&busca=${encodeURIComponent(termoBusca)}`;
+    }
+
+    console.log("[news] Requisitando notícias para o servidor:", urlWithParams);
 
     try {
-        const start = performance.now();
-        const response = await fetch(urlWithTs, {
-            method: 'GET',
-            cache: 'no-store',
-            headers: {
-                'Cache-Control': 'no-cache'
-            }
-        });
-        const elapsed = (performance.now() - start).toFixed(2);
-        console.log(`[news] Fetch concluído em ${elapsed} ms - status: ${response.status}`);
-
-        if (!response.ok) {
-            // Log detalhado para depuração
-            const text = await response.text();
-            console.error("[news] Resposta não OK:", response.status, text);
-            throw new Error("Erro ao buscar notícias");
-        }
-
+        const response = await fetch(urlWithParams, { method: 'GET', cache: 'no-store' });
         const data = await response.json();
-
-        // Log da resposta para depuração (remova em produção)
-        console.log("[news] Payload recebido (resumo):", data);
 
         if (data.results && data.results.length > 0) {
             noticiasSalvas = data.results;
@@ -465,22 +454,18 @@ async function buscarNoticiasAPI() {
             exibirNoticia();
             if (newsNextBtn) newsNextBtn.disabled = false;
         } else {
-            if (newsTitle) newsTitle.textContent = "Nenhuma notícia encontrada.";
+            if (newsTitle) newsTitle.textContent = "Nenhuma notícia encontrada para esse tema.";
         }
     } catch (error) {
         console.error("Erro ao carregar o painel integrado:", error);
-        if (newsTitle) newsTitle.textContent = "Não foi possível carregar as notícias.";
     } finally {
         if (newsFetchBtn) {
-            // Reinjeta o SVG da Opção 2 perfeitamente quando o carregamento termina
-            newsFetchBtn.innerHTML = `
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-                Atualizar
-            `;
+            newsFetchBtn.innerHTML = `Atualizar`;
             newsFetchBtn.style.pointerEvents = "auto";
         }
     }
 }
+
 
 
 // Ouvintes de eventos (Listeners)

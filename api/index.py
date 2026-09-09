@@ -168,116 +168,65 @@ def obter_noticias():
 
 
 
+                       # =====================================================================
+            # TRECHO CORRIGIDO: Processamento individual para evitar Erro 500
+            # =====================================================================
             url_summary = "https://gpt-summarization.p.rapidapi.com/summarize"
             headers_summary = {
                 "Content-Type": "application/json",
                 "x-rapidapi-host": "gpt-summarization.p.rapidapi.com",
                 "x-rapidapi-key": RAPIDAPI_KEY
             }
-            
-            # CORREÇÃO CRÍTICA: Mudança de 'prompt' para 'text' e remoção de chaves inválidas
-            payload_summary = {
-                "text": texto_agrupado,
-                "num_sentences": 10  # Indica à API para tentar condensar o bloco em 10 sentenças principais
-            }
-            
-            request_id = str(uuid.uuid4())
-            print(f"[{request_id}] Iniciando chamada de resumo - itens: {len(lote_filtrado)}")
 
+            for index, noticia in enumerate(lote_filtrado):
+                titulo = noticia.get("title", "").strip()
+                descricao = noticia.get("description", "").strip()
 
-            try:
-                print(f"[{request_id}] Chamando API de resumos (POST) para gerar resumos...")
-                start = time.time()
-                res_summary = requests.post(url_summary, json=payload_summary, headers=headers_summary, timeout=12)
-                elapsed = time.time() - start
-                print(f"[{request_id}] POST concluído em {elapsed:.2f}s - status: {res_summary.status_code}")
+                # Criamos o texto cru focado estritamente na notícia atual
+                texto_para_resumir = f"Notícia: {titulo}. Detalhes: {descricao}"
 
-                # Log do corpo (preview)
-                body_preview = res_summary.text[:2000] if hasattr(res_summary, "text") else str(res_summary)
-                print(f"[{request_id}] Response body (preview): {body_preview}")
+                payload_summary = {
+                    "text": texto_para_resumir,
+                    "num_sentences": 1  # Força a API a devolver um único parágrafo/frase resumido
+                }
 
-                if res_summary.status_code == 200:
-                    data_summary = res_summary.json()
-                    # Ajuste conforme o campo retornado pela sua API (summary, text, choices[0].text, etc.)
-                    texto_formatado = data_summary.get("summary") or data_summary.get("text") or ""
-                    lista_resumos = [t.strip() for t in re.split(r"\[RESUMO\]\s*", texto_formatado) if t.strip()]
+                request_id = str(uuid.uuid4())
+                print(f"[{request_id}] Resumindo item {index + 1}/{len(lote_filtrado)}: {titulo[:30]}...")
 
-                    # Funções auxiliares (limpeza e truncamento)
-                    def clean_promotional(text):
-                        patterns = [r"\[.*?\]", r"acesse o portal", r"acesse o link", r"leia mais",
-                            r"assinante", r"exclusiva para assinantes", r"cupom", r"oferta", r"shopee"
-                        ]
-                        txt = text
-                        for p in patterns:
-                            txt = re.sub(p, "", txt, flags=re.IGNORECASE)
-                        return " ".join(txt.split()).strip()
+                try:
+                    # Timeout individual de 5 segundos é suficiente para uma única notícia
+                    res_summary = requests.post(url_summary, json=payload_summary, headers=headers_summary, timeout=5)
+                    
+                    if res_summary.status_code == 200:
+                        data_summary = res_summary.json()
+                        # Extrai o resumo retornado (ajuste a chave de acordo com o JSON da API se necessário)
+                        resumo_ia = data_summary.get("summary") or data_summary.get("text") or ""
+                        resumo_ia = resumo_ia.strip()
 
-                    def ensure_sentence_end(text):
-                        text = text.strip()
-                        text = re.sub(r"\.{2,}$", ".", text)
-                        if not re.search(r"[.!?]$", text):
-                            text = text + "."
-                        return text
+                        if resumo_ia:
+                            # Garante que o título esteja integrado caso a IA tenha omitido
+                            if titulo.lower() not in resumo_ia.lower():
+                                resumo_ia = f"{titulo}: {resumo_ia}"
+                            
+                            # Adiciona o marcador estético exigido pelo seu frontend
+                            if not resumo_ia.startswith("\u2022"):
+                                resumo_ia = "\u2022 " + resumo_ia
+                            
+                            # Atualiza a descrição da notícia com o resumo real gerado
+                            noticia["description"] = resumo_ia
+                            continue
 
-                    def limit_to_50_words_keep_sentences(text):
-                        words = text.split()
-                        if len(words) <= 50:
-                            return text
-                        sentences = re.split(r'(?<=[.!?])\s+', text)
-                        out = ""
-                        for s in sentences:
-                            candidate = (out + " " + s).strip() if out else s
-                            if len(candidate.split()) <= 50:
-                                out = candidate
-                            else:
-                                break
-                        if out:
-                            return out if re.search(r"[.!?]$", out) else out + "."
-                        truncated = " ".join(words[:50])
-                        return truncated + "."
+                    # Se o status não for 200, loga e aciona o fallback local para ESTA notícia
+                    print(f"[{request_id}] API falhou (Status {res_summary.status_code}). Aplicando fallback.")
+                    noticia["description"] = simple_local_summary(titulo, descricao, max_words=50)
 
-                    # Aplicar limpeza e validação
-                    if len(lista_resumos) == len(lote_filtrado):
-                        for idx, resumo in enumerate(lista_resumos):
-                            r = clean_promotional(resumo)
-                            r = ensure_sentence_end(r)
-                            r = limit_to_50_words_keep_sentences(r)
-                            titulo_original = lote_filtrado[idx].get("title", "").strip()
-                            # Se o título não aparece no resumo, prefixar de forma simples (garantir integração)
-                            if titulo_original and titulo_original.lower() not in r.lower():
-                                prefix = f"{titulo_original}:"
-                                candidate = f"{prefix} {r}"
-                                candidate = limit_to_50_words_keep_sentences(candidate)
-                                r = candidate
-                            if not r.startswith("[Resumo]:"):
-                                r = "\u2022 " + r
-                            lote_filtrado[idx]["description"] = r
-                    else:
-                        print(f"[{request_id}] Aviso: número de resumos retornados ({len(lista_resumos)}) diferente do esperado ({len(lote_filtrado)}).")
-                        # fallback local para cada item
-                        for idx, noticia in enumerate(lote_filtrado):
-                            titulo_original = noticia.get("title", "").strip()
-                            descricao_original = noticia.get("description", "").strip()
-                            lote_filtrado[idx]["description"] = simple_local_summary(titulo_original, descricao_original, max_words=50)
-                else:
-                    print(f"[{request_id}] Erro na API de resumo: {res_summary.status_code} - {res_summary.text}")
-                    # fallback local para cada item
-                    for idx, noticia in enumerate(lote_filtrado):
-                        titulo_original = noticia.get("title", "").strip()
-                        descricao_original = noticia.get("description", "").strip()
-                        lote_filtrado[idx]["description"] = simple_local_summary(titulo_original, descricao_original, max_words=50)
+                except Exception as item_error:
+                    print(f"[{request_id}] Erro no item {index + 1}: {item_error}")
+                    noticia["description"] = simple_local_summary(titulo, descricao, max_words=50)
 
-            except Exception as summary_error:
-                print(f"[{request_id}] Exceção ao chamar API de resumos: {summary_error}")
-                traceback.print_exc()
-                # fallback local para cada item
-                for idx, noticia in enumerate(lote_filtrado):
-                    titulo_original = noticia.get("title", "").strip()
-                    descricao_original = noticia.get("description", "").strip()
-                    lote_filtrado[idx]["description"] = simple_local_summary(titulo_original, descricao_original, max_words=50)
-
-            # Continua o fluxo normal
+            # Salva o lote tratado de volta nos resultados
             data["results"] = lote_filtrado
+
 
         return jsonify(data), 200
 

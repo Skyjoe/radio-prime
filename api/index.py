@@ -96,13 +96,31 @@ def obter_noticias():
         "category": "politics,business,technology,world,science"
     }
 
-    try:
+       try:
+        # 1. Busca das notícias na NewsData.io
         response = requests.get(url_news, params=filtros, timeout=10)
+
+        # SEGUNDA CAMADA DE PROTEÇÃO: Valida se o conteúdo retornado é realmente um JSON válido
+        try:
+            response.encoding = 'utf-8'
+            data = response.json()
+        except Exception:
+            print(f"Erro Crítico: NewsData.io não retornou um JSON válido. Resposta recebida: {response.text[:500]}")
+            # Retorna um fallback elegante para o seu front-end não quebrar
+            return jsonify({
+                "results": [{
+                    "title": "Serviço Temporariamente Indisponível",
+                    "description": "• O limite diário de requisições de notícias foi atingido. Nosso painel retornará a atualizar automaticamente em breve.",
+                    "source_id": "SISTEMA",
+                    "link": "#"
+                }]
+            }), 200
+
+        # Se o status code for um erro conhecido da API
         if response.status_code != 200:
+            print(f"Erro NewsData API {response.status_code}: {response.text}")
             return jsonify({"status": "error", "message": f"Erro NewsData: {response.text}"}), response.status_code
 
-        response.encoding = 'utf-8'
-        data = response.json()
 
         if "results" in data and len(data["results"]) > 0:
             lote_filtrado = []

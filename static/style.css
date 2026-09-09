@@ -866,6 +866,16 @@ h1, h2, h3, h4, h5, h6 {
     text-decoration: none !important;
     transition: color 0.2s ease;
     display: inline-block;
+    text-align: justify;
+    text-justify: inter-word;        /* melhora em navegadores que suportam */
+    hyphens: auto;                   /* hifenização automática quando suportada */
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
+    -moz-hyphens: auto;
+    line-height: 1.45;               /* melhora legibilidade */
+    word-break: normal;
+    overflow-wrap: break-word;
+    margin: 0 0 0.5rem 0;
 }
 
 #news-url:hover {

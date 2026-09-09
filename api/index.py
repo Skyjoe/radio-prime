@@ -90,6 +90,9 @@ def simple_local_summary(title, description, max_words=50):
 def obter_noticias():
     # CORREÇÃO 1: Adicionado o endpoint correto da API
     url_news = "https://newsdata.io/api/1/latest?"
+     # Captura de forma dinâmica o parâmetro '&busca=...' enviado pelo Javascript
+    termo_usuario = request.args.get("busca", "").strip()
+
     filtros = {
         "apikey": NEWSDATA_API_KEY,
         "country": "br",
@@ -98,6 +101,18 @@ def obter_noticias():
         "excludedomain": "brasil247.com"
         
     }
+
+     # LÓGICA DINÂMICA: Se o usuário escreveu algo, filtra pelo tema. Caso contrário, traz o feed geral.
+    if termo_usuario:
+        print(f"[NewsData] Caixa de entrada ativa! Filtrando títulos por: {termo_usuario}")
+        filtros["qInTitle"] = termo_usuario
+    else:
+        print("[NewsData] Nenhuma busca informada. Carregando categorias gerais.")
+        filtros["category"] = "politics,business,technology,world,science"
+
+    try:
+        # A requisição roda de forma limpa e transparente gastando 1 único crédito
+        response = requests.get(url_news, params=filtros, timeout=10)
 
     # CORREÇÃO 2: Alinhamento da indentação do bloco try ajustada
     try:

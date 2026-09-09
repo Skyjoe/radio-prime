@@ -88,7 +88,7 @@ def simple_local_summary(title, description, max_words=50):
         out = " ".join(words[:max_words])
     if not re.search(r"[.!?]$", out):
         out += "."
-    return "[\u2022]: " + out
+    return "\u2022 " + out
 
 @app.route('/api/noticias', methods=['GET'])
 def obter_noticias():
@@ -249,7 +249,7 @@ def obter_noticias():
                                 candidate = limit_to_50_words_keep_sentences(candidate)
                                 r = candidate
                             if not r.startswith("[Resumo]:"):
-                                r = "[\u2022]: " + r
+                                r = "\u2022 " + r
                             lote_filtrado[idx]["description"] = r
                     else:
                         print(f"[{request_id}] Aviso: número de resumos retornados ({len(lista_resumos)}) diferente do esperado ({len(lote_filtrado)}).")

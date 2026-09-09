@@ -69,7 +69,7 @@ SYMBOL_MAP = {
 
 
 # Configuração das chaves
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY") # Cole sua chave direto aqui se preferir
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 NEWSDATA_API_KEY = os.environ.get("NEWSDATA_KEY")
 
 # Inicializa o cliente oficial da Groq
@@ -88,7 +88,8 @@ def simple_local_summary(title, description, max_words=50):
 
 @app.route('/api/noticias', methods=['GET'])
 def obter_noticias():
-    url_news = "https://newsdata.io"
+    # CORREÇÃO 1: Adicionado o endpoint correto da API
+    url_news = "https://newsdata.io/api/1/latest?"
     filtros = {
         "apikey": NEWSDATA_API_KEY,
         "country": "br",
@@ -96,7 +97,8 @@ def obter_noticias():
         "category": "politics,business,technology,world,science"
     }
 
-       try:
+    # CORREÇÃO 2: Alinhamento da indentação do bloco try ajustada
+    try:
         # 1. Busca das notícias na NewsData.io
         response = requests.get(url_news, params=filtros, timeout=10)
 
@@ -106,7 +108,6 @@ def obter_noticias():
             data = response.json()
         except Exception:
             print(f"Erro Crítico: NewsData.io não retornou um JSON válido. Resposta recebida: {response.text[:500]}")
-            # Retorna um fallback elegante para o seu front-end não quebrar
             return jsonify({
                 "results": [{
                     "title": "Serviço Temporariamente Indisponível",
@@ -120,7 +121,6 @@ def obter_noticias():
         if response.status_code != 200:
             print(f"Erro NewsData API {response.status_code}: {response.text}")
             return jsonify({"status": "error", "message": f"Erro NewsData: {response.text}"}), response.status_code
-
 
         if "results" in data and len(data["results"]) > 0:
             lote_filtrado = []
@@ -144,7 +144,7 @@ def obter_noticias():
                     n["description"] = descricao_limpa
 
                 lote_filtrado.append(n)
-                if len(lote_filtrado) == 7:  # Puxa 7 notícias para equilibrar a cota diária da Groq
+                if len(lote_filtrado) == 7:
                     break
 
             # Processamento individual via SDK oficial da Groq
@@ -156,9 +156,8 @@ def obter_noticias():
                 print(f"[{request_id}] Groq Cloud - Item {index + 1}/{len(lote_filtrado)}")
 
                 try:
-                    # Chamada usando a biblioteca oficial testada por você
                     completion = client_groq.chat.completions.create(
-                        model="openai/gpt-oss-20b",  # Perfeito para resumos leves. Se quiser mudar, use "openai/gpt-oss-120b"
+                        model="openai/gpt-oss-20b",
                         messages=[
                             {
                                 "role": "system",
@@ -177,6 +176,7 @@ def obter_noticias():
                         max_completion_tokens=120
                     )
 
+                    # Acessa os dados respeitando o padrão do SDK da Groq
                     resumo_ia = completion.choices[0].message.content.strip()
                     
                     if resumo_ia:
@@ -199,6 +199,7 @@ def obter_noticias():
         print(f"Erro Crítico na Rota de Notícias: {str(e)}")
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
 
 
 

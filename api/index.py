@@ -68,11 +68,13 @@ SYMBOL_MAP = {
 }
 
 
-# Configuração das chaves
+
+
+# Configuração das chaves de ambiente
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 NEWSDATA_API_KEY = os.environ.get("NEWSDATA_KEY")
 
-# Inicializa o cliente oficial da Groq
+# Inicializa o cliente oficial da Groq Cloud
 client_groq = Groq(api_key=GROQ_API_KEY)
 
 def simple_local_summary(title, description, max_words=50):
@@ -88,38 +90,33 @@ def simple_local_summary(title, description, max_words=50):
 
 @app.route('/api/noticias', methods=['GET'])
 def obter_noticias():
-    # CORREÇÃO 1: Adicionado o endpoint correto da API
-    url_news = "https://newsdata.io/api/1/latest?"
-     # Captura de forma dinâmica o parâmetro '&busca=...' enviado pelo Javascript
+    url_news = "https://newsdata.io"
+    
+    # Captura de forma dinâmica o parâmetro enviado pelo app.js
     termo_usuario = request.args.get("busca", "").strip()
 
     filtros = {
-        "apikey": NEWSDATA_API_KEY,
-        "country": "br",
-        "language": "pt",
-        "category": "politics,business,technology,world,science",
-        "excludedomain": "brasil247.com"
-        
+            "apikey": NEWSDATA_API_KEY,
+            "country": "br",
+            "language": "pt",
+            "category": "politics,business,technology,world,science",
+            "excludedomain": "brasil247.com"
+            
     }
 
-     # LÓGICA DINÂMICA: Se o usuário escreveu algo, filtra pelo tema. Caso contrário, traz o feed geral.
+    # LÓGICA DA BARRA DE BUSCA: Se o input estiver preenchido, busca o termo. Caso contrário, traz o mix padrão.
     if termo_usuario:
-        print(f"[NewsData] Caixa de entrada ativa! Filtrando títulos por: {termo_usuario}")
+        print(f"[NewsData] Filtrando títulos por tema: {termo_usuario}")
         filtros["qInTitle"] = termo_usuario
     else:
-        print("[NewsData] Nenhuma busca informada. Carregando categorias gerais.")
+        print("[NewsData] Nenhuma busca informada. Carregando categorias padrão.")
         filtros["category"] = "politics,business,technology,world,science"
 
-    try:
-        # A requisição roda de forma limpa e transparente gastando 1 único crédito
-        response = requests.get(url_news, params=filtros, timeout=10)
-
-    # CORREÇÃO 2: Alinhamento da indentação do bloco try ajustada
     try:
         # 1. Busca das notícias na NewsData.io
         response = requests.get(url_news, params=filtros, timeout=10)
 
-        # SEGUNDA CAMADA DE PROTEÇÃO: Valida se o conteúdo retornado é realmente um JSON válido
+        # Proteção contra retornos inválidos (limites de cota ou erros HTML da API)
         try:
             response.encoding = 'utf-8'
             data = response.json()
@@ -134,7 +131,6 @@ def obter_noticias():
                 }]
             }), 200
 
-        # Se o status code for um erro conhecido da API
         if response.status_code != 200:
             print(f"Erro NewsData API {response.status_code}: {response.text}")
             return jsonify({"status": "error", "message": f"Erro NewsData: {response.text}"}), response.status_code
@@ -164,7 +160,7 @@ def obter_noticias():
                 if len(lote_filtrado) == 7:
                     break
 
-            # Processamento individual via SDK oficial da Groq
+            # 2. Processamento individual das notícias via SDK oficial da Groq
             for index, noticia in enumerate(lote_filtrado):
                 titulo = noticia.get("title", "").strip()
                 descricao = noticia.get("description", "").strip()
@@ -193,8 +189,7 @@ def obter_noticias():
                         max_completion_tokens=120
                     )
 
-                    # Acessa os dados respeitando o padrão do SDK da Groq
-                    resumo_ia = completion.choices[0].message.content.strip()
+                    resumo_ia = completion.choices.message.content.strip()
                     
                     if resumo_ia:
                         if not resumo_ia.startswith("•") and not resumo_ia.startswith("\u2022"):
@@ -216,6 +211,7 @@ def obter_noticias():
         print(f"Erro Crítico na Rota de Notícias: {str(e)}")
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
 
 
 

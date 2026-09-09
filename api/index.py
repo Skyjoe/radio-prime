@@ -166,23 +166,24 @@ def obter_noticias():
                     f"Contexto Adicional: {descricao}\n\n"
                 )
 
-            # Defina URL, headers e payload ANTES do try para evitar UnboundLocalError
-            # OBS: ajuste url_summary e headers_summary para o endpoint/modelo real que você usa na RapidAPI
-            url_summary = "https://gpt-summarization.p.rapidapi.com/summarize"  # placeholder — substitua pelo endpoint real
+
+
+            url_summary = "https://gpt-summarization.p.rapidapi.com/summarize"
             headers_summary = {
                 "Content-Type": "application/json",
                 "x-rapidapi-host": "gpt-summarization.p.rapidapi.com",
                 "x-rapidapi-key": RAPIDAPI_KEY
             }
+            
+            # CORREÇÃO CRÍTICA: Mudança de 'prompt' para 'text' e remoção de chaves inválidas
             payload_summary = {
-                "prompt": texto_agrupado,
-                "temperature": 0.0,
-                "max_tokens": 220,
-                "top_p": 1.0
+                "text": texto_agrupado,
+                "num_sentences": 10  # Indica à API para tentar condensar o bloco em 10 sentenças principais
             }
-
+            
             request_id = str(uuid.uuid4())
             print(f"[{request_id}] Iniciando chamada de resumo - itens: {len(lote_filtrado)}")
+
 
             try:
                 print(f"[{request_id}] Chamando API de resumos (POST) para gerar resumos...")

@@ -152,24 +152,79 @@ def obter_noticias():
                     "x-rapidapi-host": "rapidapi.com",
                     "x-rapidapi-key": RAPIDAPI_KEY
                 }
+
+                # texto_agrupado já contém o prompt + itens
                 payload_summary = {
-                    "text": texto_agrupado
+                    "prompt": texto_agrupado,
+                    "temperature": 0.0,
+                    "max_tokens": 300,
+                    "top_p": 1.0
                 }
-                
-                res_summary = requests.post(url_summary, json=payload_summary, headers=headers_summary, timeout=8)
-                
+
+                res_summary = requests.post(url_summary, json=payload_summary, headers=headers_summary, timeout=12)
+
                 if res_summary.status_code == 200:
                     data_summary = res_summary.json()
-                    texto_formatado = data_summary.get("summary", "") if isinstance(data_summary, dict) else data_summary
-                    
-                    if texto_formatado:
-                        lista_resumos = [t.strip() for t in texto_formatado.split("[RESUMO]") if t.strip()]
-                        if len(lista_resumos) == len(lote_filtrado):
-                            for idx, resumo in enumerate(lista_resumos):
-                                lote_filtrado[idx]["description"] = resumo
+                    # Ajuste conforme o campo retornado pela sua API (summary, text, choices[0].text, etc.)
+                    texto_formatado = data_summary.get("summary") or data_summary.get("text") or ""
+                    # Log para depuração (remova em produção)
+                    print("Resposta bruta da IA:", texto_formatado)
+
+                    # Extrai blocos [RESUMO]
+                    lista_resumos = [t.strip() for t in re.split(r"
+
+\[RESUMO\]
+
+\s*", texto_formatado) if t.strip()]
+
+                    # Funções auxiliares de limpeza
+                    def clean_promotional(text):
+    patterns = [r"\[.*?\]", r"acesse o portal", r"acesse o link", r"leia mais",
+        r"assinante", r"exclusiva para assinantes", r"cupom", r"oferta", r"shopee"
+    ]
+    txt = text
+    for p in patterns:
+        txt = re.sub(p, "", txt, flags=re.IGNORECASE)
+    return " ".join(txt.split()).strip()
+                    def ensure_sentence_end(text):
+                        text = text.strip()
+                        text = re.sub(r"\.{2,}$", ".", text)
+                        if not re.search(r"[.!?]$", text):
+                            text = text + "."
+                        return text
+
+                    def limit_to_80_words_keep_sentences(text):
+                        words = text.split()
+                        if len(words) <= 80:
+                            return text
+                        sentences = re.split(r'(?<=[.!?])\s+', text)
+                        out = ""
+                        for s in sentences:
+                            candidate = (out + " " + s).strip() if out else s
+                            if len(candidate.split()) <= 80:
+                                out = candidate
+                            else:
+                                break
+                        if out:
+                            return out if re.search(r"[.!?]$", out) else out + "."
+                        truncated = " ".join(words[:80])
+                        return truncated + "."
+
+                    # Aplicar limpeza e validação
+                    if len(lista_resumos) == len(lote_filtrado):
+                        for idx, resumo in enumerate(lista_resumos):
+                            r = clean_promotional(resumo)
+                            r = ensure_sentence_end(r)
+                            r = limit_to_80_words_keep_sentences(r)
+                            if not r.startswith("[RESUMO]:"):
+                                r = "[RESUMO]: " + r
+                            lote_filtrado[idx]["description"] = r
+                else:
+                    print(f"Erro na API de resumo: {res_summary.status_code} - {res_summary.text}")
+
             except Exception as summary_error:
                 print(f"Alerta: Falha na IA de Resumos, usando texto original. Erro: {summary_error}")
-            
+
             data["results"] = lote_filtrado
 
         return jsonify(data), 200

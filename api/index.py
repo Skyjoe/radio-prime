@@ -6,7 +6,9 @@ import json
 import time
 import urllib.parse
 import os
-
+import uuid
+import time
+import traceback
 
 
 
@@ -145,6 +147,30 @@ def obter_noticias():
                 titulo = noticia.get("title", "").strip()
                 descricao = noticia.get("description", "").strip()
                 texto_agrupado += f"--- ITEM {index + 1} ---\nTítulo da Notícia: {titulo}\nContexto Adicional: {descricao}\n\n"
+
+
+
+            # ... dentro do fluxo onde você monta texto_agrupado e vai chamar a IA ...
+            request_id = str(uuid.uuid4())
+            print(f"[{request_id}] Iniciando processamento do lote - itens: {len(lote_filtrado)}")
+            
+            try:
+                # Log antes de chamar a API de resumos
+                print(f"[{request_id}] Chamando API de resumos (POST) para gerar resumos...")
+                start = time.time()
+                res_summary = requests.post(url_summary, json=payload_summary, headers=headers_summary, timeout=12)
+                elapsed = time.time() - start
+                print(f"[{request_id}] POST concluído em {elapsed:.2f}s - status: {res_summary.status_code}")
+            
+                # Log do corpo (limitado)
+                body_preview = res_summary.text[:2000] if hasattr(res_summary, "text") else str(res_summary)
+                print(f"[{request_id}] Response body (preview): {body_preview}")
+            
+                # Continue com o processamento normal...
+            except Exception as e:
+                print(f"[{request_id}] Exceção ao chamar API de resumos: {e}")
+                traceback.print_exc()
+
             
             # 3. Bloco Isolado da IA (Se falhar, não quebra a requisição de notícias)
             try:

@@ -10,7 +10,7 @@ import uuid
 import time
 import traceback
 import re
-
+from groq import Groq
 
 app = Flask(__name__)
 CORS(app)
@@ -70,15 +70,21 @@ SYMBOL_MAP = {
 
 
 # Configuração das Chaves de API via Variáveis de Ambiente
+import os
+import re
+import requests
+import uuid
+import traceback
+from flask import jsonify
+from groq import Groq  # Garanta que este import esteja no topo do arquivo
+
+# Configuração das chaves
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY") # Cole sua chave direto aqui se preferir
 NEWSDATA_API_KEY = os.environ.get("NEWSDATA_KEY")
-RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY")
 
+# Inicializa o cliente oficial da Groq
+client_groq = Groq(api_key=CHAVE_GROQ)
 
-# Trecho reescrito e corrigido para a rota /api/noticias
-# Coloque este bloco no lugar do trecho atual dentro de api/index.py
-# Certifique-se de que os imports no topo do arquivo incluem: re, requests, uuid, time, traceback
-
-# Função de fallback local (garante resumo mesmo se a IA falhar)
 def simple_local_summary(title, description, max_words=50):
     base = f"{title}. {description or ''}".strip()
     words = base.split()
@@ -92,8 +98,7 @@ def simple_local_summary(title, description, max_words=50):
 
 @app.route('/api/noticias', methods=['GET'])
 def obter_noticias():
-    url_news = "https://newsdata.io/api/1/latest"
-
+    url_news = "https://newsdata.io"
     filtros = {
         "apikey": NEWSDATA_API_KEY,
         "country": "br",
@@ -102,17 +107,13 @@ def obter_noticias():
     }
 
     try:
-        # 1. Busca única das notícias na NewsData.io
         response = requests.get(url_news, params=filtros, timeout=10)
-
         if response.status_code != 200:
-            print(f"Erro NewsData API {response.status_code}: {response.text}")
             return jsonify({"status": "error", "message": f"Erro NewsData: {response.text}"}), response.status_code
 
         response.encoding = 'utf-8'
         data = response.json()
 
-        # Se houver resultados, fazemos a filtragem e a chamada da IA de forma segura
         if "results" in data and len(data["results"]) > 0:
             lote_filtrado = []
 
@@ -120,113 +121,69 @@ def obter_noticias():
                 titulo_lower = n.get("title", "").lower() if n.get("title") else ""
                 desc_lower = n.get("description", "").lower() if n.get("description") else ""
 
-                # Pula propagandas, cupons e matérias trancadas
                 if any(termo in titulo_lower or termo in desc_lower for termo in [
                     "cupom", "shopee", "oferta", "exclusiva para assinantes", "assinante"
                 ]):
                     continue
 
-                # Trata descrições vazias ou com redirecionamento
                 if not n.get("description") or "acesse o portal" in desc_lower or "acesse o link" in desc_lower:
                     n["description"] = "Acompanhe os desdobramentos e informações desta manchete jornalística de última hora."
                 else:
                     descricao_limpa = n["description"].replace("[...]", "").strip()
                     palavras = descricao_limpa.split()
-                    # Remove conectivos cortados no fim da frase
                     if palavras and palavras[-1].lower() in ["as", "os", "a", "o", "com", "de", "e", "em", "para", "por"]:
                         descricao_limpa = " ".join(palavras[:-1]) + "..."
                     n["description"] = descricao_limpa
 
-                # Limpeza estética do padrão de blogs
-                if "the post" in desc_lower and "appeared first on" in desc_lower:
-                    n["description"] = n["description"].split("The post")[0].strip()
-
                 lote_filtrado.append(n)
-                if len(lote_filtrado) == 10:
+                if len(lote_filtrado) == 7:  # Puxa 7 notícias para equilibrar a cota diária da Groq
                     break
 
-            # 2. Prompt header (defina instruções claras e rígidas)
-            prompt_header = (
-                "Você é um jornalista profissional. Para cada item abaixo, gere um único parágrafo jornalístico em português, "
-                "máximo 50 palavras, sem propaganda, sem chamadas para ler a matéria completa, sem menções a assinaturas ou links. "
-                "Integre o título na PRIMEIRA FRASE de forma natural e explícita, usando também a descrição para contextualizar. "
-                "Trate cada item isoladamente; não misture itens. Remova '[...]', 'acesse o portal', 'acesse o link', 'leia mais', "
-                "'assinante', 'cupom', 'oferta', 'shopee' e similares. Comece cada parágrafo com '\u2022 ' e finalize sempre com ponto final. "
-                "Entregue sentenças completas; não deixe frases iniciadas sem conclusão.\n\n"
-            )
-
-            # Monta texto_agrupado com prompt + itens (uma única vez)
-            texto_agrupado = prompt_header
+            # Processamento individual via SDK oficial da Groq
             for index, noticia in enumerate(lote_filtrado):
                 titulo = noticia.get("title", "").strip()
                 descricao = noticia.get("description", "").strip()
-                texto_agrupado += (
-                    f"--- ITEM {index + 1} ---\n"
-                    f"Título da Notícia: {titulo}\n"
-                    f"Contexto Adicional: {descricao}\n\n"
-                )
-
-
-
-                       # =====================================================================
-            # TRECHO CORRIGIDO: Processamento individual para evitar Erro 500
-            # =====================================================================
-            url_summary = "https://gpt-summarization.p.rapidapi.com/summarize"
-            headers_summary = {
-                "Content-Type": "application/json",
-                "x-rapidapi-host": "gpt-summarization.p.rapidapi.com",
-                "x-rapidapi-key": RAPIDAPI_KEY
-            }
-
-            for index, noticia in enumerate(lote_filtrado):
-                titulo = noticia.get("title", "").strip()
-                descricao = noticia.get("description", "").strip()
-
-                # Criamos o texto cru focado estritamente na notícia atual
-                texto_para_resumir = f"Notícia: {titulo}. Detalhes: {descricao}"
-
-                payload_summary = {
-                    "text": texto_para_resumir,
-                    "num_sentences": 1  # Força a API a devolver um único parágrafo/frase resumido
-                }
 
                 request_id = str(uuid.uuid4())
-                print(f"[{request_id}] Resumindo item {index + 1}/{len(lote_filtrado)}: {titulo[:30]}...")
+                print(f"[{request_id}] Groq Cloud - Item {index + 1}/{len(lote_filtrado)}")
 
                 try:
-                    # Timeout individual de 5 segundos é suficiente para uma única notícia
-                    res_summary = requests.post(url_summary, json=payload_summary, headers=headers_summary, timeout=5)
+                    # Chamada usando a biblioteca oficial testada por você
+                    completion = client_groq.chat.completions.create(
+                        model="openai/gpt-oss-20b",  # Perfeito para resumos leves. Se quiser mudar, use "openai/gpt-oss-120b"
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": (
+                                    "Você é um jornalista profissional. Escreva um único parágrafo de até 50 palavras "
+                                    "em português sintetizando o texto enviado. Integre o título na PRIMEIRA FRASE. "
+                                    "Comece o parágrafo estritamente com '• ' e termine com ponto final."
+                                )
+                            },
+                            {
+                                "role": "user",
+                                "content": f"Título: {titulo}\nTexto: {descricao}"
+                            }
+                        ],
+                        temperature=0.2,
+                        max_completion_tokens=120
+                    )
+
+                    resumo_ia = completion.choices[0].message.content.strip()
                     
-                    if res_summary.status_code == 200:
-                        data_summary = res_summary.json()
-                        # Extrai o resumo retornado (ajuste a chave de acordo com o JSON da API se necessário)
-                        resumo_ia = data_summary.get("summary") or data_summary.get("text") or ""
-                        resumo_ia = resumo_ia.strip()
+                    if resumo_ia:
+                        if not resumo_ia.startswith("•") and not resumo_ia.startswith("\u2022"):
+                            resumo_ia = "• " + resumo_ia
+                        noticia["description"] = resumo_ia
+                        continue
 
-                        if resumo_ia:
-                            # Garante que o título esteja integrado caso a IA tenha omitido
-                            if titulo.lower() not in resumo_ia.lower():
-                                resumo_ia = f"{titulo}: {resumo_ia}"
-                            
-                            # Adiciona o marcador estético exigido pelo seu frontend
-                            if not resumo_ia.startswith("\u2022"):
-                                resumo_ia = "\u2022 " + resumo_ia
-                            
-                            # Atualiza a descrição da notícia com o resumo real gerado
-                            noticia["description"] = resumo_ia
-                            continue
-
-                    # Se o status não for 200, loga e aciona o fallback local para ESTA notícia
-                    print(f"[{request_id}] API falhou (Status {res_summary.status_code}). Aplicando fallback.")
                     noticia["description"] = simple_local_summary(titulo, descricao, max_words=50)
 
                 except Exception as item_error:
-                    print(f"[{request_id}] Erro no item {index + 1}: {item_error}")
+                    print(f"[{request_id}] Erro Groq no item {index + 1}: {item_error}")
                     noticia["description"] = simple_local_summary(titulo, descricao, max_words=50)
 
-            # Salva o lote tratado de volta nos resultados
             data["results"] = lote_filtrado
-
 
         return jsonify(data), 200
 
@@ -234,6 +191,7 @@ def obter_noticias():
         print(f"Erro Crítico na Rota de Notícias: {str(e)}")
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
 
 
 

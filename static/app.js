@@ -429,16 +429,36 @@ async function buscarNoticiasAPI() {
         newsFetchBtn.style.pointerEvents = "none";
     }
 
-    // Chama a rota segura do seu próprio servidor back-end em Python
+    // Bust cache com timestamp
     const url = SERVER_URL + '/api/noticias';
+    const urlWithTs = `${url}?ts=${Date.now()}`;
+
+    console.log("[news] Iniciando fetch de notícias:", urlWithTs);
 
     try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Erro ao buscar notícias");
+        const start = performance.now();
+        const response = await fetch(urlWithTs, {
+            method: 'GET',
+            cache: 'no-store',
+            headers: {
+                'Cache-Control': 'no-cache'
+            }
+        });
+        const elapsed = (performance.now() - start).toFixed(2);
+        console.log(`[news] Fetch concluído em ${elapsed} ms - status: ${response.status}`);
+
+        if (!response.ok) {
+            // Log detalhado para depuração
+            const text = await response.text();
+            console.error("[news] Resposta não OK:", response.status, text);
+            throw new Error("Erro ao buscar notícias");
+        }
 
         const data = await response.json();
 
-        // O backend já processou, filtrou e resumiu o lote de 10 notícias com a IA
+        // Log da resposta para depuração (remova em produção)
+        console.log("[news] Payload recebido (resumo):", data);
+
         if (data.results && data.results.length > 0) {
             noticiasSalvas = data.results;
             indiceNoticiaAtual = 0;
@@ -461,6 +481,7 @@ async function buscarNoticiasAPI() {
         }
     }
 }
+
 
 // Ouvintes de eventos (Listeners)
 if (newsNextBtn) {

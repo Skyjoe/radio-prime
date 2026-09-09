@@ -70,6 +70,9 @@ SYMBOL_MAP = {
 # Configuração das Chaves de API via Variáveis de Ambiente
 NEWSDATA_API_KEY = os.environ.get("NEWSDATA_KEY")
 RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY")
+const requestId = Math.random().toString(36).slice(2, 9);
+const urlWithTs = `${url}?ts=${Date.now()}&rid=${requestId}`;
+
 
 
 @app.route('/api/noticias', methods=['GET'])

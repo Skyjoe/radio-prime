@@ -248,8 +248,8 @@ def obter_noticias():
                                 candidate = f"{prefix} {r}"
                                 candidate = limit_to_50_words_keep_sentences(candidate)
                                 r = candidate
-                            if not r.startswith("[\u2022]:"):
-                                r = "[RESUMO]: " + r
+                            if not r.startswith("[Resumo]:"):
+                                r = "[\u2022]: " + r
                             lote_filtrado[idx]["description"] = r
                     else:
                         print(f"[{request_id}] Aviso: número de resumos retornados ({len(lista_resumos)}) diferente do esperado ({len(lote_filtrado)}).")

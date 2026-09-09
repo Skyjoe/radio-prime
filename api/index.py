@@ -6,7 +6,7 @@ import json
 import time
 import urllib.parse
 import os
-import re
+
 
 
 
@@ -70,9 +70,6 @@ SYMBOL_MAP = {
 # Configuração das Chaves de API via Variáveis de Ambiente
 NEWSDATA_API_KEY = os.environ.get("NEWSDATA_KEY")
 RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY")
-const requestId = Math.random().toString(36).slice(2, 9);
-const urlWithTs = `${url}?ts=${Date.now()}&rid=${requestId}`;
-
 
 
 @app.route('/api/noticias', methods=['GET'])
@@ -135,116 +132,53 @@ def obter_noticias():
                     break
 
             # 2. Monta o bloco de prompt estruturado para a IA
-        prompt_header = (
-        "Você é um jornalista profissional. Para cada item abaixo, gere um único parágrafo jornalístico em português, "
-        "máximo 50 palavras, sem propaganda, sem chamadas para ler a matéria completa, sem menções a assinaturas ou links. "
-        "Integre o título na PRIMEIRA FRASE de forma natural e explícita, usando também a descrição para contextualizar. "
-        "Trate cada item isoladamente; não misture itens. Remova '[...]', 'acesse o portal', 'acesse o link', 'leia mais', "
-        "'assinante', 'cupom', 'oferta', 'shopee' e similares. Comece cada parágrafo com '[RESUMO]: ' e finalize sempre com ponto final. "
-        "Entregue sentenças completas; não deixe frases iniciadas sem conclusão.\n\n"
-         )
-
-            # Monta texto_agrupado com prompt + itens
-            texto_agrupado = prompt_header
+            texto_agrupado = (
+                "Você é um jornalista profissional. Sua tarefa é transformar cada item abaixo em um ÚNICO parágrafo jornalístico contínuo, coeso e fluido. "
+                "Regras obrigatórias:\n"
+                "1. O título DEVE ser fundido e integrado logo na primeira frase do parágrafo de forma natural.\n"
+                "2. Nunca misture as informações de um item com o outro.\n"
+                "3. Remova trechos cortados como '[...]' e dê um acabamento profissional.\n"
+                "4. Comece estritamente cada parágrafo com o marcador [RESUMO]:\n\n"
+            )
+            
             for index, noticia in enumerate(lote_filtrado):
                 titulo = noticia.get("title", "").strip()
                 descricao = noticia.get("description", "").strip()
-                texto_agrupado += (
-                    f"--- ITEM {index + 1} ---\n"
-                    f"Título da Notícia: {titulo}\n"
-                    f"Contexto Adicional: {descricao}\n\n"
-                )
-
+                texto_agrupado += f"--- ITEM {index + 1} ---\nTítulo da Notícia: {titulo}\nContexto Adicional: {descricao}\n\n"
+            
             # 3. Bloco Isolado da IA (Se falhar, não quebra a requisição de notícias)
             try:
-                url_summary = "https://rapidapi.com"  # ajuste para seu endpoint real
+                url_summary = "https://rapidapi.com"
                 headers_summary = {
                     "Content-Type": "application/json",
                     "x-rapidapi-host": "rapidapi.com",
                     "x-rapidapi-key": RAPIDAPI_KEY
                 }
-
                 payload_summary = {
-                    "prompt": texto_agrupado,
-                    "temperature": 0.0,
-                    "max_tokens": 220,
-                    "top_p": 1.0
+                    "text": texto_agrupado
                 }
-
-                res_summary = requests.post(url_summary, json=payload_summary, headers=headers_summary, timeout=12)
-
+                
+                res_summary = requests.post(url_summary, json=payload_summary, headers=headers_summary, timeout=8)
+                
                 if res_summary.status_code == 200:
                     data_summary = res_summary.json()
-                    # Ajuste conforme o campo retornado pela sua API
-                    texto_formatado = data_summary.get("summary") or data_summary.get("text") or ""
-
-                    # Extrai blocos [RESUMO]
-                    lista_resumos = [t.strip() for t in re.split(r"\[RESUMO\]\s*", texto_formatado) if t.strip()]
-
-                    # Funções auxiliares de limpeza
-                    def clean_promotional(text):
-                    patterns = [r"\[.*?\]", r"acesse o portal", r"acesse o link", r"leia mais",
-                        r"assinante", r"exclusiva para assinantes", r"cupom", r"oferta", r"shopee"
-                    ]
-                    txt = text
-                    for p in patterns:
-                        txt = re.sub(p, "", txt, flags=re.IGNORECASE)
-                    return " ".join(txt.split()).strip()
+                    texto_formatado = data_summary.get("summary", "") if isinstance(data_summary, dict) else data_summary
                     
-                   def ensure_sentence_end(text):
-                        text = text.strip()
-                        text = re.sub(r"\.{2,}$", ".", text)
-                        if not re.search(r"[.!?]$", text):
-                            text = text + "."
-                        return text
-
-                    def limit_to_50_words_keep_sentences(text):
-                        words = text.split()
-                        if len(words) <= 50:
-                            return text
-                        # Tentar cortar no último ponto final antes do limite de 50 palavras
-                        sentences = re.split(r'(?<=[.!?])\s+', text)
-                        out = ""
-                        for s in sentences:
-                            candidate = (out + " " + s).strip() if out else s
-                            if len(candidate.split()) <= 50:
-                                out = candidate
-                            else:
-                                break
-                        if out:
-                            return out if re.search(r"[.!?]$", out) else out + "."
-                        # fallback: cortar em 50 palavras e garantir ponto final
-                        truncated = " ".join(words[:50])
-                        return truncated + "."
-
-                    # Aplicar limpeza e validação
-                    if len(lista_resumos) == len(lote_filtrado):
-                        for idx, resumo in enumerate(lista_resumos):
-                            r = clean_promotional(resumo)
-                            r = ensure_sentence_end(r)
-                            r = limit_to_50_words_keep_sentences(r)
-                            # Garantir que o título foi integrado: se não houver o título, forçar reuso do título original
-                            titulo_original = lote_filtrado[idx].get("title", "").strip()
-                            # Se o título não aparece no resumo (caso raro), prefixar com título integrado na primeira frase
-                            if titulo_original and titulo_original.lower() not in r.lower():
-                                # cria uma primeira frase com título + verbo genérico e concatena com o resumo (respeitando 50 palavras)
-                                prefix = f"{titulo_original}:"
-                                candidate = f"{prefix} {r}"
-                                candidate = limit_to_50_words_keep_sentences(candidate)
-                                r = candidate
-                            if not r.startswith("[RESUMO]:"):
-                                r = "[RESUMO]: " + r
-                            lote_filtrado[idx]["description"] = r
-                    else:
-                        # fallback: se a IA não retornou o número esperado de resumos, não sobrescreve
-                        print("Aviso: número de resumos retornados diferente do esperado.")
-                else:
-                    print(f"Erro na API de resumo: {res_summary.status_code} - {res_summary.text}")
-
+                    if texto_formatado:
+                        lista_resumos = [t.strip() for t in texto_formatado.split("[RESUMO]") if t.strip()]
+                        if len(lista_resumos) == len(lote_filtrado):
+                            for idx, resumo in enumerate(lista_resumos):
+                                lote_filtrado[idx]["description"] = resumo
             except Exception as summary_error:
                 print(f"Alerta: Falha na IA de Resumos, usando texto original. Erro: {summary_error}")
-
+            
             data["results"] = lote_filtrado
+
+        return jsonify(data), 200
+        
+    except Exception as e:
+        print(f"Erro Crítico na Rota de Notícias: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 
 

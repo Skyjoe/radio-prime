@@ -499,24 +499,23 @@ if (clearSearchBtn && searchInput) {
 // CONFIGURAÇÃO E INTEGRAÇÃO DO SMS VIRTUAL
 // ==========================================
 
-const BASE_URL = 'https://virtual-number.p.rapidapi.com/api/v1/e-sim';
+// ==========================================
+// CONFIGURAÇÃO E INTEGRAÇÃO DO SMS VIRTUAL
+// ==========================================
 
 // Armazenamento do estado atual da paginação e dados selecionados
 let currentSmsPage = 1;
 let selectedCountryCode = '';
 let selectedPhoneNumber = '';
 
-const getHeaders = () => ({
-  'Content-Type': 'application/json',
-  'x-rapidapi-host': 'virtual-number.p.rapidapi.com',
-  'x-rapidapi-key': process.env.RAPIDAPI_KEY // Protegido na Vercel
-});
-
-// --- Funções de Requisição à API ---
+// --- Funções de Requisição à API adaptadas para o seu Proxy Seguro ---
 
 async function getAllCountries() {
   try {
-    const response = await fetch(`${BASE_URL}/all-countries`, { headers: getHeaders() });
+    // Usando a sua rota de proxy existente para proteger as credenciais
+    const targetUrl = encodeURIComponent('https://rapidapi.com');
+    const response = await fetch(`/api/proxy?url=${targetUrl}`);
+    
     if (response.status === 401) {
         alert("Chave da API inválida ou expirada. Verifique as configurações na Vercel.");
         return null;
@@ -529,7 +528,9 @@ async function getAllCountries() {
 
 async function getNumbersByCountry(countryCode) {
   try {
-    const response = await fetch(`${BASE_URL}/country-numbers?countryId=${countryCode}`, { headers: getHeaders() });
+    const targetUrl = encodeURIComponent(`https://rapidapi.com{countryCode}`);
+    const response = await fetch(`/api/proxy?url=${targetUrl}`);
+    
     if (response.status === 401) {
         alert("Chave da API inválida ou expirada. Verifique as configurações na Vercel.");
         return [];
@@ -545,9 +546,9 @@ async function getNumbersByCountry(countryCode) {
 
 async function viewMessages(countryCode, phoneNumber, page = 1) {
   try {
-    const response = await fetch(`${BASE_URL}/view-messages?countryId=${countryCode}&number=${phoneNumber}&page=${page}`, { 
-      headers: getHeaders() 
-    });
+    const targetUrl = encodeURIComponent(`https://rapidapi.com{countryCode}&number=${phoneNumber}&page=${page}`);
+    const response = await fetch(`/api/proxy?url=${targetUrl}`);
+    
     if (response.status === 401) {
         alert("Chave da API inválida ou expirada. Verifique as configurações na Vercel.");
         return [];
@@ -563,7 +564,6 @@ async function viewMessages(countryCode, phoneNumber, page = 1) {
 
 // --- Funções de Manipulação da Interface (DOM) ---
 
-// Inicializa os escutadores de eventos assim que a página estiver pronta
 document.addEventListener("DOMContentLoaded", () => {
     const countrySelect = document.getElementById("sms-country-select");
     const getNumbersBtn = document.getElementById("get-numbers-btn");
@@ -574,7 +574,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const nextPageBtn = document.getElementById("next-sms-page-btn");
     const messagesDisplay = document.getElementById("sms-messages-display");
 
-    // Evento 1: Clicar para listar os números disponíveis do país selecionado
+    // Verifica se os elementos do SMS existem na página atual antes de ativar os eventos
+    if (!getNumbersBtn || !checkSmsBtn) return;
+
+    // Evento 1: Listar números públicos do país selecionado
     getNumbersBtn.addEventListener("click", async () => {
         selectedCountryCode = countrySelect.value;
         if (!selectedCountryCode) {
@@ -587,7 +590,7 @@ document.addEventListener("DOMContentLoaded", () => {
         numbersListDiv.innerHTML = "<p style='font-size:13px;'>Buscando números públicos...</p>";
 
         const numbers = await getNumbersByCountry(selectedCountryCode);
-        numbersListDiv.innerHTML = ""; // Limpa o carregando
+        numbersListDiv.innerHTML = ""; 
         getNumbersBtn.textContent = "Listar Números";
         getNumbersBtn.disabled = false;
 
@@ -596,23 +599,19 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Cria os botões para cada número retornado pela API
         numbers.forEach(num => {
             const btn = document.createElement("button");
             btn.textContent = num;
-            btn.style.cssText = "padding: 6px; border: 1px solid #ddd; border-radius: 4px; background: #fff; cursor: pointer; text-align: left; font-size: 14px;";
+            btn.style.cssText = "padding: 6px; border: 1px solid #ddd; border-radius: 4px; background: #fff; cursor: pointer; text-align: left; font-size: 14px; width: 100%; margin-bottom: 5px; color: #000 !important;";
             
             btn.addEventListener("click", () => {
-                // Remove destaque do botão anterior e destaca o novo selecionado
                 Array.from(numbersListDiv.children).forEach(b => b.style.background = "#fff");
                 btn.style.background = "#e0f7fa";
 
-                // Ativa o painel de verificação de mensagens para o número escolhido
-                selectedPhoneNumber = num.replace("+", ""); // Trata caso a API precise apenas dos dígitos
+                selectedPhoneNumber = num.replace("+", ""); 
                 currentNumLabel.textContent = num;
                 activePanel.classList.remove("hidden");
                 
-                // Reinicia o estado de mensagens e paginação
                 messagesDisplay.innerHTML = "<p style='color:#777; font-size:13px;'>Clique em 'Verificar Novo SMS' para buscar a caixa de entrada.</p>";
                 currentSmsPage = 1;
                 nextPageBtn.disabled = true;
@@ -621,7 +620,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Evento 2: Clicar manualmente para buscar as mensagens (Protege a sua cota)
+    // Evento 2: Verificar mensagens recebidas manualmente
     checkSmsBtn.addEventListener("click", async () => {
         if (!selectedCountryCode || !selectedPhoneNumber) return;
 
@@ -633,7 +632,7 @@ document.addEventListener("DOMContentLoaded", () => {
         checkSmsBtn.textContent = "📥 Verificar Novo SMS";
         checkSmsBtn.disabled = false;
 
-        messagesDisplay.innerHTML = ""; // Limpa a busca
+        messagesDisplay.innerHTML = ""; 
 
         if (!messages || messages.length === 0) {
             messagesDisplay.innerHTML = "<p style='font-size:13px; color:#555;'>Nenhuma mensagem encontrada nesta página ainda.</p>";
@@ -641,29 +640,27 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Se retornou mensagens, libera o botão para carregar páginas mais antigas se o usuário quiser
         nextPageBtn.disabled = false;
 
-        // Renderiza cada SMS encontrado no display
         messages.forEach(sms => {
             const smsDiv = document.createElement("div");
-            smsDiv.style.cssText = "background: #fff; border: 1px solid #eee; padding: 10px; border-radius: 5px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);";
+            smsDiv.style.cssText = "background: #fff; border: 1px solid #eee; padding: 10px; border-radius: 5px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); color: #000 !important;";
             
             smsDiv.innerHTML = `
                 <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; color: #777;">
-                    <strong>🔹 ${sms.serviceName || 'Desconhecido'}</strong>
-                    <span>🕒 ${sms.createdAt || 'Agora'}</span>
+                    <strong style="color: #007bff !important;">🔹 ${sms.serviceName || 'Desconhecido'}</strong>
+                    <span style="color: #777 !important;">🕒 ${sms.createdAt || 'Agora'}</span>
                 </div>
-                <p style="margin: 0; font-size: 14px; color: #333; word-break: break-word;">${sms.text}</p>
+                <p style="margin: 0; font-size: 14px; color: #333 !important; word-break: break-word;">${sms.text}</p>
             `;
             messagesDisplay.appendChild(smsDiv);
         });
     });
 
-    // Evento 3: Paginação manual para mensagens anteriores
+    // Evento 3: Avançar página de mensagens antigas
     nextPageBtn.addEventListener("click", () => {
         currentSmsPage++;
-        checkSmsBtn.click(); // Dispara a busca usando a nova página incrementada
+        checkSmsBtn.click(); 
     });
 });
 

@@ -540,6 +540,60 @@ def normalizar_audd_para_shazam(result):
 
 
 
+# ============================================================
+# PROXY SEGURO DEDICADO PARA SMS VIRTUAL (RAPIDAPI)
+# ============================================================
+@app.route('/api/sms-proxy', methods=['GET'])
+def sms_virtual_proxy():
+    # 1. Recupera com total segurança a chave guardada na Vercel
+    rapidapi_key = os.environ.get('RAPIDAPI_KEY')
+    
+    if not rapidapi_key:
+        logging.error("[SMS Proxy] Erro: A variável RAPIDAPI_KEY não foi encontrada na Vercel.")
+        return jsonify({'error': 'Configuração de credenciais ausente no servidor.'}), 500
+
+    # 2. Captura a URL alvo enviada pelo app.js
+    encoded_url = request.args.get('url')
+    if not encoded_url:
+        return jsonify({'error': 'O parâmetro URL é obrigatório.'}), 400
+
+    try:
+        decoded_url = urllib.parse.unquote(encoded_url)
+        
+        # Garante por segurança que a requisição está indo estritamente para o domínio do Virtual Number
+        if "://rapidapi.com" not in decoded_url:
+            return jsonify({'error': 'Domínio de destino não autorizado.'}), 403
+
+        # 3. Monta os cabeçalhos injetando a sua chave de forma invisível para o usuário final
+        headers = {
+            'Content-Type': 'application/json',
+            'x-rapidapi-host': '://rapidapi.com',
+            'x-rapidapi-key': rapidapi_key
+        }
+
+        logging.info(f'[SMS Proxy] Encaminhando requisição segura para: {decoded_url}')
+        
+        # 4. Faz o disparo para a RapidAPI e captura o retorno
+        response = requests.get(decoded_url, headers=headers, timeout=12)
+        
+        # Repassa o JSON e o código de status exato devolvido pela API (ex: 200, 401, 404)
+        return Response(
+            response.text,
+            status=response.status_code,
+            headers={
+                'Access-Control-Allow-Origin': '*',
+                'Content-Type': 'application/json'
+            }
+        )
+
+    except requests.exceptions.Timeout:
+        logging.error('[SMS Proxy] Tempo limite esgotado com a RapidAPI.')
+        return jsonify({'error': 'A API de SMS demorou muito para responder.'}), 504
+    except Exception as e:
+        logging.error(f'[SMS Proxy] Erro interno: {str(e)}')
+        return jsonify({'error': str(e)}), 500
+
+
 
 
 @app.route('/api/proxy')

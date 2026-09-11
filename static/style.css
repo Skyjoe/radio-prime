@@ -936,3 +936,52 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
+/* Estilização do Painel de SMS Virtual */
+#virtual-number-container {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.08); /* Fundo levemente transparente para combinar com temas escuros/claros */
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    text-align: left;
+}
+
+#virtual-number-container h2 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: inherit; /* Respeita a cor do tema atual do seu painel */
+}
+
+/* Lista de botões dos números gerados */
+#sms-numbers-list button {
+    background: #ffffff;
+    color: #333333;
+    border: 1px solid #dddddd;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+#sms-numbers-list button:hover {
+    background: #f0f0f0;
+    border-color: #bbbbbb;
+    transform: translateY(-1px);
+}
+
+/* Caixa onde aparecem os cartões de mensagens recebidas */
+#sms-messages-display {
+    background: rgba(0, 0, 0, 0.03);
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px dashed rgba(0, 0, 0, 0.1);
+}
+
+.hidden {
+    display: none !important;
+}
+
+

@@ -936,52 +936,136 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-/* Estilização do Painel de SMS Virtual */
+/* ==========================================================================
+   ESTILIZAÇÃO DO PAINEL DE SMS VIRTUAL (CORRIGIDO E SEGURO)
+   ========================================================================== */
+
 #virtual-number-container {
-    margin-top: 30px;
+    margin-top: 35px;
     padding: 20px;
-    background: rgba(255, 255, 255, 0.08); /* Fundo levemente transparente para combinar com temas escuros/claros */
+    /* Fundo sólido e limpo que aceita variações de tema perfeitamente */
+    background: rgba(0, 0, 0, 0.03) !important; 
     border-radius: 12px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border-top: 2px solid #2575fc !important; /* Bordinha estilizada combinando com o player */
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
     text-align: left;
+    clear: both; /* Garante que ele quebre linha e ignore flutuações de outros objetos */
 }
 
 #virtual-number-container h2 {
-    font-size: 18px;
+    font-size: 1.3rem !important;
+    margin-top: 0;
     margin-bottom: 15px;
-    color: inherit; /* Respeita a cor do tema atual do seu painel */
+    font-weight: 700;
+}
+
+.sms-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+#sms-country-select {
+    flex-grow: 1;
+    padding: 10px;
+    border: 2px solid #ddd !important;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: 'Roboto', sans-serif;
+    background-color: #ffffff !important;
+    color: #333333 !important;
+}
+
+#get-numbers-btn, #check-sms-btn {
+    padding: 10px 18px;
+    border: none;
+    background: linear-gradient(145deg, #6a11cb 0%, #2575fc 100%) !important;
+    color: white !important;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(37, 117, 252, 0.2);
+}
+
+#get-numbers-btn:hover, #check-sms-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 117, 252, 0.3);
 }
 
 /* Lista de botões dos números gerados */
+#sms-numbers-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
 #sms-numbers-list button {
-    background: #ffffff;
-    color: #333333;
-    border: 1px solid #dddddd;
-    padding: 10px 14px;
+    background: #ffffff !important;
+    color: #222222 !important;
+    border: 2px solid #ddd !important;
+    padding: 8px 12px;
     border-radius: 6px;
     font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
     transition: all 0.2s ease;
-    width: 100%;
-    margin-bottom: 5px;
+    text-align: center;
 }
 
 #sms-numbers-list button:hover {
-    background: #f0f0f0;
-    border-color: #bbbbbb;
-    transform: translateY(-1px);
+    border-color: #2575fc !important;
+    background: #f4f8ff !important;
+}
+
+/* Painel interno que aparece após selecionar o número */
+#active-number-panel {
+    background: #ffffff !important;
+    border: 1px solid #e0e0e0 !important;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+}
+
+#active-number-panel p {
+    margin: 0 0 10px 0;
+    font-size: 0.95rem;
+    color: #333333 !important;
+}
+
+#active-number-panel strong {
+    color: #2575fc !important;
+    font-size: 1.1rem;
+}
+
+#next-sms-page-btn {
+    padding: 8px 12px;
+    border: 1px solid #ddd !important;
+    background: #f8f9fa !important;
+    color: #333 !important;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+#next-sms-page-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* Caixa onde aparecem os cartões de mensagens recebidas */
 #sms-messages-display {
-    background: rgba(0, 0, 0, 0.03);
-    padding: 10px;
+    background: #fdfdfd !important;
+    padding: 12px;
     border-radius: 8px;
-    border: 1px dashed rgba(0, 0, 0, 0.1);
+    border: 1px dashed #ccc !important;
+    margin-top: 15px;
 }
 
-.hidden {
-    display: none !important;
-}
+/* REMOVIDO: Duplicidade da classe .hidden para evitar conflitos de compilação */
+
 
 

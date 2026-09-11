@@ -495,6 +495,86 @@ if (clearSearchBtn && searchInput) {
 
 
 
+// SMS
+// ============================================================
+
+// CORREÇÃO: Mantendo a URL exata do serviço Virtual Number e corrigindo o host
+const BASE_URL = 'https://rapidapi.com';
+
+const getHeaders = () => ({
+  'Content-Type': 'application/json',
+  'x-rapidapi-host': 'virtual-number.p.rapidapi.com',
+  'x-rapidapi-key': process.env.RAPIDAPI_KEY // Puxa com segurança da Vercel
+});
+
+// 1. Listar Países
+async function getAllCountries() {
+  try {
+    const response = await fetch(`${BASE_URL}/all-countries`, { headers: getHeaders() });
+    
+    // Tratamento de erros específico para esta requisição
+    if (response.status === 401) {
+        alert("Chave da API inválida ou expirada. Verifique as configurações na Vercel.");
+        return null;
+    } else if (response.status === 500) {
+        alert("Erro interno do servidor da API de SMS.");
+        return null;
+    }
+
+    return await response.json(); 
+  } catch (error) {
+    console.error("Erro ao buscar países:", error);
+  }
+}
+
+// 2. Buscar números usando o Código do País
+async function getNumbersByCountry(countryCode) {
+  try {
+    const response = await fetch(`${BASE_URL}/country-numbers?countryId=${countryCode}`, { headers: getHeaders() });
+    
+    if (response.status === 401) {
+        alert("Chave da API inválida ou expirada. Verifique as configurações na Vercel.");
+        return [];
+    } else if (response.status === 404) {
+        alert("Nenhum número foi encontrado para este país.");
+        return [];
+    }
+
+    return await response.json(); 
+  } catch (error) {
+    console.error(`Erro ao buscar números para o código ${countryCode}:`, error);
+  }
+}
+
+// 3. Ver mensagens recebidas
+async function viewMessages(countryCode, phoneNumber, page = 1) {
+  try {
+    const response = await fetch(`${BASE_URL}/view-messages?countryId=${countryCode}&number=${phoneNumber}&page=${page}`, { 
+      headers: getHeaders() 
+    });
+    
+    if (response.status === 401) {
+        alert("Chave da API inválida ou expirada. Verifique as configurações na Vercel.");
+        return [];
+    } else if (response.status === 404) {
+        alert("Este número de telefone acabou de ser rotacionado (expirou) ou não existe mais. Por favor, gere outro.");
+        return [];
+    }
+
+    return await response.json(); 
+  } catch (error) {
+    console.error(`Erro ao buscar mensagens do número ${phoneNumber}:`, error);
+  }
+}
+
+}
+
+
+
+
+
+
+
 // ===== FUNÇÕES DE CRIPTOMOEDAS =====
 
 async function fetchUsdToBrl() {

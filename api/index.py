@@ -539,6 +539,55 @@ def normalizar_audd_para_shazam(result):
     }
 
 
+
+
+# SMS
+# ============================================================
+
+const BASE_URL = 'https://rapidapi.com';
+
+const getHeaders = () => ({
+  'Content-Type': 'application/json',
+  'x-rapidapi-host': '://rapidapi.com',
+  'x-rapidapi-key': process.env.RAPIDAPI_KEY
+});
+
+// 1. Listar Países (Agora sabemos que retorna: [{countryCode: "45", countryName: "denmark"}])
+async function getAllCountries() {
+  try {
+    const response = await fetch(`${BASE_URL}/all-countries`, { headers: getHeaders() });
+    return await response.json(); 
+  } catch (error) {
+    console.error("Erro ao buscar países:", error);
+  }
+}
+
+// 2. Buscar números usando o Código do País (countryId recebe o countryCode)
+async function getNumbersByCountry(countryCode) {
+  try {
+    const response = await fetch(`${BASE_URL}/country-numbers?countryId=${countryCode}`, { headers: getHeaders() });
+    return await response.json(); // Retorna o array de strings: ["+1234567890", ...]
+  } catch (error) {
+    console.error(`Erro ao buscar números para o código ${countryCode}:`, error);
+  }
+}
+
+// 3. Ver mensagens recebidas (Retorna um Array de Objetos com texto, serviceName e createdAt)
+async function viewMessages(countryCode, phoneNumber, page = 1) {
+  try {
+    const response = await fetch(`${BASE_URL}/view-messages?countryId=${countryCode}&number=${phoneNumber}&page=${page}`, { 
+      headers: getHeaders() 
+    });
+    return await response.json(); 
+  } catch (error) {
+    console.error(`Erro ao buscar mensagens do número ${phoneNumber}:`, error);
+  }
+}
+
+
+
+
+
 @app.route('/api/proxy')
 def proxy():
     url = request.args.get('url')

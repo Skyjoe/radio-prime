@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+    
+    <!-- Scripts do Mapa (Mantidos com segurança aqui no head) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
@@ -75,6 +77,39 @@
             <div id="crypto-list"></div>
         </div>
 
+        <!-- NOVO: Painel de SMS Virtual (Posicionado logo abaixo das Criptomoedas) -->
+        <div id="virtual-number-container" style="margin-top: 25px; padding: 15px; border-top: 1px solid #eee;">
+            <h2>SMS Virtual Temporário</h2>
+            
+            <div class="sms-selector" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                <!-- Seleção do país (Os IDs serão os códigos de área ex: 45, 33) -->
+                <select id="sms-country-select" style="padding: 8px; border-radius: 5px; flex: 1; min-width: 150px;">
+                    <option value="">Selecione um País...</option>
+                    <!-- Inserido dinamicamente via JS ou hardcoded para poupar chamadas -->
+                    <option value="7">Rússia (Exemplo)</option>
+                    <option value="45">Dinamarca</option>
+                    <option value="33">França</option>
+                </select>
+                
+                <button id="get-numbers-btn" style="padding: 8px 15px; border-radius: 5px; cursor: pointer;">Listar Números</button>
+            </div>
+
+            <!-- Lista de números gerados para o usuário escolher um -->
+            <div id="sms-numbers-list" style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 5px;"></div>
+
+            <!-- Caixa de entrada manual para ler o SMS recebido -->
+            <div id="active-number-panel" class="hidden" style="background: #f9f9f9; padding: 12px; border-radius: 8px; margin-top: 10px;">
+                <p>Número selecionado: <strong id="current-virtual-number">Nenhum</strong></p>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button id="check-sms-btn" style="padding: 8px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">📥 Verificar Novo SMS</button>
+                    <button id="next-sms-page-btn" disabled style="padding: 8px; border-radius: 5px;">Pág Prox ➡️</button>
+                </div>
+                
+                <!-- Onde as mensagens recebidas vão aparecer -->
+                <div id="sms-messages-display" style="margin-top: 15px; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+        </div>
+
         <!-- Crypto Chart Modal -->
         <div id="crypto-modal" class="modal">
             <div class="modal-content">
@@ -97,28 +132,23 @@
     
     <!-- COLUNA LATERAL DIREITA (Frases e Notícias unificadas) -->
     <div id="phrases-sidebar">
-        
         <!-- Card de Frases Motivacionais -->
         <div class="phrase-card">
             <p id="phrase-text">Carregando pensamentos...</p>
-            <p id="phrase-author"></p> <!-- CORREÇÃO: Voltado para tag <p> para o script encontrar -->
+            <p id="phrase-author"></p>
         </div> 
 
-                <!-- Card Rotativo de Notícias -->
+        <!-- Card Rotativo de Notícias -->
         <div id="news-card">
             <div class="news-header">
                 <span>Últimas Notícias</span>
                 <span id="news-source">Carregando...</span>
             </div>
-            <!-- CARD DE NOTÍCIAS COM CONTROLES REORGANIZADOS -->
             <div class="news-controls">
-                <!-- Grupo de Busca Opcional (Ocupa o espaço que sobrou) -->
                 <div class="news-search-group">
                     <input type="text" id="news-search-input" placeholder="Tema (Ex: Spacex, IA)..." />
                     <button id="news-search-clear-btn" title="Limpar busca">✕</button>
                 </div>
-
-                <!-- Botões de Ação Compactos -->
                 <button id="news-fetch-btn" title="Atualizar Notícias">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
                     Atualizar
@@ -130,26 +160,11 @@
             </div>
             <h4 id="news-title">Carregar Notícias.</h4>
             <p id="news-description">Acompanhe os principais fatos do Brasil em tempo real no seu painel.</p>
-            
-            <!-- NOVO: Link discreto para a matéria completa -->
-           
-
-            
         </div>
-
-
     </div> <!-- Fim do #phrases-sidebar -->
 
-<!-- 1. Estilos do Mapa -->
-    <link rel="stylesheet" href="https://unpkg.com" />
-    
-    <!-- 2. Código Base do Mapa (Carrega obrigatoriamente antes do app.js) -->
-    <script src="https://unpkg.com"></script>
-    
-    <!-- 3. Estilos Locais do seu Painel -->
+    <!-- Recursos Locais Organizados (Links quebrados removidos daqui) -->
     <link rel="stylesheet" href="style.css">
-    
-    <!-- 4. Seu Script Principal (Lê todas as bibliotecas acima prontas na memória) -->
     <script src="app.js"></script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 !DOCTYPE html>
 <html lang="pt-BR">
-    <head> <meta charset="UTF-8">
+    <head> 
+        <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">  
         <title>Clima e Hora</title> 
@@ -51,13 +52,13 @@
             
             <div class="sms-selector" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
                 <!-- Seleção do país (Os IDs serão os códigos de área ex: 45, 33) -->
-                <select id="sms-country-select" style="padding: 8px; border-radius: 5px; flex: 1; min-width: 150px;">
-                    <option value="">Selecione um País...</option>
-                    <!-- Inserido dinamicamente via JS ou hardcoded para poupar chamadas -->
-                    <option value="7">Rússia (Exemplo)</option>
-                    <option value="45">Dinamarca</option>
-                    <option value="33">França</option>
+               <select id="sms-country-select" style="padding: 8px; border-radius: 5px; flex: 1; min-width: 150px;">
+                <!-- Brasil definido como o país principal do seu ecossistema -->
+                    <option value="55" selected>Brasil (+55)</option>
+                    <option value="45">Dinamarca (+45)</option>
+                    <option value="33">França (+33)</option>
                 </select>
+
                 
                 <button id="get-numbers-btn" style="padding: 8px 15px; border-radius: 5px; cursor: pointer;">Listar Números</button>
             </div>

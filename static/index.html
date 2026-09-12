@@ -44,37 +44,6 @@
         <button id="phrase-fetch-btn" title="Buscar Novas Frases">✍️</button>
         <button id="theme-btn" title="Mudar Cor de Fundo">🎨</button>
 
-        <h1>Clima e Hora Mundial</h1>
-        <div class="search-box">
-            <input type="text" id="city-input" placeholder="Digite uma cidade...">
-            <button id="search-btn">Buscar</button>
-        </div>
-        
-        <div id="result-container" class="hidden">
-            <h2 id="city-name"></h2>
-            <p id="temperature"></p>
-            <p id="local-time"></p>
-            <div id="map" style="height: 300px; width: 100%; margin: 20px 0; border-radius: 8px;"></div>
-
-            <h3>Previsão por Hora</h3>
-            <div id="hourly-forecast" class="hourly-forecast"></div>
-            <div id="forecast-section" class="hidden">
-                <h3>Previsão para os próximos 3 dias</h3>
-                <div id="forecast-container"></div>
-            </div>
-        </div>
-
-        <!-- Painel de Criptomoedas -->
-        <div id="crypto-container">
-            <h2>Preços de Criptomoedas</h2>
-            <div class="crypto-selector">
-                <input type="text" id="crypto-input" placeholder="Digite o nome ou símbolo da criptomoeda..." list="crypto-suggestions">
-                <datalist id="crypto-suggestions"></datalist>
-                <button id="add-crypto-btn">Adicionar</button>
-            </div>
-            <div id="crypto-list"></div>
-        </div>
-
         <!-- NOVO: Painel de SMS Virtual (Posicionado logo abaixo das Criptomoedas) -->
         <div id="virtual-number-container" style="display: block !important; visibility: visible !important; opacity: 1 !important; margin-top: 30px; padding: 20px; background-color: #ffffff; color: #000000; border: 3px solid #ff0000; position: relative; z-index: 9999;">
 
@@ -109,6 +78,39 @@
             </div>
         </div>
 
+
+        <h1>Clima e Hora Mundial</h1>
+        <div class="search-box">
+            <input type="text" id="city-input" placeholder="Digite uma cidade...">
+            <button id="search-btn">Buscar</button>
+        </div>
+        
+        <div id="result-container" class="hidden">
+            <h2 id="city-name"></h2>
+            <p id="temperature"></p>
+            <p id="local-time"></p>
+            <div id="map" style="height: 300px; width: 100%; margin: 20px 0; border-radius: 8px;"></div>
+
+            <h3>Previsão por Hora</h3>
+            <div id="hourly-forecast" class="hourly-forecast"></div>
+            <div id="forecast-section" class="hidden">
+                <h3>Previsão para os próximos 3 dias</h3>
+                <div id="forecast-container"></div>
+            </div>
+        </div>
+
+        <!-- Painel de Criptomoedas -->
+        <div id="crypto-container">
+            <h2>Preços de Criptomoedas</h2>
+            <div class="crypto-selector">
+                <input type="text" id="crypto-input" placeholder="Digite o nome ou símbolo da criptomoeda..." list="crypto-suggestions">
+                <datalist id="crypto-suggestions"></datalist>
+                <button id="add-crypto-btn">Adicionar</button>
+            </div>
+            <div id="crypto-list"></div>
+        </div>
+
+        
         <!-- Crypto Chart Modal -->
         <div id="crypto-modal" class="modal">
             <div class="modal-content">

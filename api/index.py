@@ -100,7 +100,7 @@ def obter_noticias():
             "country": "br",
             "language": "pt",
             "category": "politics,business,technology,world,science",
-            "excludedomain": "brasil247.com"
+            "excludedomain": "brasil247.com, poder360.com.br"
             
     }
 

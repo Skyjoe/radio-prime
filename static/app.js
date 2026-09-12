@@ -500,7 +500,9 @@ if (clearSearchBtn && searchInput) {
 // CONFIGURAÇÃO E INTEGRAÇÃO DO SMS VIRTUAL (ATUALIZADO PARA VIRTUALSMS.DE)
 // ==========================================================================
 
-// Armazenamento do estado atual da ativação na VirtualSMS
+// 🚀 Mude para 'false' quando quiser gastar seus créditos reais de $5.00
+const USAR_SIMULACAO = true; 
+
 let currentActivationId = ''; 
 let selectedCountryCode = '73'; // ID do Brasil na API VirtualSMS
 
@@ -508,14 +510,18 @@ let selectedCountryCode = '73'; // ID do Brasil na API VirtualSMS
 
 // 1. Solicitar um novo Número Virtual (Gera a ordem de compra)
 async function orderVirtualNumber(serviceCode = 'tg') {
+  if (USAR_SIMULACAO) {
+      // Simula uma resposta de sucesso instantânea sem gastar saldo
+      return { activationId: "MOCK-12345", phoneNumber: "5511999991234" };
+  }
+
   try {
-    // action=getNumberV2 traz o retorno formatado em JSON diretamente do seu proxy
     const response = await fetch(`/api/sms-proxy?action=getNumberV2&country=${selectedCountryCode}&service=${serviceCode}`);
     if (response.status === 401) {
         alert("Chave da API inválida. Verifique as configurações na Vercel.");
         return null;
     }
-    return await response.json(); // Retorna: { activationId: 12345, phoneNumber: "5511..." }
+    return await response.json(); 
   } catch (error) {
     console.error("Erro ao gerar número virtual:", error);
     return null;
@@ -524,13 +530,26 @@ async function orderVirtualNumber(serviceCode = 'tg') {
 
 // 2. Buscar o código SMS recebido (Caixa de Entrada Privada)
 async function checkSmsCode(activationId) {
+  if (USAR_SIMULACAO) {
+      // Simula que na primeira tentativa está aguardando, e na segunda entrega o código
+      if (!window.__tentativasMock) window.__tentativasMock = 0;
+      window.__tentativasMock++;
+
+      if (window.__tentativasMock < 2) {
+          return { status: "STATUS_WAIT_CODE" };
+      } else {
+          window.__tentativasMock = 0; // Reinicia para o próximo teste
+          return { status: "STATUS_OK", code: "742915" };
+      }
+  }
+
   try {
     const response = await fetch(`/api/sms-proxy?action=getStatusV2&id=${activationId}`);
     if (response.status === 401) {
         alert("Chave da API inválida. Verifique as configurações na Vercel.");
         return null;
     }
-    return await response.json(); // Retorna: { status: "STATUS_OK", code: "123456" } ou { status: "STATUS_WAIT_CODE" }
+    return await response.json(); 
   } catch (error) {
     console.error("Erro ao verificar caixa de SMS:", error);
     return null;
@@ -550,15 +569,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const nextPageBtn = document.getElementById("next-sms-page-btn");
     const messagesDisplay = document.getElementById("sms-messages-display");
 
-    // Validação de segurança dos elementos na tela
     if (!getNumbersBtn || !checkSmsBtn) return;
-
-    // Ajuste visual do botão secundário de paginação (Não usado neste fluxo simplificado da nova API)
     if (nextPageBtn) nextPageBtn.style.display = 'none';
 
-    // Evento 1: Comprar/Gerar um novo número privado para o país escolhido
+    // Se o simulador estiver ativo, coloca um aviso discreto no título do painel
+    const painelTitulo = document.querySelector("#virtual-number-container h2");
+    if (painelTitulo && USAR_SIMULACAO) {
+        painelTitulo.textContent = "SMS Virtual Temporário (Modo Simulação 🛠️)";
+    }
+
+    // Evento 1: Comprar/Gerar um novo número privado
     getNumbersBtn.addEventListener("click", async () => {
-        // Mapeia o valor do select do HTML (Brasil já vem como 73 se você atualizou)
         if (countrySelect && countrySelect.value) {
             selectedCountryCode = countrySelect.value;
         }
@@ -568,29 +589,25 @@ document.addEventListener("DOMContentLoaded", () => {
         numbersListDiv.innerHTML = "<p style='font-size:13px;'>Solicitando ativação privada ao servidor...</p>";
         messagesDisplay.innerHTML = "";
 
-        // Altere 'tg' para o serviço padrão desejado (Telegram = tg, WhatsApp = wa)
         const activation = await orderVirtualNumber('tg'); 
         
         getNumbersBtn.textContent = "Listar Números";
         getNumbersBtn.disabled = false;
-        numbersListDiv.innerHTML = ""; // Limpa texto de carregamento
+        numbersListDiv.innerHTML = ""; 
 
         if (!activation || !activation.phoneNumber) {
             numbersListDiv.innerHTML = "<p style='color: red; font-size:13px;'>Erro ou saldo insuficiente para gerar número.</p>";
             return;
         }
 
-        // Salva os dados na memória do app para a verificação do SMS posterior
         currentActivationId = activation.activationId;
-        
-        // Exibe o número gerado formatado no painel de controle
         currentNumLabel.textContent = `+${activation.phoneNumber}`;
         activePanel.classList.remove("hidden");
         
-        messagesDisplay.innerHTML = "<p style='color:#777; font-size:13px;'>Número reservado! Use-o na plataforma desejada e clique em 'Verificar Novo SMS'.</p>";
+        messagesDisplay.innerHTML = "<p style='color:#777; font-size:13px;'>Número reservado com sucesso! Insira-o no aplicativo e clique no botão abaixo para buscar o SMS.</p>";
     });
 
-    // Evento 2: Verificar o recebimento do código OTP de forma manual (Protege o seu saldo de requisições)
+    // Evento 2: Verificar o recebimento do código OTP
     checkSmsBtn.addEventListener("click", async () => {
         if (!currentActivationId) return;
 
@@ -602,8 +619,7 @@ document.addEventListener("DOMContentLoaded", () => {
         checkSmsBtn.disabled = false;
 
         if (!result) return;
-
-        messagesDisplay.innerHTML = ""; // Limpa caixas antigas
+        messagesDisplay.innerHTML = ""; 
 
         // Se o código chegou com sucesso:
         if (result.status === "STATUS_OK" && result.code) {
@@ -615,7 +631,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <strong>✅ CÓDIGO RECEBIDO COM SUCESSO</strong>
                     <span>🕒 Agora</span>
                 </div>
-                <p style="margin: 0; font-size: 20px; font-weight: 800; color: #1b5e20 !important; text-align: center; letter-spacing: 2px;">
+                <p style="margin: 0; font-size: 22px; font-weight: 800; color: #1b5e20 !important; text-align: center; letter-spacing: 3px;">
                     ${result.code}
                 </p>
             `;
@@ -625,11 +641,10 @@ document.addEventListener("DOMContentLoaded", () => {
         else if (result.status === "STATUS_WAIT_CODE" || !result.code) {
             messagesDisplay.innerHTML = `
                 <p style="font-size:13px; color:#555;">
-                    ⏳ Aguardando o SMS ser enviado pela plataforma... Tente novamente em alguns instantes.
+                    ⏳ Aguardando o SMS ser enviado pela plataforma... Clique de novo em alguns instantes.
                 </p>
             `;
-        } // Caso a ativação expire ou seja cancelada:
-        else {
+        } else {
             messagesDisplay.innerHTML = `
                 <p style="font-size:13px; color:red;">
                     ❌ Esta ativação expirou ou foi encerrada pelo servidor. Gere um novo número.
@@ -638,6 +653,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
 
 
 
